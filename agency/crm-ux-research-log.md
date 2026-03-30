@@ -133,3 +133,40 @@
 - Auto-save composer content per ticket; preserve last-used mode per ticket when reopening.
 - Collapse older internal note threads behind a toggle to keep ticket detail views readable.
 - Expose visibility scope ("Team only" / "Customer visible") as a label above the composer at all times.
+
+---
+
+## Session 5 — 2026-03-30 21:30 UTC
+**Topic:** SLA & Deadline Visualization UX for Ticketing Agents
+
+### Key Insights
+
+1. **Live countdown timers belong inside the ticket view, not just in a sidebar.** Agents need to see the deadline while actively working a ticket — not have to context-switch to find it. When the SLA timer is embedded directly in the ticket header, the psychology shifts: agents work *against* the clock rather than forgetting about it entirely. Jira and Zendesk both surface this in-ticket; it's table stakes.
+
+2. **Four-state visual escalation: Normal → Warning → Critical → Breached.** Use consistent, colour-blind-safe states: green (plenty of time), amber/yellow (warning threshold hit, e.g., <30 min or <25% remaining), red (critical, <15 min or <10%), and grey/strikethrough for breached. Never rely on colour alone — pair with icons and text labels.
+
+3. **Warning thresholds must be configurable per SLA policy.** A 4-hour SLA and a 2-week SLA need different warning triggers. Allow admins to set warning at a fixed time (e.g., "warn at 30 min remaining") and/or a percentage (e.g., "warn at 20% time remaining"). One size fits no one.
+
+4. **The SLA clock should pause when the customer is waiting.** Auto-pause timers during "Customer is reviewing" or "Pending customer response" states. Agents lose trust in SLA systems that count time they're not in control of. Hiver and HappyFox both do this; agents notice and appreciate it.
+
+5. **Show a mini SLA status bar in the ticket list/queue view.** A thin coloured bar or cell-level indicator (green/amber/red) against each ticket row gives agents instant triage capability across their queue without opening individual tickets. Sortable by SLA urgency is equally important.
+
+6. **Breach forgiveness: one-click SLA extension requests.** When agents hit a genuine edge case (customer went silent, complex escalation), a single-click "Request 1hr extension" with a required reason string lets them act without interrupting a supervisor. Reduces both breaches and supervisor interruptions.
+
+7. **Breached tickets need a "Time Past Breach" display, not just a red badge.** Showing "-00:47:23" (47 minutes overdue) is more actionable than just "Breached". It helps agents decide whether to escalate immediately or deprioritise in favour of less-delayed tickets.
+
+8. **Predictive breach warnings before the warning threshold.** If a ticket has been open for 3h45m on a 4-hour SLA, flag it as "at risk" even before the formal warning threshold. Some CRMs use a gradient indicator that shifts from green → amber as time runs down, making at-risk state visible at a glance across the queue.
+
+9. **SLA policy must be transparent to agents at all times.** Agents should never guess which SLA applies. Show the active SLA name ("Priority: Urgent — 1hr Response") and its full terms in the ticket header. If the customer upgrades the plan mid-ticket, the SLA should update immediately with a visible change notification.
+
+10. **Suppress SLA timers for closed/resolved tickets — but keep breach history visible.** There's no point counting down a resolved ticket, but knowing "Breached by 2h12m" on a resolved ticket matters for reporting, customer apology templates, and manager review. Store it, hide the countdown, surface the history.
+
+### How It Applies to Our CRM
+
+- Embed a live countdown timer in the ticket detail header — always visible while the ticket is open, never hidden behind a tab or sidebar.
+- Implement a four-state colour+icon SLA indicator (Normal/Warning/Critical/Breached) that is colour-blind accessible, with configurable thresholds per SLA policy.
+- Add a sortable SLA status column (colour-coded bar + time remaining) to the ticket list view so agents can triage by urgency without opening tickets.
+- Auto-pause timers when a ticket enters a customer-waiting state; surface the paused duration transparently so agents know why the clock stopped.
+- Show "Time Past Breach" on breached tickets, not just a static badge.
+- Add a one-click "Request Extension" action (with reason field) on at-risk tickets so agents can self-serve without interrupting a supervisor.
+- Make the active SLA policy name and terms visible in the ticket header at all times — never buried in a settings panel.
