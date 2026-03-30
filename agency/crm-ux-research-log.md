@@ -96,3 +96,40 @@
 - Add snooze (15/30/60 min) and per-type sound toggles in notification settings.
 - Offer a daily digest option for non-urgent updates (stats, resolved tickets) delivered at shift start.
 - Ensure read/unread state is visually clear and persists — agents must be able to return to a notification after closing it.
+
+---
+
+## Session 4 — 2026-03-30 20:30 UTC
+**Topic:** Internal Notes vs. Public Reply UX in Ticketing Systems
+
+### Key Insights
+
+1. **Make the Internal/Public toggle visually unambiguous — and the default logical.** Agents must instantly know which mode they're in before typing. A prominent pill toggle or tab (not a tiny dropdown buried below the text area) prevents accidental public replies. Default should match the agent's most likely action for the current ticket state.
+
+2. **Visual differentiation must survive colour-blindness.** Using only green (internal) vs. blue (public) fails for colour-blind users. Use distinct icons (🔒 vs. 💬), labels, and background tints alongside colour to make mode instantly scannable.
+
+3. **Don't hide internal notes from other agents.** Internal notes are for *customer opacity*, not *team opacity*. If two agents are on the same ticket, both should see each other's internal notes without clicking anything. Hiding notes from teammates creates duplicated effort and frustration.
+
+4. **Preserve mode state per ticket, not globally.** Agents often switch between internal-then-public on the same ticket. Remember the last mode used on each ticket and restore it when reopening — Zendesk's failure to do this is a common pain point.
+
+5. **Threaded/chronological mixing is a UX anti-pattern.** Don't dump internal notes and public replies into one chronological stream with no visual separator. Use alternating backgrounds, dividers, or a side-by-side split (notes left, replies right) so agents instantly know which is which without reading timestamps.
+
+6. **Warn before sending a public reply that contains internal context.** If an agent's draft includes text like "they're lying about…" or "escalate to Tier 2" and they're about to send publicly, surface a confirmation prompt. One accidental public disclosure can destroy trust.
+
+7. **Allow agents to convert a note to a reply (and vice versa) before sending.** Context shifts — an agent may start a note but then decide the information is useful for the customer. Let them switch modes without losing draft content.
+
+8. **Show who can see each type at the top of the composer.** A one-line label like "Visible to: Your team only" vs. "Visible to: Customer + Your team" right above the text area eliminates ambiguity before the agent invests time in drafting.
+
+9. **Internal note drafts should persist across ticket switches.** If an agent is mid-note on Ticket #404 and gets pulled to Ticket #500, they shouldn't lose their draft. Auto-save all composer content (per ticket) so context-switching is safe.
+
+10. **Collapsible internal note threads reduce visual noise.** For tickets with heavy back-and-forth between agents, collapse older internal notes by default with a "Show N hidden notes" toggle. Keeps the customer-facing context clean and prominent.
+
+### How It Applies to Our CRM
+
+- Add a persistent, icon+colour+label mode toggle in the reply composer — not buried in a dropdown.
+- Default mode should be contextual: "Reply" for customer-pending tickets, "Internal Note" for escalated/in-progress tickets where agents are collaborating.
+- Implement a visual split or clearly delineated alternating thread for internal vs. public comments — never mixed without separators.
+- Add a pre-send warning if a public reply contains words commonly associated with internal-only context (flagged phrases).
+- Auto-save composer content per ticket; preserve last-used mode per ticket when reopening.
+- Collapse older internal note threads behind a toggle to keep ticket detail views readable.
+- Expose visibility scope ("Team only" / "Customer visible") as a label above the composer at all times.
