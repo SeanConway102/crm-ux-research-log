@@ -170,3 +170,42 @@
 - Show "Time Past Breach" on breached tickets, not just a static badge.
 - Add a one-click "Request Extension" action (with reason field) on at-risk tickets so agents can self-serve without interrupting a supervisor.
 - Make the active SLA policy name and terms visible in the ticket header at all times — never buried in a settings panel.
+
+---
+
+## Session 6 — 2026-03-30 22:30 UTC
+**Topic:** Bulk Actions & Multi-Select UX for High-Volume Ticket Queues
+
+### Key Insights
+
+1. **"Select All" must be scope-aware — and say so.** A bare "Select All" is ambiguous when filters are active. It should read "Select all 47 tickets" or "Select all 847 tickets (matching current filters)" to avoid accidentally bulk-applying actions to tickets outside the current view. Gmail gets this right; many CRMs don't.
+
+2. **A contextual action bar appears after selection — it doesn't exist before.** The pattern: user selects items → a floating/sticky action bar animates in (Assign, Change Status, Add Tag, Close). This keeps the UI clean before selection and avoids polluting the interface with controls that do nothing until items are chosen. Kill it (deselect all) → bar disappears.
+
+3. **Communicate eligibility before the action, not after.** If 3 of 12 selected tickets are already resolved and the agent tries to "Close" them, surface this *before* submitting — show "3 tickets already closed" inline with the action button disabled, and tooltip explaining why. Never silently skip items or apply actions partially without explanation.
+
+4. **Checkbox targets must be ≥24×24px with visible hover affordances.** Row-level checkboxes that appear only on hover are a known failure pattern — agents scanning a list miss them entirely. Keep checkboxes always visible (or at minimum, provide a very obvious hover affordance). Row hover highlighting should signal "this row is interactive."
+
+5. **Bulk actions must be reversible or have clear confirmation for destructive ops.** Close, Delete, and reassign-SLA are high-stakes. Show a confirmation summary: "Close 12 tickets" → dialog listing each ticket subject or a count if >5. For less destructive actions (add tag, change priority), optimistic apply + undo toast (5–10s window) is faster and less disruptive than a modal.
+
+6. **Pagination breaks bulk selection — fix it explicitly.** If an agent selects 10 tickets on page 1, switches to page 2, selects 10 more, then tries a bulk action — the system must either preserve selection across pages or warn clearly: "Bulk actions apply to the 10 tickets on this page. To apply to all selected across pages, use 'Select all N matching.'" Don't silently lose their multi-page selection.
+
+7. **Keyboard multi-select accelerates high-volume workflows.** `Shift+Click` for range select, `Cmd/Ctrl+Click` for toggle, `Cmd/Ctrl+A` to select all on page. A "Select all visible" shortcut in the toolbar (or `/` to focus search + `Cmd+A`) makes power users dramatically faster. Always pair with `Esc` to clear selection.
+
+8. **Bulk edit flows need per-field "Apply to all" vs. "Clear existing" semantics.** When bulk-editing tickets (e.g., changing assignee or priority), some fields should replace existing values, others should only apply to tickets that don't already have a value. Let agents choose: "Set assignee to Sarah — *overwrite existing?* Yes / No." Ambiguity here causes data corruption.
+
+9. **Progress feedback for bulk operations is non-negotiable.** Bulk-closing 200 tickets shouldn't show a spinner for 30 seconds with no feedback. Use a progress indicator ("Closing tickets: 47/200") or at minimum an optimistic update with a后台 job status indicator. Show a completion summary: "✓ 198 closed. 2 skipped (already resolved)."
+
+10. **Saved bulk action macros save real agents hours per week.** Let teams save "Close + Tag: spam" or "Reassign to Tier-2 + Add internal note" as reusable macros. Named clearly, one-click to execute. For teams handling 500+ tickets/day, this is the difference between a CRM that feels like a生产力 tool and one that feels like a spreadsheet.
+
+### How It Applies to Our CRM
+
+- Add a sticky contextual action bar (Assign, Set Status, Add Tag, Close) that appears on first ticket selection and disappears on deselect.
+- Make row checkboxes always visible — don't hide them on hover. Row hover highlight as affordance.
+- Implement scope-aware "Select all N (matching filters)" in the checkbox column header.
+- For bulk actions on mixed-state tickets, show eligibility warnings inline before submission (e.g., "N tickets already closed — will be skipped").
+- Support Shift+Click range select and Cmd/Ctrl+Click toggle; `Cmd+A` selects all on current page.
+- Preserve selection across pagination with a persistent selection indicator and multi-page bulk apply option.
+- Add a bulk-edit confirmation dialog with per-field overwrite toggle.
+- Show real-time progress for bulk operations affecting >20 tickets.
+- Introduce saved "Bulk Macros" — team-configurable one-click bulk action combos.
