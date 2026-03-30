@@ -1,0 +1,684 @@
+[2026-03-29 17:09] === CRM Development Check Starting ===
+[2026-03-29 17:09] CRM API: OK
+[2026-03-29 17:10] Frontend: HTTP 307
+[2026-03-29 17:10] Git pull: OK
+[2026-03-29 17:10] Open issues: 2
+[2026-03-29 17:10] Code scan — console.error: 5, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 17:10] Filed issue: {
+  "number": 26,
+  "title": "chore: audit and address TODO/FIXME/HACK comments"
+}
+[2026-03-29 17:30] === CRM Development Check Starting ===
+[2026-03-29 17:30] === CRM Development Check Starting ===
+[2026-03-29 17:30] CRM API: OK
+[2026-03-29 17:30] CRM API: OK
+[2026-03-29 17:30] Frontend: HTTP 307
+[2026-03-29 17:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 17:30] Git pull: OK
+[2026-03-29 17:30] Git pull: OK
+[2026-03-29 17:30] Open issues: 3
+[2026-03-29 17:30] Open issues: 3
+[2026-03-29 17:30] Code scan — console.error: 5, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 17:30] Code scan — console.error: 5, TODO/FIXME: 4, type:any: 9, unused imports: 0
+jq: error (at <stdin>:261): boolean (false) and string ("type") cannot have their containment checked
+/root/.openclaw/workspace-agency/crm-cron.sh: line 94: [: : integer expression expected
+[2026-03-29 17:30] Console errors: 5 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 17:30] Console errors: 5 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 17:30] === CRM Development Check Complete ===
+[2026-03-29 17:30] === CRM Development Check Complete ===
+
+[2026-03-29 18:30] === CRM Development Check Starting ===
+[2026-03-29 18:30] === CRM Development Check Starting ===
+[2026-03-29 18:30] CRM API: OK
+[2026-03-29 18:30] CRM API: OK
+[2026-03-29 18:30] Frontend: HTTP 307
+[2026-03-29 18:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 18:30] Git pull: OK
+[2026-03-29 18:30] Git pull: OK
+[2026-03-29 18:30] Open issues: 5
+[2026-03-29 18:30] Open issues: 5
+[2026-03-29 18:30] Code scan — console.error: 7, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 18:30] Code scan — console.error: 7, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 18:30] Filed issue: {
+  "number": 29,
+  "title": "chore: reduce TypeScript any usage — add strict types"
+}
+[2026-03-29 18:30] Filed issue: {
+  "number": 29,
+  "title": "chore: reduce TypeScript any usage — add strict types"
+}
+[2026-03-29 18:30] Console errors: 7 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 18:30] Console errors: 7 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 18:30] === CRM Development Check Complete ===
+[2026-03-29 18:30] === CRM Development Check Complete ===
+
+[2026-03-29 19:30] === CRM Development Check Starting ===
+[2026-03-29 19:30] === CRM Development Check Starting ===
+[2026-03-29 19:30] CRM API: OK
+[2026-03-29 19:30] CRM API: OK
+[2026-03-29 19:30] Frontend: HTTP 307
+[2026-03-29 19:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 19:30] Git pull: OK
+[2026-03-29 19:30] Git pull: OK
+[2026-03-29 19:30] Open issues: 7
+[2026-03-29 19:30] Open issues: 7
+[2026-03-29 19:30] Code scan — console.error: 11, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 19:30] Code scan — console.error: 11, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 19:30] Console errors: 11 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 19:30] Console errors: 11 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 19:30] === CRM Development Check Complete ===
+[2026-03-29 19:30] === CRM Development Check Complete ===
+
+[2026-03-29 20:30] === CRM Development Check Starting ===
+[2026-03-29 20:30] === CRM Development Check Starting ===
+[2026-03-29 20:30] CRM API: OK
+[2026-03-29 20:30] CRM API: OK
+[2026-03-29 20:30] Frontend: HTTP 307
+[2026-03-29 20:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 20:30] Git pull: OK
+[2026-03-29 20:30] Git pull: OK
+[2026-03-29 20:30] Open issues: 7
+[2026-03-29 20:30] Open issues: 7
+[2026-03-29 20:30] Code scan — console.error: 11, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 20:30] Code scan — console.error: 11, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 20:30] Console errors: 11 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 20:30] Console errors: 11 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 20:30] === CRM Development Check Complete ===
+[2026-03-29 20:30] === CRM Development Check Complete ===
+
+[2026-03-29 21:30] === CRM Development Check Starting ===
+[2026-03-29 21:30] === CRM Development Check Starting ===
+[2026-03-29 21:30] CRM API: OK
+[2026-03-29 21:30] CRM API: OK
+[2026-03-29 21:30] Frontend: HTTP 307
+[2026-03-29 21:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 21:30] Git pull: OK
+[2026-03-29 21:30] Git pull: OK
+[2026-03-29 21:30] Open issues: 7
+[2026-03-29 21:30] Open issues: 7
+[2026-03-29 21:30] Code scan — console.error: 12, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 21:30] Code scan — console.error: 12, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 21:30] Console errors: 12 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 21:30] Console errors: 12 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 21:30] === CRM Development Check Complete ===
+[2026-03-29 21:30] === CRM Development Check Complete ===
+
+[2026-03-29 22:30] === CRM Development Check Starting ===
+[2026-03-29 22:30] === CRM Development Check Starting ===
+[2026-03-29 22:30] CRM API: OK
+[2026-03-29 22:30] CRM API: OK
+[2026-03-29 22:30] Frontend: HTTP 307
+[2026-03-29 22:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 22:30] Git pull: OK
+[2026-03-29 22:30] Git pull: OK
+[2026-03-29 22:30] Open issues: 7
+[2026-03-29 22:30] Open issues: 7
+[2026-03-29 22:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 22:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 22:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 22:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 22:30] === CRM Development Check Complete ===
+[2026-03-29 22:30] === CRM Development Check Complete ===
+
+[2026-03-29 23:30] === CRM Development Check Starting ===
+[2026-03-29 23:30] === CRM Development Check Starting ===
+[2026-03-29 23:30] CRM API: OK
+[2026-03-29 23:30] CRM API: OK
+[2026-03-29 23:30] Frontend: HTTP 307
+[2026-03-29 23:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-29 23:30] Git pull: OK
+[2026-03-29 23:30] Git pull: OK
+[2026-03-29 23:30] Open issues: 7
+[2026-03-29 23:30] Open issues: 7
+[2026-03-29 23:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 23:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-29 23:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 23:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-29 23:30] === CRM Development Check Complete ===
+[2026-03-29 23:30] === CRM Development Check Complete ===
+
+[2026-03-30 00:20] API health: ok | Frontend: 307
+[2026-03-30 00:20] Ticket queue API error: internal server error
+[2026-03-30 00:20] === Ticket Check Complete ===
+
+[2026-03-30 00:21] API health: ok | Frontend: 307
+[2026-03-30 00:21] Open tickets: 0 | High: 0 | Urgent: 0
+[2026-03-30 00:21] === Ticket Check Complete ===
+
+[2026-03-30 00:21] API health: ok | Frontend: 307
+[2026-03-30 00:21] Open tickets: 0 | High: 0 | Urgent: 0
+[2026-03-30 00:21] === Ticket Check Complete ===
+
+[2026-03-30 00:22] API health: ok | Frontend: 307
+[2026-03-30 00:22] Open tickets: 0 | High: 0 | Urgent: 0
+[2026-03-30 00:22] === Ticket Check Complete ===
+
+[2026-03-30 00:23] API health: ok | Frontend: 307
+[2026-03-30 00:23] Open tickets: 6 | High: 1 | Urgent: 0
+[2026-03-30 00:23] Heads up: 1 high-priority ticket(s) pending
+[2026-03-30 00:23] === Ticket Check Complete ===
+
+[2026-03-30 00:28] API health: ok | Frontend: 307
+[2026-03-30 00:28] Open tickets: 6 | High/Urgent: 1
+[2026-03-30 00:28] High-priority tickets written to pending-tickets.md
+[2026-03-30 00:28] === Ticket Check Complete ===
+
+[2026-03-30 00:30] === CRM Development Check Starting ===
+[2026-03-30 00:30] === CRM Development Check Starting ===
+[2026-03-30 00:30] CRM API: OK
+[2026-03-30 00:30] CRM API: OK
+[2026-03-30 00:30] Frontend: HTTP 307
+[2026-03-30 00:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 00:30] Git pull: OK
+[2026-03-30 00:30] Git pull: OK
+[2026-03-30 00:30] Open issues: 7
+[2026-03-30 00:30] Open issues: 7
+[2026-03-30 00:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 00:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 00:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 00:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 00:30] === CRM Development Check Complete ===
+[2026-03-30 00:30] === CRM Development Check Complete ===
+
+[2026-03-30 01:00] API health: ok | Frontend: 307
+[2026-03-30 01:00] API health: ok | Frontend: 307
+[2026-03-30 01:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 01:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 01:00] === Ticket Check Complete ===
+[2026-03-30 01:00] === Ticket Check Complete ===
+
+[2026-03-30 01:30] === CRM Development Check Starting ===
+[2026-03-30 01:30] === CRM Development Check Starting ===
+[2026-03-30 01:30] CRM API: OK
+[2026-03-30 01:30] CRM API: OK
+[2026-03-30 01:30] Frontend: HTTP 307
+[2026-03-30 01:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 01:30] Git pull: OK
+[2026-03-30 01:30] Git pull: OK
+[2026-03-30 01:30] Open issues: 7
+[2026-03-30 01:30] Open issues: 7
+[2026-03-30 01:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 01:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 01:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 01:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 01:30] === CRM Development Check Complete ===
+[2026-03-30 01:30] === CRM Development Check Complete ===
+
+[2026-03-30 02:00] API health: ok | Frontend: 307
+[2026-03-30 02:00] API health: ok | Frontend: 307
+[2026-03-30 02:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 02:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 02:00] === Ticket Check Complete ===
+[2026-03-30 02:00] === Ticket Check Complete ===
+
+[2026-03-30 02:30] === CRM Development Check Starting ===
+[2026-03-30 02:30] === CRM Development Check Starting ===
+[2026-03-30 02:30] CRM API: OK
+[2026-03-30 02:30] CRM API: OK
+[2026-03-30 02:30] Frontend: HTTP 307
+[2026-03-30 02:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 02:30] Git pull: OK
+[2026-03-30 02:30] Git pull: OK
+[2026-03-30 02:30] Open issues: 7
+[2026-03-30 02:30] Open issues: 7
+[2026-03-30 02:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 02:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 02:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 02:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 02:30] === CRM Development Check Complete ===
+[2026-03-30 02:30] === CRM Development Check Complete ===
+
+[2026-03-30 03:00] API health: ok | Frontend: 307
+[2026-03-30 03:00] API health: ok | Frontend: 307
+[2026-03-30 03:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 03:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 03:00] === Ticket Check Complete ===
+[2026-03-30 03:00] === Ticket Check Complete ===
+
+[2026-03-30 03:30] === CRM Development Check Starting ===
+[2026-03-30 03:30] === CRM Development Check Starting ===
+[2026-03-30 03:30] CRM API: OK
+[2026-03-30 03:30] CRM API: OK
+[2026-03-30 03:30] Frontend: HTTP 307
+[2026-03-30 03:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 03:30] Git pull: OK
+[2026-03-30 03:30] Git pull: OK
+[2026-03-30 03:30] Open issues: 7
+[2026-03-30 03:30] Open issues: 7
+[2026-03-30 03:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 03:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 03:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 03:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 03:30] === CRM Development Check Complete ===
+[2026-03-30 03:30] === CRM Development Check Complete ===
+
+[2026-03-30 04:00] API health: ok | Frontend: 307
+[2026-03-30 04:00] API health: ok | Frontend: 307
+[2026-03-30 04:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 04:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 04:00] === Ticket Check Complete ===
+[2026-03-30 04:00] === Ticket Check Complete ===
+
+[2026-03-30 04:30] === CRM Development Check Starting ===
+[2026-03-30 04:30] === CRM Development Check Starting ===
+[2026-03-30 04:30] CRM API: OK
+[2026-03-30 04:30] CRM API: OK
+[2026-03-30 04:30] Frontend: HTTP 307
+[2026-03-30 04:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 04:30] Git pull: OK
+[2026-03-30 04:30] Git pull: OK
+[2026-03-30 04:30] Open issues: 7
+[2026-03-30 04:30] Open issues: 7
+[2026-03-30 04:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 04:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 04:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 04:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 04:30] === CRM Development Check Complete ===
+[2026-03-30 04:30] === CRM Development Check Complete ===
+
+[2026-03-30 05:00] API health: ok | Frontend: 307
+[2026-03-30 05:00] API health: ok | Frontend: 307
+[2026-03-30 05:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 05:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 05:00] === Ticket Check Complete ===
+[2026-03-30 05:00] === Ticket Check Complete ===
+
+[2026-03-30 05:30] === CRM Development Check Starting ===
+[2026-03-30 05:30] === CRM Development Check Starting ===
+[2026-03-30 05:30] CRM API: OK
+[2026-03-30 05:30] CRM API: OK
+[2026-03-30 05:30] Frontend: HTTP 307
+[2026-03-30 05:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 05:30] Git pull: OK
+[2026-03-30 05:30] Git pull: OK
+[2026-03-30 05:30] Open issues: 7
+[2026-03-30 05:30] Open issues: 7
+[2026-03-30 05:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 05:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 05:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 05:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 05:30] === CRM Development Check Complete ===
+[2026-03-30 05:30] === CRM Development Check Complete ===
+
+[2026-03-30 06:00] API health: ok | Frontend: 307
+[2026-03-30 06:00] API health: ok | Frontend: 307
+[2026-03-30 06:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 06:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 06:00] === Ticket Check Complete ===
+[2026-03-30 06:00] === Ticket Check Complete ===
+
+[2026-03-30 06:30] === CRM Development Check Starting ===
+[2026-03-30 06:30] === CRM Development Check Starting ===
+[2026-03-30 06:30] CRM API: OK
+[2026-03-30 06:30] CRM API: OK
+[2026-03-30 06:30] Frontend: HTTP 307
+[2026-03-30 06:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 06:30] Git pull: OK
+[2026-03-30 06:30] Git pull: OK
+[2026-03-30 06:30] Open issues: 7
+[2026-03-30 06:30] Open issues: 7
+[2026-03-30 06:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 06:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 06:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 06:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 06:30] === CRM Development Check Complete ===
+[2026-03-30 06:30] === CRM Development Check Complete ===
+
+[2026-03-30 07:00] API health: ok | Frontend: 307
+[2026-03-30 07:00] API health: ok | Frontend: 307
+[2026-03-30 07:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 07:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 07:00] === Ticket Check Complete ===
+[2026-03-30 07:00] === Ticket Check Complete ===
+
+[2026-03-30 07:30] === CRM Development Check Starting ===
+[2026-03-30 07:30] === CRM Development Check Starting ===
+[2026-03-30 07:30] CRM API: OK
+[2026-03-30 07:30] CRM API: OK
+[2026-03-30 07:30] Frontend: HTTP 307
+[2026-03-30 07:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 07:30] Git pull: OK
+[2026-03-30 07:30] Git pull: OK
+[2026-03-30 07:30] Open issues: 7
+[2026-03-30 07:30] Open issues: 7
+[2026-03-30 07:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 07:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 07:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 07:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 07:30] === CRM Development Check Complete ===
+[2026-03-30 07:30] === CRM Development Check Complete ===
+
+[2026-03-30 08:00] API health: ok | Frontend: 307
+[2026-03-30 08:00] API health: ok | Frontend: 307
+[2026-03-30 08:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 08:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 08:00] === Ticket Check Complete ===
+[2026-03-30 08:00] === Ticket Check Complete ===
+
+[2026-03-30 08:30] === CRM Development Check Starting ===
+[2026-03-30 08:30] === CRM Development Check Starting ===
+[2026-03-30 08:30] CRM API: OK
+[2026-03-30 08:30] CRM API: OK
+[2026-03-30 08:30] Frontend: HTTP 307
+[2026-03-30 08:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 08:30] Git pull: OK
+[2026-03-30 08:30] Git pull: OK
+[2026-03-30 08:30] Open issues: 7
+[2026-03-30 08:30] Open issues: 7
+[2026-03-30 08:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 08:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 08:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 08:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 08:30] === CRM Development Check Complete ===
+[2026-03-30 08:30] === CRM Development Check Complete ===
+
+[2026-03-30 09:00] API health: ok | Frontend: 307
+[2026-03-30 09:00] API health: ok | Frontend: 307
+[2026-03-30 09:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 09:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 09:00] === Ticket Check Complete ===
+[2026-03-30 09:00] === Ticket Check Complete ===
+
+[2026-03-30 09:30] === CRM Development Check Starting ===
+[2026-03-30 09:30] === CRM Development Check Starting ===
+[2026-03-30 09:30] CRM API: OK
+[2026-03-30 09:30] CRM API: OK
+[2026-03-30 09:30] Frontend: HTTP 307
+[2026-03-30 09:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 09:30] Git pull: OK
+[2026-03-30 09:30] Git pull: OK
+[2026-03-30 09:30] Open issues: 7
+[2026-03-30 09:30] Open issues: 7
+[2026-03-30 09:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 09:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 09:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 09:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 09:30] === CRM Development Check Complete ===
+[2026-03-30 09:30] === CRM Development Check Complete ===
+
+[2026-03-30 10:00] API health: ok | Frontend: 307
+[2026-03-30 10:00] API health: ok | Frontend: 307
+[2026-03-30 10:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 10:00] Open tickets: 3 | High/Urgent: 0
+[2026-03-30 10:00] === Ticket Check Complete ===
+[2026-03-30 10:00] === Ticket Check Complete ===
+
+[2026-03-30 10:24] [LH-TRIAGE] Running triage for tickets created since 2026-03-30T00:00:00Z
+[2026-03-30 10:24] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:24] [LH-TRIAGE] New tickets since last run: 
+[2026-03-30 10:24] [LH-TRIAGE] Triage complete:  new, 0 elevated to high, 0 medium
+[2026-03-30 10:24] [LH-TRIAGE] === Lighthouse Triage Complete ===
+
+[2026-03-30 10:24] [LH-TRIAGE] Running triage for tickets created since 2026-03-29T00:00:00Z
+[2026-03-30 10:24] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:24] [LH-TRIAGE] New tickets since last run: 
+[2026-03-30 10:24] [LH-TRIAGE] Triage complete:  new, 0 elevated to high, 0 medium
+[2026-03-30 10:24] [LH-TRIAGE] === Lighthouse Triage Complete ===
+
+[2026-03-30 10:27] [LH-TRIAGE] Running triage for tickets created since 2026-03-27T00:00:00Z
+[2026-03-30 10:27] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:27] [LH-TRIAGE] New tickets since last run: 
+[2026-03-30 10:27] [LH-TRIAGE] Triage complete:  new, 0 elevated to high, 0 medium
+[2026-03-30 10:27] [LH-TRIAGE] === Lighthouse Triage Complete ===
+
+[2026-03-30 10:28] [LH-TRIAGE] Running triage for tickets created since 2026-03-30T10:27:31Z
+[2026-03-30 10:28] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:29] [LH-TRIAGE] Running triage for tickets created since 2026-03-27T00:00:00Z
+[2026-03-30 10:29] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:29] [LH-TRIAGE] New tickets since last run: 16
+[2026-03-30 10:29] [LH-TRIAGE] Processing: aagutterseamless: Lighthouse Performance 68 — close to 90 target (ID: 4aea9c69-213c-4193-a896-d2ac2f4a1ba2)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 4aea9c69-213c-4193-a896-d2ac2f4a1ba2
+[2026-03-30 10:29] [LH-TRIAGE] Processing: palspowerwashing: Lighthouse Performance 61 + BP 88 + SEO 92 — multiple issues (ID: a3a62f24-6a6f-4c89-9207-375a2bb2ca6c)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket a3a62f24-6a6f-4c89-9207-375a2bb2ca6c
+[2026-03-30 10:29] [LH-TRIAGE] Processing: southingtongardens: Lighthouse Performance 69 — approach 90 target (ID: 62b5b5d4-1065-4b34-b603-ee80cc53906f)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 62b5b5d4-1065-4b34-b603-ee80cc53906f
+[2026-03-30 10:29] [LH-TRIAGE] Processing: brimatco: Lighthouse Performance 58 + BP 92 — performance optimization needed (ID: be7fada9-6906-4ab7-a106-0a6595c70ec2)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket be7fada9-6906-4ab7-a106-0a6595c70ec2
+[2026-03-30 10:29] [LH-TRIAGE] Processing: 3Cs Tavern: Lighthouse Performance 62 + SEO 92 — performance and meta audit (ID: cd2d8732-7f9a-43bf-ac57-f603d42d1167)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket cd2d8732-7f9a-43bf-ac57-f603d42d1167
+[2026-03-30 10:29] [LH-TRIAGE] Processing: apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, image optimization needed (ID: 1d9f172d-9996-4815-b549-fd7e64ad1c0a)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 1d9f172d-9996-4815-b549-fd7e64ad1c0a
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 1d9f172d-9996-4815-b549-fd7e64ad1c0a to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Fairway Irrigation: Lighthouse Performance 55 — TBT 9.4s, JS bundle audit needed (ID: d48247e8-881a-4200-a4a8-f692584934fc)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket d48247e8-881a-4200-a4a8-f692584934fc
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles (ID: fb8c89ea-1003-472e-af9f-820a68811f49)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket fb8c89ea-1003-472e-af9f-820a68811f49
+[2026-03-30 10:29] [LH-TRIAGE] Elevated fb8c89ea-1003-472e-af9f-820a68811f49 to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 — images and security audit (ID: 03c05b03-a1b5-421d-aa94-0f357ec32a3d)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 03c05b03-a1b5-421d-aa94-0f357ec32a3d
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 03c05b03-a1b5-421d-aa94-0f357ec32a3d to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Tax Career Advisor: Lighthouse Performance 40 + SEO 92 — optimize and fix meta (ID: 9e5b42a4-55a9-4695-87f5-c5587bdc0004)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 9e5b42a4-55a9-4695-87f5-c5587bdc0004
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 9e5b42a4-55a9-4695-87f5-c5587bdc0004 to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, optimize images (ID: 425a1b95-87d3-4a70-b601-3dfa4604f1ed)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 425a1b95-87d3-4a70-b601-3dfa4604f1ed
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 425a1b95-87d3-4a70-b601-3dfa4604f1ed to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Fairway Irrigation: Lighthouse Performance 55 — optimize images (LCP 3.96s) (ID: 89311124-e748-4ffb-8f8a-26d58d5f9492)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 89311124-e748-4ffb-8f8a-26d58d5f9492
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Tax Career Advisor: Lighthouse Performance 40 — optimize images and fix SEO meta (ID: 73153241-7125-473f-b29c-85bce8f41b63)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 73153241-7125-473f-b29c-85bce8f41b63
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 73153241-7125-473f-b29c-85bce8f41b63 to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 (ID: fd2be73b-f57d-4540-b0da-960ede0a7d9c)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket fd2be73b-f57d-4540-b0da-960ede0a7d9c
+[2026-03-30 10:29] [LH-TRIAGE] Elevated fd2be73b-f57d-4540-b0da-960ede0a7d9c to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles (ID: 94dca27a-3705-4f68-a4c4-6d8312f824cb)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket 94dca27a-3705-4f68-a4c4-6d8312f824cb
+[2026-03-30 10:29] [LH-TRIAGE] Elevated 94dca27a-3705-4f68-a4c4-6d8312f824cb to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Processing: Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit (ID: b7ae3e20-9edf-492a-83b6-d45afb6354d0)
+[2026-03-30 10:29] [LH-TRIAGE] Posted triage findings to ticket b7ae3e20-9edf-492a-83b6-d45afb6354d0
+[2026-03-30 10:29] [LH-TRIAGE] Elevated b7ae3e20-9edf-492a-83b6-d45afb6354d0 to high priority
+[2026-03-30 10:29] [LH-TRIAGE] Triage complete: 16 new, 9 elevated to high, 7 medium
+[2026-03-30 10:29] [LH-TRIAGE]   - aagutterseamless: Lighthouse Performance 68 — close to 90 target: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - palspowerwashing: Lighthouse Performance 61 + BP 88 + SEO 92 — multiple issues: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - southingtongardens: Lighthouse Performance 69 — approach 90 target: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - brimatco: Lighthouse Performance 58 + BP 92 — performance optimization needed: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - 3Cs Tavern: Lighthouse Performance 62 + SEO 92 — performance and meta audit: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, image optimization needed: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Fairway Irrigation: Lighthouse Performance 55 — TBT 9.4s, JS bundle audit needed: medium
+[2026-03-30 10:29] [LH-TRIAGE]   - Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 — images and security audit: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Tax Career Advisor: Lighthouse Performance 40 + SEO 92 — optimize and fix meta: high
+[2026-03-30 10:29] [LH-TRIAGE]   - apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, optimize images: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Fairway Irrigation: Lighthouse Performance 55 — optimize images (LCP 3.96s): medium
+[2026-03-30 10:29] [LH-TRIAGE]   - Tax Career Advisor: Lighthouse Performance 40 — optimize images and fix SEO meta: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles: high
+[2026-03-30 10:29] [LH-TRIAGE]   - Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit: high
+[2026-03-30 10:29] [LH-TRIAGE] === Lighthouse Triage Complete ===
+
+[2026-03-30 10:30] === CRM Development Check Starting ===
+[2026-03-30 10:30] === CRM Development Check Starting ===
+[2026-03-30 10:30] CRM API: OK
+[2026-03-30 10:30] CRM API: OK
+[2026-03-30 10:30] Frontend: HTTP 307
+[2026-03-30 10:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 10:30] Git pull: OK
+[2026-03-30 10:30] Git pull: OK
+[2026-03-30 10:30] Open issues: 7
+[2026-03-30 10:30] Open issues: 7
+[2026-03-30 10:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 10:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 10:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 10:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 10:30] === CRM Development Check Complete ===
+[2026-03-30 10:30] === CRM Development Check Complete ===
+
+[2026-03-30 10:38] [LH-TRIAGE] Running triage for tickets created since 2026-03-28T00:00:00Z
+[2026-03-30 10:38] [LH-TRIAGE] Found 16 performance tickets in Backlog
+[2026-03-30 10:38] [LH-TRIAGE] New tickets since last run: 16
+[2026-03-30 10:38] [LH-TRIAGE] Processing: aagutterseamless: Lighthouse Performance 68 — close to 90 target (ID: 4aea9c69-213c-4193-a896-d2ac2f4a1ba2)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 4aea9c69-213c-4193-a896-d2ac2f4a1ba2
+[2026-03-30 10:38] [LH-TRIAGE] Processing: palspowerwashing: Lighthouse Performance 61 + BP 88 + SEO 92 — multiple issues (ID: a3a62f24-6a6f-4c89-9207-375a2bb2ca6c)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket a3a62f24-6a6f-4c89-9207-375a2bb2ca6c
+[2026-03-30 10:38] [LH-TRIAGE] Processing: southingtongardens: Lighthouse Performance 69 — approach 90 target (ID: 62b5b5d4-1065-4b34-b603-ee80cc53906f)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 62b5b5d4-1065-4b34-b603-ee80cc53906f
+[2026-03-30 10:38] [LH-TRIAGE] Processing: brimatco: Lighthouse Performance 58 + BP 92 — performance optimization needed (ID: be7fada9-6906-4ab7-a106-0a6595c70ec2)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket be7fada9-6906-4ab7-a106-0a6595c70ec2
+[2026-03-30 10:38] [LH-TRIAGE] Processing: 3Cs Tavern: Lighthouse Performance 62 + SEO 92 — performance and meta audit (ID: cd2d8732-7f9a-43bf-ac57-f603d42d1167)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket cd2d8732-7f9a-43bf-ac57-f603d42d1167
+[2026-03-30 10:38] [LH-TRIAGE] Processing: apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, image optimization needed (ID: 1d9f172d-9996-4815-b549-fd7e64ad1c0a)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 1d9f172d-9996-4815-b549-fd7e64ad1c0a
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 1d9f172d-9996-4815-b549-fd7e64ad1c0a to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Fairway Irrigation: Lighthouse Performance 55 — TBT 9.4s, JS bundle audit needed (ID: d48247e8-881a-4200-a4a8-f692584934fc)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket d48247e8-881a-4200-a4a8-f692584934fc
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles (ID: fb8c89ea-1003-472e-af9f-820a68811f49)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket fb8c89ea-1003-472e-af9f-820a68811f49
+[2026-03-30 10:38] [LH-TRIAGE] Elevated fb8c89ea-1003-472e-af9f-820a68811f49 to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 — images and security audit (ID: 03c05b03-a1b5-421d-aa94-0f357ec32a3d)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 03c05b03-a1b5-421d-aa94-0f357ec32a3d
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 03c05b03-a1b5-421d-aa94-0f357ec32a3d to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Tax Career Advisor: Lighthouse Performance 40 + SEO 92 — optimize and fix meta (ID: 9e5b42a4-55a9-4695-87f5-c5587bdc0004)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 9e5b42a4-55a9-4695-87f5-c5587bdc0004
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 9e5b42a4-55a9-4695-87f5-c5587bdc0004 to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, optimize images (ID: 425a1b95-87d3-4a70-b601-3dfa4604f1ed)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 425a1b95-87d3-4a70-b601-3dfa4604f1ed
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 425a1b95-87d3-4a70-b601-3dfa4604f1ed to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Fairway Irrigation: Lighthouse Performance 55 — optimize images (LCP 3.96s) (ID: 89311124-e748-4ffb-8f8a-26d58d5f9492)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 89311124-e748-4ffb-8f8a-26d58d5f9492
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Tax Career Advisor: Lighthouse Performance 40 — optimize images and fix SEO meta (ID: 73153241-7125-473f-b29c-85bce8f41b63)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 73153241-7125-473f-b29c-85bce8f41b63
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 73153241-7125-473f-b29c-85bce8f41b63 to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 (ID: fd2be73b-f57d-4540-b0da-960ede0a7d9c)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket fd2be73b-f57d-4540-b0da-960ede0a7d9c
+[2026-03-30 10:38] [LH-TRIAGE] Elevated fd2be73b-f57d-4540-b0da-960ede0a7d9c to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles (ID: 94dca27a-3705-4f68-a4c4-6d8312f824cb)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket 94dca27a-3705-4f68-a4c4-6d8312f824cb
+[2026-03-30 10:38] [LH-TRIAGE] Elevated 94dca27a-3705-4f68-a4c4-6d8312f824cb to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Processing: Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit (ID: b7ae3e20-9edf-492a-83b6-d45afb6354d0)
+[2026-03-30 10:38] [LH-TRIAGE] Posted triage findings to ticket b7ae3e20-9edf-492a-83b6-d45afb6354d0
+[2026-03-30 10:38] [LH-TRIAGE] Elevated b7ae3e20-9edf-492a-83b6-d45afb6354d0 to high priority
+[2026-03-30 10:38] [LH-TRIAGE] Triage complete: 16 new, 9 elevated to high, 7 medium
+[2026-03-30 10:38] [LH-TRIAGE]   - aagutterseamless: Lighthouse Performance 68 — close to 90 target: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - palspowerwashing: Lighthouse Performance 61 + BP 88 + SEO 92 — multiple issues: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - southingtongardens: Lighthouse Performance 69 — approach 90 target: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - brimatco: Lighthouse Performance 58 + BP 92 — performance optimization needed: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - 3Cs Tavern: Lighthouse Performance 62 + SEO 92 — performance and meta audit: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, image optimization needed: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Fairway Irrigation: Lighthouse Performance 55 — TBT 9.4s, JS bundle audit needed: medium
+[2026-03-30 10:38] [LH-TRIAGE]   - Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81 — images and security audit: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Tax Career Advisor: Lighthouse Performance 40 + SEO 92 — optimize and fix meta: high
+[2026-03-30 10:38] [LH-TRIAGE]   - apizzagrandetrailer: Lighthouse Performance 45 — LCP 7.57s, optimize images: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Fairway Irrigation: Lighthouse Performance 55 — optimize images (LCP 3.96s): medium
+[2026-03-30 10:38] [LH-TRIAGE]   - Tax Career Advisor: Lighthouse Performance 40 — optimize images and fix SEO meta: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Energy Busters LTD: Lighthouse Performance 38 + Best-Practices 81: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles: high
+[2026-03-30 10:38] [LH-TRIAGE]   - Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit: high
+[2026-03-30 10:38] [LH-TRIAGE] === Lighthouse Triage Complete ===
+
+[2026-03-30 10:51] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 10:51] [TICKET-WORK] Working on: Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit (ID: b7ae3e20-9edf-492a-83b6-d45afb6354d0, priority: high)
+[2026-03-30 10:51] [TICKET-WORK] Mapped to repo: 
+[2026-03-30 10:51] [TICKET-WORK] Posted diagnostic: No local repo found for . Site may be deployed externally. Check deployed next.config at the site root for image optimization settings.  
+[2026-03-30 10:51] [TICKET-WORK] No immediate actions — ticket requires deeper investigation or manual work
+[2026-03-30 10:51] [TICKET-WORK] === Ticket Work Complete ===
+
+[2026-03-30 10:56] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 10:56] [TICKET-WORK] Marked ticket b7ae3e20-9edf-492a-83b6-d45afb6354d0 as In Progress
+[2026-03-30 10:56] [TICKET-WORK] Working on: Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit
+[2026-03-30 10:56] [TICKET-WORK]   ID: b7ae3e20-9edf-492a-83b6-d45afb6354d0 | Priority: high
+[2026-03-30 10:56] [TICKET-WORK]   Repo: 
+[2026-03-30 10:56] [TICKET-WORK] No repo mapped for this ticket — posting diagnostic and skipping
+[2026-03-30 10:57] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 10:57] [TICKET-WORK] Marked ticket b7ae3e20-9edf-492a-83b6-d45afb6354d0 as In Progress
+[2026-03-30 10:57] [TICKET-WORK] Working on: Refillpen: Lighthouse Performance 27 — needs sharp, image config, and code audit
+[2026-03-30 10:57] [TICKET-WORK]   ID: b7ae3e20-9edf-492a-83b6-d45afb6354d0 | Priority: high
+[2026-03-30 10:57] [TICKET-WORK]   Repo: 
+[2026-03-30 10:57] [TICKET-WORK] No repo mapped for this ticket — posting diagnostic and skipping
+[2026-03-30 10:58] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 10:58] [TICKET-WORK] Marked ticket 94dca27a-3705-4f68-a4c4-6d8312f824cb as In Progress
+[2026-03-30 10:58] [TICKET-WORK] Working on: Salisbury Kitchen: Lighthouse Performance 43 — optimize images and JS bundles
+[2026-03-30 10:58] [TICKET-WORK]   ID: 94dca27a-3705-4f68-a4c4-6d8312f824cb | Priority: high
+[2026-03-30 10:58] [TICKET-WORK]   Repo: v0-salisbury-kitchen
+[2026-03-30 10:58] [TICKET-WORK]   sharp=installed, nextconfig=no_avif
+[2026-03-30 10:58] [TICKET-WORK]   sharp is installed — no fix needed there
+[2026-03-30 10:58] [TICKET-WORK]   Fixes to apply: add_avif
+[2026-03-30 10:58] [TICKET-WORK] Fixing next.config at /root/repos/v0-salisbury-kitchen/next.config.mjs...
+[2026-03-30 10:58] [TICKET-WORK] Building /root/repos/v0-salisbury-kitchen...
+[2026-03-30 10:58] [TICKET-WORK] Nothing to commit — changes may be identical to main
+[2026-03-30 11:00] API health: ok | Frontend: 307
+[2026-03-30 11:00] API health: ok | Frontend: 307
+[2026-03-30 11:00] Open tickets: 9 | High/Urgent: 6
+[2026-03-30 11:00] Open tickets: 9 | High/Urgent: 6
+[2026-03-30 11:00] High-priority tickets written to pending-tickets.md
+[2026-03-30 11:00] High-priority tickets written to pending-tickets.md
+[2026-03-30 11:00] === Ticket Check Complete ===
+[2026-03-30 11:00] === Ticket Check Complete ===
+
+[2026-03-30 11:30] === CRM Development Check Starting ===
+[2026-03-30 11:30] === CRM Development Check Starting ===
+[2026-03-30 11:30] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 11:30] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 11:30] CRM API: OK
+[2026-03-30 11:30] CRM API: OK
+[2026-03-30 11:30] Frontend: HTTP 307
+[2026-03-30 11:30] Frontend: HTTP 307
+[2026-03-30 11:30] [TICKET-WORK] Marked ticket 8268e7cd-24c0-454c-b76f-a2ecbe45461d as In Progress
+[2026-03-30 11:30] [TICKET-WORK] Marked ticket 8268e7cd-24c0-454c-b76f-a2ecbe45461d as In Progress
+[2026-03-30 11:30] [TICKET-WORK] Working on: Create an xml document for creating Mirrored sites
+[2026-03-30 11:30] [TICKET-WORK] Working on: Create an xml document for creating Mirrored sites
+[2026-03-30 11:30] [TICKET-WORK] No repo for this ticket — marking needs manual work
+[2026-03-30 11:30] [TICKET-WORK] No repo for this ticket — marking needs manual work
+Already up to date.
+[2026-03-30 11:30] Git pull: OK
+[2026-03-30 11:30] Git pull: OK
+[2026-03-30 11:30] Open issues: 7
+[2026-03-30 11:30] Open issues: 7
+[2026-03-30 11:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 11:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 11:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 11:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 11:30] === CRM Development Check Complete ===
+[2026-03-30 11:30] === CRM Development Check Complete ===
+
+[2026-03-30 12:00] API health: ok | Frontend: 307
+[2026-03-30 12:00] API health: ok | Frontend: 307
+[2026-03-30 12:00] Open tickets: 2 | High/Urgent: 0
+[2026-03-30 12:00] Open tickets: 2 | High/Urgent: 0
+[2026-03-30 12:00] === Ticket Check Complete ===
+[2026-03-30 12:00] === Ticket Check Complete ===
+
+[2026-03-30 12:30] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 12:30] [TICKET-WORK] === Starting Hourly Ticket Work ===
+[2026-03-30 12:30] === CRM Development Check Starting ===
+[2026-03-30 12:30] === CRM Development Check Starting ===
+[2026-03-30 12:30] CRM API: OK
+[2026-03-30 12:30] CRM API: OK
+[2026-03-30 12:30] Frontend: HTTP 307
+[2026-03-30 12:30] Frontend: HTTP 307
+Already up to date.
+[2026-03-30 12:30] Git pull: OK
+[2026-03-30 12:30] Git pull: OK
+[2026-03-30 12:30] [TICKET-WORK] Marked ticket ac1cfb62-b180-4964-94e2-59c55650b4f9 as In Progress
+[2026-03-30 12:30] [TICKET-WORK] Marked ticket ac1cfb62-b180-4964-94e2-59c55650b4f9 as In Progress
+[2026-03-30 12:30] [TICKET-WORK] Working on: MLS Realty Feed
+[2026-03-30 12:30] [TICKET-WORK] Working on: MLS Realty Feed
+[2026-03-30 12:30] [TICKET-WORK] No repo for this ticket — marking needs manual work
+[2026-03-30 12:30] [TICKET-WORK] No repo for this ticket — marking needs manual work
+[2026-03-30 12:30] Open issues: 7
+[2026-03-30 12:30] Open issues: 7
+[2026-03-30 12:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 12:30] Code scan — console.error: 13, TODO/FIXME: 4, type:any: 9, unused imports: 0
+[2026-03-30 12:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 12:30] Console errors: 13 | TODO/FIXME: 4 | type:any: 9
+[2026-03-30 12:30] === CRM Development Check Complete ===
+[2026-03-30 12:30] === CRM Development Check Complete ===
+

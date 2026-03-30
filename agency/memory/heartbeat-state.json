@@ -1,0 +1,23 @@
+{
+  "lastChecks": {
+    "health": 1743254580,
+    "frontend": 1743254580,
+    "tickets": 1743254580,
+    "prs": null
+  },
+  "notes": "CRM restarted (uptime 5m). All systems OK. Active work: salisburykitchen fix branch pushed (fix/lighthouse-performance-43). GitHub SSH working. gh CLI installed but needs PAT for API/PR creation.",
+  "browser": {
+    "chrome_deb": "/usr/bin/google-chrome",
+    "playwright": "installed",
+    "playwright_skill": "installed at ~/.openclaw/skills/playwright-scraper/",
+    "cdp_port": 9222,
+    "status": "running"
+  },
+  "lighthouse": {
+    "cli": "installed",
+    "chromium": "/usr/bin/chromium-browser",
+    "pagespeed_api_key": "saved at ~/.openclaw/workspace-agency/.pagespeed-key",
+    "repos_cloned": ["v0-salisbury-kitchen", "v0-build-a-and-b-website", "v0-3-c-s-tavern-website-jg", "v0-fairway-irrigation-website", "v0-pals-power-washing-website", "v0-gutter-website-rebuild", "v0-li-zhai-art-studio", "v0-tax-career-advisor-website", "base-template", "crm-frontend"]
+  },
+  "repos": "~/repos/"
+}
