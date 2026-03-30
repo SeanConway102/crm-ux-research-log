@@ -209,3 +209,41 @@
 - Add a bulk-edit confirmation dialog with per-field overwrite toggle.
 - Show real-time progress for bulk operations affecting >20 tickets.
 - Introduce saved "Bulk Macros" — team-configurable one-click bulk action combos.
+
+---
+
+## Session 7 — 2026-03-30 23:30 UTC
+**Topic:** Ticket Merging & Threading UX for Duplicate & Linked Tickets
+
+### Key Insights
+
+1. **Merge UX must be explicit and reversible — never silent.** Never auto-merge without agent confirmation. Show a side-by-side preview of all tickets involved, with highlighted differences (assignee, status, reply count, timestamps). Include an "Undo Merge" option for at least 30 minutes post-merge. Silent auto-merges destroy agent trust and make error recovery painful.
+
+2. **Pre-merge confirmation dialog: show what you're about to lose.** Agents must see which replies, internal notes, attachments, and CCs each ticket carries before merging. A table comparing fields across tickets (Subject, Assignee, Status, Reply Count, Tags) makes the decision fast and grounded. If one ticket has an internal note the other lacks, surface it explicitly — don't bury it.
+
+3. **Designate a primary/master ticket — preserve its ID and URL.** The merged result should retain the primary ticket's ID and thread history. This matters because customers already have email threads linked to ticket #4821 — that URL must not die. All linked emails and references point to the surviving ticket.
+
+4. **Preserve CCs and followers from ALL tickets, not just the primary.** A common merge failure: CCs on the secondary ticket get silently dropped, leaving some stakeholders out of the loop. Merge must union all CCs and follower lists. Inform all participants via a notification that their tickets have been consolidated.
+
+5. **AI-assisted duplicate detection is now table stakes, not a luxury.** Fuzzy matching on subject + requester email/company + time window (e.g., same customer within 24h) catches the obvious duplicates automatically and surfaces them as suggestions. Zoho Desk and Freshdesk both do this. Exact-match on email subject lines and requester identity catches resubmissions. Flag duplicates proactively — don't make agents hunt for them.
+
+6. **Incident tickets have radically different duplication rates — handle them separately.** Incident-type tickets (same outage reported by many customers) can have 25–40% duplication. Billing tickets ~5–8%. Access/login issues ~10–15%. The merge/dedupe strategy should be configurable per ticket category — don't treat a billing dispute the same as a service outage.
+
+7. **Post-merge, show a clear "merged from" breadcrumb on the surviving ticket.** Agents and customers viewing the thread should see: "This ticket was merged from #[orig-123] and #[orig-456]." This is both an audit trail and a trust signal — nobody thinks their issue was deleted. It also lets agents navigate to the original tickets if needed for historical context.
+
+8. **Splitting (the reverse of merging) must preserve attribution and chronology.** Agents occasionally merge tickets prematurely or later discover they cover distinct issues. The split action must distribute replies and notes to the correct target tickets — not arbitrarily reassign everything to one. Preserve timestamps so the chronological order of events is preserved in each resulting ticket.
+
+9. **Merge and split actions must appear in the ticket audit log, not just the thread.** The audit trail showing when tickets were merged, by whom, and into which ticket — this is critical for manager review, customer disputes ("I never submitted that!"), and reporting on dedupe effectiveness. Treat it as a first-class audit event, not a footnote.
+
+10. **Duplicate detection should feed into a "Suggested Merge" inbox queue, not just a warning banner.** When the system identifies a likely duplicate, instead of blocking ticket creation entirely (which causes abandonment), add it to a "Review Duplicates" queue for agents to process during lower-traffic periods. Blocking creation outright drives customers crazy — flagging it for agent review is the right middle ground.
+
+### How It Applies to Our CRM
+
+- Build a "Review Duplicates" queue fed by fuzzy matching on subject + requester identity + time window. Flag potential duplicates without blocking ticket creation.
+- On merge action: show a comparison table of all involved tickets (assignee, status, reply count, tags, CCs) and require explicit agent confirmation before merging.
+- Preserve the primary ticket's ID and URL after merge. Union all CCs and followers across source tickets — never silently drop anyone.
+- Add a visible "Merged from #[orig-xxx]" and "Split to #[new-xxx]" breadcrumb on the surviving tickets.
+- Implement split with chronological distribution of replies/notes — preserve timestamps and ownership attribution.
+- Log all merge/split events as first-class audit entries (actor, timestamp, source tickets, target ticket).
+- Allow SLA policies to define per-category dedupe sensitivity (e.g., incident tickets get stricter detection thresholds than billing tickets).
+- Make merge reversible for 30 minutes with an "Undo Merge" action that restores original ticket IDs and relationships.
