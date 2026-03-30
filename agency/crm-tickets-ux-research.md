@@ -86,7 +86,7 @@
 ### Phase 2: Meaningful Improvements (Medium Effort)
 - [ ] Bulk selection and actions
 - [ ] "Time in stage" indicator on cards (needs stage history API)
-- [ ] SLA countdown on board column headers
+- [x] SLA countdown on board column headers ✅ (commit 7d26102)
 - [ ] Keyboard navigation (j/k to move, Enter to open, Esc to close)
 - [x] Visual priority icons (urgent 🔴, high 🟠) ✅ (commit ffcd1ab)
 
