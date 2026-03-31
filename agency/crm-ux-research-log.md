@@ -516,3 +516,43 @@
 - Escalated tickets get a distinct badge/colour treatment and sort to the top of the queue — don't mix with new tickets without visual differentiation.
 - On ticket re-open, re-run full routing evaluation instead of reverting to original assignee; notify the new assignee if routing changes.
 
+---
+
+## Session 15 — 2026-03-31 08:30 UTC
+**Topic:** Keyboard Shortcuts, Accessibility & Power-User Efficiency for Ticketing CRMs
+
+### Key Insights
+
+1. **Shortcut discoverability is the #1 adoption barrier — fix it permanently.** A `?` shortcut that opens a searchable, categorised shortcut overlay (Navigation, Ticket Actions, Composer, Macros) is baseline table stakes. Beyond that, surface contextual shortcuts inline: when an agent hovers a button, show its keyboard equivalent in the tooltip. Gmail and Linear both do this. Agents who can't discover shortcuts never use them.
+
+2. **Layer shortcuts by proficiency: basic → power → expert.** A CRM used by both onboarding agents and 5-year veterans needs a three-tier shortcut model. Basic: `R` to reply, `N` new ticket, `J/K` or `↑↓` to navigate. Power: `Shift+R` for internal note, `E` to edit status, `M` to merge. Expert: `Cmd+Shift+P` to change priority, custom macro triggers. Never collapse all into one dense shortcut map — segment it.
+
+3. **WCAG 2.1 AA compliance is a floor, not a ceiling — but it must actually be met.** Ticket systems handle high cognitive load; accessible design directly reduces agent fatigue and error rates. Minimum requirements: all interactive elements keyboard-navigable (`Tab`, `Shift+Tab`, `Enter`, `Space`), focus order matches visual order, screen-reader labels on every icon-only button, minimum 4.5:1 contrast ratio for text, no seizure-inducing animations. Jira and Zendesk both have ongoing accessibility debt — don't build the same in.
+
+4. **Skip-links are non-negotiable for keyboard-only navigation.** Agents who tab through a ticket detail pane must be able to jump directly to the composer, the ticket list, or the notification panel without tabbing through 20 irrelevant elements. A hidden "Skip to main content" link at the top of every page, visible on focus, is WCAG 2.1 requirement 2.4.1 and saves real time.
+
+5. **Focus trapping in modals/dialogs is a common accessibility failure.** When a dialog opens (e.g., bulk-action confirmation, ticket merge preview), keyboard focus must be trapped inside it until dismissed. `Esc` closes the dialog and returns focus to the triggering element. Many CRMs fail here — press `Tab` inside a dialog and focus jumps to the page behind it. This is both an a11y violation and a UX bug for power users using keyboard-only.
+
+6. **Macros and saved replies must be triggerable without leaving the keyboard.** A `/`-triggered command palette (type "refund policy" → macro expands inline in the composer) is the single highest-velocity input pattern for high-volume agents. HubSpot, Zendesk, and Intercom all support slash-command macros. Without it, agents waste significant time hunting through macro menus with the mouse — this is the single most time-consuming repetitive task that keyboard shortcuts can eliminate.
+
+7. **Custom shortcut rebinding respects individual workflows.** Junior agents default to standard shortcuts; senior agents develop personalised muscle memory. Allow remapping of the most critical shortcuts (reply, internal note, close, next ticket) in a settings panel. Persist per-agent in their user profile, not a browser cookie. This is especially valuable in orgs with multiple CRM instances or agents who switch between accounts.
+
+8. **Screen-reader optimisation requires ARIA live regions for dynamic content.** Ticket queues update in real-time (new tickets arrive, SLA timers tick, status changes). A screen-reader user will miss these updates without ARIA live region announcements: `aria-live="polite"` for non-urgent updates (ticket assigned), `aria-live="assertive"` for urgent ones (SLA breach). Without this, a blind agent on a busy queue has no way to track queue state without manually re-scanning every few seconds.
+
+9. **High-contrast and motion-reduction modes must be real toggles, not browser overrides.** Respect `prefers-reduced-motion` and `prefers-contrast` media queries as defaults, but also provide an explicit in-app toggle so agents can force a high-contrast or reduced-motion mode regardless of OS setting. Agents on shared workstations may have different preferences from the OS account they're on.
+
+10. **Drag-and-drop must have a keyboard equivalent — always.** Ticket reordering, dragging tickets between queues, or reordering saved views are common CRM actions. Every drag operation must also be achievable via keyboard (select with `Space`, move with arrow keys, confirm with `Enter`). This is listed under WCAG 2.1 success criterion 2.1.1 and is one of the most consistently ignored a11y requirements in project management tools.
+
+11. **Efficiency metrics should make power users feel rewarded, not surveilled.** Track and surface per-agent keyboard shortcut adoption rate ("You've used 14 shortcuts this session — 3 more than yesterday's average") as a gentle nudge toward efficiency. Frame it as a personal stat, not a management metric. Agents who discover how much faster shortcuts make them become evangelists.
+
+### How It Applies to Our CRM
+
+- Build a `?` shortcut overlay with searchable, categorised shortcut reference — always accessible, never buried.
+- Show shortcut keys inline in every button/toolbar tooltip (`Reply [R]`, `Internal Note [Shift+R]`).
+- Implement a `/`-command palette for macro/saved-reply expansion inside the reply composer — the single highest-value keyboard investment.
+- Add per-agent custom shortcut rebinding in settings, persisted to their user profile.
+- Achieve full WCAG 2.1 AA compliance: keyboard navigation for all interactions, ARIA labels on icon buttons, focus trapping in modals, skip-links, and `aria-live` regions for real-time queue updates.
+- Respect `prefers-reduced-motion` and `prefers-contrast` as defaults; expose an in-app override toggle.
+- Ensure every drag-and-drop operation has a keyboard alternative (select → arrow keys → confirm).
+- Surface a personal keyboard efficiency stat in the agent dashboard ("Shortcut streak: 47 actions this week") — gamify adoption without turning it into a management surveillance tool.
+
