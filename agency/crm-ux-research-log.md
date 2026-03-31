@@ -239,3 +239,43 @@
 - At ticket submission, display the expected response SLA with business-hours context and the applicable policy name.
 - Surface escalation options prominently: live chat trigger or callback request in the portal header and ticket detail — available to frustrated customers without hunting.
 - Build a portal dashboard showing: open tickets count, average resolution time for past tickets, and a list of recently resolved tickets for quick reference — gives customers a health snapshot of their support history.
+
+---
+
+## Session 23 — 2026-03-31 17:30 UTC
+**Topic:** Knowledge Base & Article Creation UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Knowledge base articles should be created from resolved tickets with one click — not as a separate workflow.** The highest-value KB articles come from tickets where an agent solved something complex or novel. The UX pattern: after resolving a ticket, prompt "Was this helpful? Want to create a KB article from this?" If yes, pre-populate the article with the ticket's subject, the agent's reply, and relevant internal notes stripped of sensitive content. Forcing agents to open a separate KB tool, re-explain the problem, and copy-paste solutions kills article creation. The best CRMs (Zendesk Guide, Intercom) embed article authoring directly in the ticket resolution flow.
+
+2. **KB articles must have a clear "recommended for" and "who this applies to" scope label.** An article titled "How to reset your password" is ambiguous — applies to which product, which plan, which user type? Every article should have visible metadata: applicable product(s), customer plan tier, article category, and last verified date. Agents referencing KB articles in replies need to know at a glance that the article they're about to link applies to the customer's specific context. Ambiguous articles that don't match the customer's situation are worse than no article — they waste time and erode trust.
+
+3. **Article search must be accessible everywhere agents work — not just in a standalone KB tab.** Agents shouldn't have to leave a ticket to search for a relevant article. A floating search bar or `/`-command in the ticket composer that searches KB articles and inserts a link to the relevant one keeps agents in flow. Intercom's inbox search does this: type `/` in a reply, search articles, insert link — all without opening a new tab. The KB's value is negated if it's in a separate silo from the ticket workspace.
+
+4. **KB article quality ratings from agents (not just customers) close the feedback loop.** After an agent uses an article to resolve a ticket, they should rate: "Did this article help resolve the ticket?" (Yes/No/Partially). Agents are the most reliable quality raters — they used the article in a real resolution context. Customer ratings on public KB articles suffer from survivorship bias (happy customers skim articles; unhappy customers leave angry ratings). Agent feedback identifies articles that sound good but miss key steps, or articles that are technically correct but hard for customers to follow.
+
+5. **Articles need a structured review and stale-date workflow — not just creation.** KB rot is a silent quality killer: articles referencing outdated UI, deprecated features, or old policy get linked in tickets and create confusion. Every article should have: last reviewed date, last updated date, review frequency based on category (product KB: 30 days; policy KB: 90 days; general FAQ: 180 days), and an automatic "flag for review" when underlying ticket data changes (e.g., a pricing article linked in 50 tickets should auto-flag when pricing changes in the product). Stale articles surfaced to agents during ticket reply should show a warning: "⚠️ This article hasn't been updated in 90 days."
+
+6. **Internal KB (for agents) vs. external KB (for customers) must be clearly separated — not mixed.** Agents need articles with internal context: escalation procedures, Tier-2 troubleshooting steps, team-specific policies. These should never be visible to customers. A two-tier KB architecture with distinct permissions is the standard: Agent KB (internal, full detail, team-scoped) and Customer KB (curated, plain language, brand-appropriate). Curating internal content for customer-facing publication is a deliberate act — the system should require it, not accidentally expose internal articles.
+
+7. **Article suggestion during ticket creation (customer-facing) should be the primary deflection tool.** When a customer is submitting a ticket, matching KB articles should appear *before* the ticket is submitted — not after. HubSpot, Intercom, and Zendesk all surface articles as the customer types their issue. If the customer clicks an article and it resolves their question, they never submit the ticket. This is the highest-ROI self-service interaction. The failure mode is showing articles only after ticket submission — by then the customer has already invested effort in describing the problem and wants a human response, not an article.
+
+8. **KB articles should link to the tickets that referenced them — creating a feedback loop.** When an agent links Article X in a ticket reply, that ticket should be recorded as evidence of the article's utility. High article→ticket ratio signals widely useful content. No tickets referencing a "popular" article signals the article isn't actually being used — it may need revision or better discoverability. This data also helps identify articles to promote or demote: articles with high views but zero ticket conversions might need better title/descriptions; articles with high ticket conversions should be surfaced more prominently.
+
+9. **Version history and change tracking on KB articles prevent miscommunication.** When an article is updated, agents who linked it in tickets need to know what changed — especially if the change affects the guidance they already gave customers. Show: "Article updated 2 hours ago by @sarah — Changed step 3 from 'Click Settings → Security' to 'Click your avatar → Security settings'." A changelog accessible from within the article (and from within the ticket where it was linked) prevents agents from giving outdated advice based on an article they linked before the update.
+
+10. **Categorization taxonomy must be customer-aligned, not internally organized.** Internal teams organize KB by product team, org chart, or workflow stage — but customers search by symptom and goal. "Password reset," "can't log in," "forgot email" are the same category to a customer but live in different internal buckets. A good KB taxonomy has two views: the agent/internal view (organized by product area + team responsibility) and the customer-facing view (organized by goal, symptom, and question phrasing). The CMS should support both taxonomies separately and link them via the article metadata — not collapse them into one hierarchy that satisfies neither audience.
+
+### How It Applies to Our CRM
+
+- Add a "Create KB Article" button in the ticket resolution flow that pre-populates from the ticket's subject, agent reply, and sanitized internal notes.
+- Require every KB article to have visible metadata: applicable product(s), plan tier, category, and last verified date before it can be published.
+- Embed KB article search in the ticket composer via `/`-command palette — agents search and insert article links without leaving the ticket context.
+- Collect agent-side article ratings after each ticket resolution: "Did this article help?" (Yes/No/Partially). Use this as the primary KB quality signal, not just customer ratings.
+- Implement per-category review frequencies and auto-flag articles when underlying data changes (product updates, pricing changes). Surface stale-article warnings when agents attempt to link them.
+- Maintain a strict two-tier KB: Agent KB (internal, team-scoped, full detail) and Customer KB (curated, plain-language, brand-safe). Require deliberate publishing workflow to move articles between tiers.
+- Surface KB article suggestions during the customer ticket submission flow — not post-submission. Measure deflection rate as a key metric.
+- Track article→ticket references: link every KB article to the tickets that referenced it. Surface this data in article analytics (views, ticket conversions, recency).
+- Add version history and change logs to KB articles with per-change author and timestamp. Show "updated X ago" prominently and link to full changelog from ticket reply context.
+- Build a dual taxonomy system: customer-facing taxonomy organized by goal/symptom/question phrasing; internal taxonomy organized by product team/responsibility. Link them through article metadata — don't force one hierarchy to serve both audiences.

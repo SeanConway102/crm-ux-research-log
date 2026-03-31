@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CreditCard, ExternalLink, AlertTriangle } from "lucide-react"
+import { BillingPaymentForm } from "@/components/payment/billing-payment-form"
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
@@ -55,6 +56,26 @@ export default async function BillingPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Inline payment form — shown when subscription needs payment */}
+      {showPaymentForm && (
+        <Card className="border-orange-200 dark:border-orange-900">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-orange-600" />
+              <CardTitle className="text-base">Update Payment Method</CardTitle>
+            </div>
+            <CardDescription>
+              {status === "past_due"
+                ? "Your last payment couldn't be processed. Enter a new card to restore access."
+                : "Complete your subscription setup by providing a payment method."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BillingPaymentForm />
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
