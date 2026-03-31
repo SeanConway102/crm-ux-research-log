@@ -121,6 +121,46 @@
 
 ---
 
+## Session 28 — 2026-03-31 22:30 UTC
+**Topic:** Ticket Search, Filtering & Saved Views UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Saved views must be URL-addressable and bookmarkable — this is non-negotiable.** Agents sharing a queue view with a colleague ("look at this filter: all Priority Urgent, Tier-2, unassigned tickets") should be able to send a URL. If views are session-scoped with no URL, sharing requires manual reconfiguration. Every saved view should have a shareable URL that encodes the full filter/sort/column state. This transforms views from personal tools into collaborative assets — a manager can link to a specific "At-Risk SLA" view in a Slack message; an agent can bookmark their personal "My Queue" view. The URL should survive page refresh and session restart.
+
+2. **Active filters must always be visible as removable chips — not buried in a dropdown.** The most common filter UX failure: an agent applies a filter, navigates away, returns, and doesn't remember the filter is active — leading to a seemingly empty queue. Every active filter should appear as a visible chip/badge in the filter bar with a clear `×` to remove it. The filter bar should always show: "Filters active: [Status: Open ×] [Priority: Urgent ×] [Assignee: Me ×] — Clear all." An empty queue with no visible active filters tells the agent the queue is empty. An empty queue with visible active filters tells the agent to adjust the filter — a fundamentally different and correctable problem.
+
+3. **Global ticket search must search across all text fields with field-level highlighting.** Agents should be able to type "refund policy" and get results where the match came from: ticket subject, first message, agent reply, internal note, or tags — with the matching text highlighted in each result. A single flat result list that doesn't show *where* the match occurred forces agents to open each ticket to determine relevance. Field-level result grouping (Subject matches / Message matches / Internal note matches) with match highlighting is the minimum viable search UX for a high-volume CRM.
+
+4. **Filter by date should support smart relative ranges, not just absolute dates.** "Resolved in the last 7 days" is more useful to an agent than "Resolved between 2026-03-24 and 2026-03-31." Smart filters like: Today, Yesterday, Last 7 days, Last 30 days, This month, Last month, Custom range — with the ability to combine relative ranges with other filters — cover 90% of real agent queries without requiring a date picker. Relative date filters also make saved views more durable — "Last 7 days" always means something real; a fixed date range goes stale immediately.
+
+5. **Column customization in list views must persist per-user, not per-session.** An agent who removes the "Tags" column and adds "Last Reply At" has configured their ideal view. That configuration should survive logout, session timeout, and browser restart — it should be a per-user preference stored server-side. Column sets should also be named and savable: "Billing view," "SLA triage view," "Manager overview." Different workflow contexts need different column sets — agents shouldn't have to reconfigure columns every time they switch from SLA review to assignment review.
+
+6. **Multi-level sort (not just single-column sort) dramatically improves triage precision.** "Sort by SLA urgency, then by priority, then by created date" lets agents triage exactly the way they think: find the most urgent ticket that's also highest priority and oldest. Single-column sort is a known limitation of basic list views. Multi-level sort should be discoverable: a "Sort by..." panel showing draggable sort fields with asc/desc toggles, not a hidden secondary click or obscure keyboard shortcut. Zendesk and Freshdesk both support multi-column sort in their advanced views.
+
+7. **Filters should support combinational logic (AND/OR) for power users, not just flat AND.** A supervisor needs: "(Status: Open OR Status: Pending) AND (Priority: Urgent OR Priority: High) AND (Assignee: Me OR Assignee: Unassigned)." Flat single-condition-per-field filters can't express this. The right UX pattern: grouped filter pills with visual nesting that shows the logic structure. A query-builder mode (for advanced users) with explicit AND/OR operators as a toggle from the simple filter mode gives both power and approachability. Jira's JQL toggle pattern is the reference here.
+
+8. **Search autocomplete and suggestion reduces syntax errors and speeds up queries.** When an agent types "assi" in the assignee filter, suggest "Assignee: [agent name]" as a completable chip — not free text that might return nothing. Similarly, date range suggestions ("Last 7 days"), tag suggestions as the agent types, and even full saved view suggestions based on partial query match. Autocomplete should feel like a natural-language helper, not a technical query language. The goal: an agent types "urgent unassigned billing" and the system builds a filter: Priority: Urgent + Assignee: Unassigned + Category: Billing.
+
+9. **Empty search results must be helpful — never a dead end.** "No tickets match your search" is a UX failure. The empty state should show: what was searched for, what filters were active, and suggested broader searches ("Try removing [Priority: Urgent] filter" or "Search across all statuses instead of just Open"). If an agent searched for a customer name and got zero results, offer: "No tickets for 'John Smith' — search customer email?" Empty states are the moment agents need the most guidance, not the least. A good empty state reduces abandoned searches and support queries about the tool itself.
+
+10. **Saved views need a default and a "Recently used" quick-access, not just a full list.** Agents need a default view that loads when they open the queue. They also need a "Recent views" shortcut showing the last 3-5 views they used — because an agent might check their personal queue, then a supervisor's SLA view, then a team-wide view, then return to their personal queue. The view switcher should show: Default view + Recent views (with last-used timestamp) + All saved views organized by category (My views / Team views / Manager views). Navigating a 40-item view list every time they switch context is a friction tax on every queue interaction.
+
+### How It Applies to Our CRM
+
+- Encode all filter/sort/column state in the URL. Views must be bookmarkable and shareable with a single link. Every filter chip has a visible `×` to remove it; the filter bar always shows all active filters + "Clear all."
+- Build field-level search highlighting: results grouped by match field (subject, message, internal note, tag) with match text highlighted in each result.
+- Support smart relative date filters: Today, Yesterday, Last 7/30 days, This month, etc. — combinable with all other filter types.
+- Store column configuration server-side per user. Allow agents to name and save multiple column sets: "SLA triage," "Billing view," "Manager overview." Persist across sessions.
+- Implement multi-level sort: draggable sort fields with asc/desc toggles in a "Sort by..." panel. Discoverable, not hidden.
+- Build an advanced filter mode with AND/OR combinational logic alongside the simple mode. Use visual nesting to show logic structure. Provide a toggle for power users.
+- Add search/filter autocomplete: suggest completable filter chips as the agent types. Build a natural-language shortcut: type "urgent unassigned billing" → build a multi-field filter.
+- Design a rich empty state for zero-result searches: show what was searched, what filters were active, and offer concrete alternative actions.
+- Build a view switcher showing: Default view + Recent views (last 3-5 with timestamps) + All saved views organized by category. Never just a flat alphabetical list.
+- Consider a "natural language query" mode alongside the filter UI: "show my urgent open tickets from billing with no reply in 24h" → builds filter state. This lowers the barrier for non-power users while preserving full filter power.
+
+---
+
 ## Session 17 — 2026-03-31 10:30 UTC
 **Topic:** Ticket Templates, Structured Forms & Macros UX for Ticketing CRMs
 
