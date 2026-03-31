@@ -242,6 +242,47 @@
 
 ---
 
+## Session 25 — 2026-03-31 19:30 UTC
+**Topic:** CSAT, Ticket Ratings & Customer Feedback UX for Ticketing CRMs
+
+### Key Insights
+
+1. **CSAT survey timing is the #1 lever on response rates — not the questions.** Sending a survey immediately upon ticket resolution (within 5 minutes) yields higher response rates than sending it hours later, but the survey must not interrupt an ongoing multi-turn conversation. The right trigger is ticket *status = Resolved/Closed*, not ticket resolution timestamp alone. If a customer reopens a ticket after receiving a survey, the survey should be invalidated and not counted. Triggering on agent reply (not ticket close) captures satisfaction at the moment of maximum customer attention.
+
+2. **A 1-3 question CSAT survey outperforms long forms in support contexts.** The industry standard for ticket-based CSAT is: one headline question ("How satisfied were you with this resolution?") on a 5-point scale, plus one optional free-text follow-up ("What could we improve?"). Any more questions drops completion rates sharply. The free-text question is high-value — it converts NPS-style numeric scores into actionable context. Agents seeing a 3/5 with "agent was rude" is far more useful than a 3/5 without explanation.
+
+3. **CSAT scores must be attributed to the specific agent, not just the team or ticket.** Customers rate the experience they had with a specific human, not an abstract team. Attributing scores to the individual agent (with team/queue context also visible) creates accountability and enables coaching. However, scores should be normalized by ticket complexity — a Tier-1 agent handling 50 simple tickets vs. a Tier-2 agent handling 5 complex ones should not be compared on raw averages alone. Weight CSAT by ticket category and complexity tier to make comparisons fair.
+
+4. **Low CSAT scores need an immediate escalation path, not just a review queue.** A 1-2/5 score should trigger an immediate in-app alert to the agent's supervisor with the ticket context attached — not wait for a weekly CSAT report. The supervisor should be able to act while the ticket is still warm (customer still engaged, agent still remembers the interaction). Cold CSAT alerts that arrive days later are useless for recovery. Some CRMs auto-reopen the ticket on a low score — this is aggressive but effective when handled gracefully.
+
+5. **Feedback loop closure — telling the customer what changed — dramatically increases response rates.** Customers who receive a follow-up "Thanks for your feedback — we used it to fix X" are significantly more likely to complete future surveys. In a CRM context, closing the loop means: when a low-CSAT ticket drives a process improvement, notify the original customer that their feedback mattered. This is a retention tool disguised as a feedback mechanism.
+
+6. ** CES (Customer Effort Score) is a better predictor of loyalty than CSAT in support contexts.** "How easy was it to get your issue resolved?" (CES, 7-point scale) correlates more strongly with retention than "How satisfied are you?" (CSAT). For complex or frustrating issues, customers will give a low CSAT even if the agent was helpful — because the underlying problem was hard. CES captures whether the support *process* was hard, independent of the product problem. Consider a dual-metric approach: CSAT for resolution satisfaction, CES for process effort.
+
+7. **CSAT data should drive agent coaching, not just team averages.** Individual agent CSAT trends over time (not single-score snapshots) are the coaching signal. An agent whose scores are consistently declining over 4 weeks needs intervention; an agent whose scores spike after a specific ticket category needs recognition. Show managers a per-agent CSAT trend line alongside context: which ticket types, which customers, and what the free-text feedback said. Raw averages without context don't drive improvement.
+
+8. **NPS (Net Promoter Score) and CSAT measure different things — use both at the right touchpoints.** CSAT captures transaction-level satisfaction (was this ticket resolved well?); NPS captures relationship-level loyalty (would you recommend us?). Collecting NPS too frequently (e.g., after every ticket) creates survey fatigue. A quarterly NPS pulse — sent once per customer per quarter, not per ticket — is the right frequency. CSAT fires per ticket; NPS fires per relationship cycle.
+
+9. **Negative CSAT responses should trigger a recovery workflow, not just an internal alert.** When a customer rates 1-2/5, the system should: (a) alert the supervisor immediately, (b) offer the customer a recovery path ("We're sorry this didn't meet your expectations — would you like to speak with a manager?"), and (c) tag the ticket for a follow-up call. Treating low CSAT as a lost cause and archiving the ticket is a churn accelerator. Proactive recovery offers after low scores can win back a significant portion of at-risk customers.
+
+10. **CSAT visibility on the ticket itself (visible to agents while working) improves quality behavior.** Agents who see real-time CSAT scores on their own tickets perform better — they adjust their tone and effort knowing a rating is coming. Zendesk's agent workspace shows CSAT scores on resolved tickets to the assigned agent. This is distinct from performance management scores — agents should see their own scores (not peer scores). Gamification via personal CSAT trends (improving/declining) drives self-correction without manager intervention.
+
+### How It Applies to Our CRM
+
+- Trigger CSAT survey on ticket status = Resolved/Closed, within 5 minutes of resolution. Invalidate survey if ticket is reopened. Do not trigger during active multi-turn conversations.
+- Keep surveys to 1-3 questions: 5-point CSAT ("How satisfied were you?"), optional free-text follow-up. No more than 3 questions.
+- Attribute CSAT to individual agent (visible to managers) with team/queue context. Normalize scores by ticket category and complexity tier for fair comparison — raw averages are misleading.
+- On low CSAT (1-2/5): immediate supervisor alert with ticket context, auto-reopen option, and customer recovery offer. Alert must arrive within the same session, not hours later.
+- Implement feedback-loop-closure: when a low-CSAT ticket drives a process fix, send the customer a brief follow-up noting the improvement their feedback caused.
+- Consider adding CES ("How easy was it to resolve your issue?") alongside CSAT for transaction-level process measurement. Dual-metric gives richer signal than CSAT alone.
+- Build an agent coaching view: per-agent CSAT trend lines over 4-8 weeks, broken down by ticket category and free-text context — not just a score, but the story behind it.
+- Send NPS quarterly per customer (not per ticket) as a relationship loyalty pulse. Keep it separate from ticket-level CSAT.
+- Show agents their own resolved-ticket CSAT scores in the workspace — real-time visibility drives self-correction without micromanagement.
+- Build a low-CSAT recovery workflow: supervisor alert + customer recovery offer + ticket follow-up flag, all triggered automatically on 1-2/5 scores.
+- Track CSAT response rate as a metric (target: >15% for email surveys). If response rate drops, investigate survey timing/form length. A survey nobody fills out is worthless.
+
+---
+
 ## Session 23 — 2026-03-31 17:30 UTC
 **Topic:** Knowledge Base & Article Creation UX for Ticketing CRMs
 
