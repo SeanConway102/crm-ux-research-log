@@ -475,3 +475,44 @@
 - Default every dashboard session to "Today" with prominent relative time presets (Today, This Week, Last Week).
 - Surface SLA breach events with agent attribution in a timeline view, framed for coaching, not blame.
 - Build three distinct dashboard views from the ground up: Agent (personal stats), Team Lead (team stats + individual drill-down), Admin (cross-team + policy performance).
+
+---
+
+## Session 14 — 2026-03-31 07:30 UTC
+**Topic:** Ticket Assignment, Routing & Workload Balance UX
+
+### Key Insights
+
+1. **Push vs. pull: show agents the queue depth they own, not just assigned counts.** A "pull" model (agents self-select tickets from a shared queue) feels empowering but creates greedy picking — agents grab easy tickets first. A "push" model (system assigns) ensures coverage but can feel controlling. The best UX is a hybrid: system assigns fairly (round-robin or load-balanced), but agents can also "grab" from a shared pool. Show both their assigned count and the unclaimed queue depth so agents know if there's backlog they should help with.
+
+2. **Load-balancing must be visible and fair — agents distrust invisible algorithms.** If Agent A consistently gets harder tickets (billing, legal) while Agent B gets password resets, Agent A will notice and resent it. Show per-agent workload not just as a ticket count, but weighted by average handle time or complexity score. Let agents see the team distribution, not just their own. Transparency prevents the most common "the system is unfair" complaints.
+
+3. **Skills-based routing needs a clean UI for mapping skills to agents — not a settings graveyard.** The admin interface for assigning agent skills (language, product area, seniority) must be visual and fast. A skills matrix grid (agents × topics) with checkboxes beats a per-agent settings panel any day. Keep it under a minute to configure a new routing policy. If it takes 20 minutes to set up a routing rule, admins won't bother.
+
+4. **Override/transfer UX must be one-click with a mandatory reason.** When a supervisor reassigns a ticket, one click should do it — but the reason field is the audit trail. Agents should also be able to request reassignment with a one-click "Request reassignment" button and a reason. This surfaces routing problems without requiring a manager to intercept. Both paths feed into routing analytics — repeated "wrongly assigned to me" events signal a routing rule that needs updating.
+
+5. **Round-robin should track "last assigned" state per agent persistently.** The rotation position must survive server restarts, shifts, and system updates. A common failure: after a deploy, the round-robin resets to Agent A every time, starving other agents. Use a database-backed sequence with persistent state, not an in-memory counter. This sounds like a backend concern but it directly causes UX failures agents see and report.
+
+6. **"Assigned to me" vs. "Unassigned" toggle is a first-class filter for agents.** Every agent's primary view is their own queue. The toggle between "My tickets" and "All unassigned" (or a split view) is among the most-used filters — it deserves prominent placement, not a buried dropdown. Linear and Jira both get this right with a persistent segmented control at the top of the queue.
+
+7. **Routing rules must have priority ordering and explicit conflict resolution.** When multiple routing rules could apply (e.g., "billing → accounting team" AND "high priority → senior agents"), the system must define a clear priority order and surface it visually to admins. Zoho Desk's "Direct → Workflow → SLA → Round Robin → Skill-Based" cascade is a good mental model. Rules that silently conflict or override each other are a support team's worst debugging nightmare.
+
+8. **Auto-assignment should respect agent availability and capacity caps.** Don't assign to an agent who's already at their ticket cap. The routing engine needs real-time capacity signals: online/offline status, current open-ticket count, average handle time. An "agent capacity bar" visible in the team view (green → amber → red) gives supervisors instant visibility to rebalance before queues pile up. At 100% capacity, the system should route to the next available agent — not queue behind someone who's already swamped.
+
+9. **Escalation assignment needs a distinct visual treatment from first assignment.** Escalated tickets carry urgency weight — they should visually stand out in the agent's queue with a distinct badge, colour, or sort position. Agents handling both new tickets and escalated ones need to immediately distinguish which requires imminent attention. Mixing them visually without escalation markers forces agents to read every row to triage.
+
+10. **Ticket re-opening and re-assignment must follow fresh routing logic, not legacy ownership.** When a customer re-opens a ticket, it shouldn't auto-return to the original agent if that agent is at capacity or no longer best-fit. Re-routing a reopened ticket should trigger the full routing rule evaluation again. Many CRMs fail here — the reopened ticket silently lands back on an overwhelmed or offline agent's queue with no notification.
+
+### How It Applies to Our CRM
+
+- Implement a hybrid push/pull model: system assigns fairly via round-robin/load-balance, but agents can also grab from unclaimed queue. Show both assigned count and queue depth so agents see when team-level help is needed.
+- Display a team workload bar chart (ticket count weighted by complexity) in the team view — not just a raw count — so agents can see routing fairness at a glance.
+- Build a visual skills matrix (agents × topic/skill) as the routing admin UI, not buried per-agent settings panels.
+- Add a one-click "Request reassignment" button on tickets with a required reason picker — route these signals back into routing analytics to flag broken rules.
+- Persist round-robin sequence state in the database, not in-memory, so deployments don't reset the rotation and starve agents.
+- Make "My tickets / Unassigned / All" a prominent segmented control at the top of every agent's queue view — not a dropdown filter.
+- Define and expose a routing rule priority cascade (Direct → Workflow → SLA → Round Robin → Skill-Based) in the admin routing config UI.
+- Add a real-time agent capacity indicator (green/amber/red) in the team view — routing engine skips agents at 100% capacity.
+- Escalated tickets get a distinct badge/colour treatment and sort to the top of the queue — don't mix with new tickets without visual differentiation.
+- On ticket re-open, re-run full routing evaluation instead of reverting to original assignee; notify the new assignee if routing changes.
+
