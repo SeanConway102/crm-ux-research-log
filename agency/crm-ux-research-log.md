@@ -279,3 +279,43 @@
 - Track article→ticket references: link every KB article to the tickets that referenced it. Surface this data in article analytics (views, ticket conversions, recency).
 - Add version history and change logs to KB articles with per-change author and timestamp. Show "updated X ago" prominently and link to full changelog from ticket reply context.
 - Build a dual taxonomy system: customer-facing taxonomy organized by goal/symptom/question phrasing; internal taxonomy organized by product team/responsibility. Link them through article metadata — don't force one hierarchy to serve both audiences.
+
+---
+
+## Session 24 — 2026-03-31 18:44 UTC
+**Topic:** Notification & Alert UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Notification urgency tiers must be explicit and matched to delivery channel.** Not all alerts are equal: SLA breach = critical (deliver immediately, in-app + SMS + sound), new ticket assignment = important (in-app + badge), ticket status change = moderate (in-app only or digest), daily summary = low (digest only). Conflating tiers — sending everything at the same urgency — creates alert fatigue and causes agents to mute all notifications. Each notification type must have a defined urgency level and delivery channel mapping, configurable per agent.
+
+2. **The notification center must be actionable — not just a list of links.** A notification panel showing "Jane replied to ticket #4021" is useless if the agent can't read the reply without clicking through. Each notification item should show: ticket subject + ID, the action that occurred (reply received, SLA at-risk, @mention), the actor (who did it), and a direct "Mark as read" or "Open ticket" action. Non-actionable notifications force a click, wait for a page load, then find the relevant context — this friction compounds across dozens of daily notifications.
+
+3. **Real-time presence + unread indicators prevent duplicate work more than notifications do.** The best notification is a live badge: "Agent B is viewing ticket #4021 right now" — this prevents a second agent from starting work on the same ticket. Hard notifications (SLA breach, @mention) are reactive; presence indicators are proactive. A ticket list showing other agents' avatars on tickets they've open is a collision-prevention tool, not just a social feature. Slack's presence indicators reduce duplicate message traffic by an order of magnitude — the same applies to shared ticket queues.
+
+4. **Snooze and digest modes prevent notification overload without creating blackout periods.** Agents need to suppress notifications during focus time without missing urgent items. A snooze that suppresses low/medium urgency for 30 minutes but lets SLA breach and @mentions through is qualitatively different from DND that suppresses everything. Similarly, a "digest mode" that batches non-urgent notifications into a 30-minute summary (instead of firing each one individually) reduces interruption frequency during high-intensity work periods. Configurable snooze profiles are the right UX pattern here.
+
+5. **Mobile push notifications for agents must be ruthlessly filtered — only true exceptions.** Agents on mobile are often away from their desk between tickets. A push notification for every new ticket assignment, customer reply, and @mention while they're commuting creates noise. Only three things justify a mobile push: SLA breach imminent (within 5 minutes), direct @mention, and supervisor escalation request. Everything else goes to the notification center for the agent to check when convenient. Over-notifying on mobile is the #1 cause of agent notification fatigue.
+
+6. **Notification preference granularity must match notification type granularity.** If the system has 12 notification types but the preferences panel only has "email on/off" and "in-app on/off," agents can't tune effectively. A proper preferences panel maps each notification category (SLA events, @mentions, assignment changes, status updates, team announcements) to delivery channels (in-app, email, SMS, Slack) with a simple on/off per channel. Tiered preferences by notification category + delivery channel is the minimum viable granularity.
+
+7. **Visual notification badges must show counts, not just dots.** A red badge showing "7" on the queue icon tells an agent exactly how many items need attention without clicking. A dot (present/absent) forces a click to discover the count. For agents handling 20-40 tickets/day, the count badge is the difference between glancing at the workspace and knowing "I have 2 SLA breaches, 3 @mentions, and 2 new assignments" at a glance. Combine count badges with color coding: red = SLA breach, amber = @mention, blue = new assignment.
+
+8. **Notification sounds should be distinct per urgency tier — and muted by default.** A sharp alert sound for SLA breach and a gentle chime for a new assignment create instant audio triage: agents know whether to context-switch before they even look at the screen. However, many agents work in open offices or take calls — notification sounds must be opt-in, not forced. Default to muted with visual-only notifications, and let agents enable sounds if their environment supports it. Never assume audio is appropriate.
+
+9. **"Seen" tracking prevents notification redundancy — don't notify about what the agent already knows.** If Agent A @mentions Agent B on ticket #4021, and Agent B already has that ticket open in another tab, a notification is noise. Track which tickets are currently open/in-focus per agent and suppress notifications for those tickets. Similarly, don't re-notify about a ticket the agent already resolved. Seen state should reset when the ticket changes meaningfully (new customer reply, new @mention) — not on every tiny event.
+
+10. **Supervisor notification rules need to differ from agent rules — and from manager dashboard alerts.** Supervisors need to know about SLA breaches across the team, queue overflow events, and agent capacity alerts — not individual ticket activity. Manager alerts should be scoped to aggregate events: "Tier-2 team: 4 SLA breaches in the last hour," not "SLA breach on ticket #4021, #4022, #4023, #4024." CRMs that send supervisors the same notification stream as agents just create noise for leadership. Separate supervisor notification rules with aggregate alerting are non-negotiable.
+
+### How It Applies to Our CRM
+
+- Define 4 urgency tiers for all notification types: Critical (SLA breach imminent), Important (assignment, @mention), Moderate (status change, note added), Low (digests, summaries). Map each to delivery channels.
+- Build an actionable notification center: show ticket subject + ID, action, actor, and inline "Open" or "Mark read" per item — not just a link to click through.
+- Add real-time presence indicators: show which agents have a ticket open via avatar badges on ticket rows. This prevents silent collision and duplicate work.
+- Implement snooze profiles: suppress low/medium urgency for a set time while preserving SLA breach and @mention delivery. Offer a "Digest mode" that batches non-urgent notifications every 30 min.
+- Restrict mobile push to only: SLA breach within 5 min, direct @mention, supervisor escalation. Everything else goes to in-app notification center only.
+- Build a per-category notification preferences panel mapping: SLA events, @mentions, assignments, status changes, team announcements → in-app / email / SMS / Slack. Each independently toggleable.
+- Use count badges on queue/app icons, not just presence dots. Color-code: red = SLA breach count, amber = @mention count, blue = new assignment count.
+- Offer opt-in notification sounds with distinct audio per urgency tier. Default to muted; let agents enable in environments where audio is appropriate.
+- Track per-agent "seen" state per ticket. Suppress notifications for tickets currently open/in-focus by the recipient. Reset on new meaningful activity (new reply, new @mention).
+- Create separate supervisor notification rules: aggregate alerts (team breach count, queue overflow, capacity warnings) rather than individual ticket events. Keep supervisor feed scoped to systemic issues, not ticket noise.
