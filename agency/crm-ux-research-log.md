@@ -80,6 +80,47 @@
 
 ---
 
+## Session 20 — 2026-03-31 14:40 UTC
+**Topic:** Ticket Routing, Assignment & Workload Balance UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Round-robin alone is a fairness anti-pattern in high-volume environments.** Distributing tickets equally by count ignores complexity — one agent gets 5 one-word password resets; another gets 5 multi-day billing disputes. True load-balanced assignment weights by estimated ticket complexity and current open-ticket duration. The UX must show agents their workload score, not just a count: "Your load: 87% (12 tickets, avg. 23 min open)" vs. a colleague at "34% (4 tickets, avg. 45 min open)" signals inequity that a raw count hides.
+
+2. **Agents must see the routing reason — "why this ticket, why me?"** When a ticket lands in an agent's queue with no context, it creates friction and delays. The ticket header should show: "Routed by: Skill match (Billing) + Lowest current load." This turns opaque automation into transparent logic — agents trust a system they can reason about. Routing reasons also help agents validate whether the assignment is correct and catch automation errors early.
+
+3. **Skill-based routing needs a visible skill-match indicator on the ticket.** If routing matched on "Spanish language" and "Enterprise plan," those skills should surface in the ticket header as badges: "🏷️ Spanish · Enterprise Tier." This gives the agent immediate context about what capabilities the routing system expected from them. Mismatched skills — a billing agent getting a technical ticket — should surface as a routing flag, not just a silent misassignment.
+
+4. **Manual reassignment must be a 1-click modal with reason codes, not a simple dropdown swap.** "Reassign to..." with no reason = no audit trail, no pattern analysis, no learning for the routing system. A proper reassign flow requires: target agent/queue, reason code (Customer requested, Wrong team, Agent unavailable, Capacity), and optional note. Reason codes enable routing system improvement over time and give managers real data for team load conversations.
+
+5. **Supervisors need a workload distribution dashboard, not just a per-agent ticket list.** The view should visualize all agents' current load as a bar chart or heat map, sorted by utilization. Supervisors need to spot imbalances at a glance: "Tier-2 team is at 95% while Tier-1 is at 40%" is actionable in 2 seconds. Bulk reassign from overloaded to underloaded agents should be drag-and-drop or multi-select. Zendesk Explore and Freshdesk dashboards lead here.
+
+6. **"Routing failed / No available agent" is a critical UX moment that most CRMs handle poorly.** When auto-routing can't find a match (no agent with required skill, all agents at capacity, business hours gap), the UI must surface this clearly — not silently queue the ticket forever. The ticket should show: "⚠️ Routing pending — no available agent (all Tier-2 agents at capacity). Escalating to supervisor queue in ~10 min." This prevents tickets from disappearing into a black hole while the customer waits.
+
+7. **Agents need to be able to opt out of a ticket and return it to the queue gracefully.** "Return to queue" is not the same as "unassign." It should require a reason (Wrong category, I lack the required skill, Capacity overflow) and should be a visible queue event, not a silent drop. The returned ticket should surface to supervisors immediately with the reason attached — not just re-enter the pool for the next auto-assignment cycle.
+
+8. **Capacity-based routing (max tickets per agent) must be visible and configurable per agent, not just per team.** Some agents handle 20 simple tickets/day; others handle 5 complex ones. A flat "max 15 tickets" cap ignores this. The routing system should respect per-agent capacity limits, and agents should see their own capacity meter: "12/15 slots used — 3 tickets until queue pause." When an agent hits capacity, the routing system must stop assigning to them without a supervisor override — silent overflow is a major SLA risk.
+
+9. **Routing rules themselves should be readable by agents and managers — not hidden automation logic.** A "Routing Rules" panel listing: "If category = Billing → Tier-2 queue → assign by lowest load within Tier-2" should be readable by team leads without needing to dig into admin settings. Transparency builds trust in the system and enables agents to understand queue behavior and suggest improvements. Many CRMs bury routing logic in admin-only configuration that even managers can't read.
+
+10. **Ticket transfer between teams (not just agents) needs a structured handoff UX.** "Transfer to Billing team" with no context transfer = the billing agent opens a ticket with zero context from the original agent's work. A proper team transfer carries: full ticket history, agent's internal notes summary, what has already been tried, and the customer's current sentiment. Agents should never have to re-ask customers to repeat information that another agent already collected.
+
+### How It Applies to Our CRM
+
+- Replace raw ticket-count workload display with a weighted load score per agent showing ticket count + average age + complexity estimate.
+- Display routing reason in the ticket header: which rule matched, which skills triggered, and current target agent's load at time of routing.
+- Add skill-match badges to ticket header showing which routing skills were matched.
+- Build a structured reassign modal: target + reason code + optional note. Reason codes feed back into routing system training.
+- Build a supervisor workload dashboard: visual load distribution across team, sortable by utilization — with bulk reassign via drag-drop or multi-select.
+- Handle routing failures explicitly: show "Routing pending" state with SLA countdown and supervisor escalation trigger, not silent queueing.
+- Implement "Return to queue" as a first-class action with reason codes, visible to supervisors immediately.
+- Add per-agent capacity limits (configurable by supervisors) with visible capacity meter on the agent dashboard. Stop auto-routing to agents at capacity without override.
+- Make routing rules readable in a non-admin panel accessible to agents and team leads.
+- Design team transfer UX to carry full context: agent notes summary, what's been tried, customer sentiment — never just a raw ticket handoff.
+- Consider routing "confidence" indicators: high-confidence assignments (exact skill match + low load) vs. fallback assignments (any available agent) help agents understand how solid their assignment is.
+
+---
+
 ## Session 17 — 2026-03-31 10:30 UTC
 **Topic:** Ticket Templates, Structured Forms & Macros UX for Ticketing CRMs
 

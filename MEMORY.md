@@ -69,10 +69,13 @@ Multi-tenant white-label client dashboard where Sean's clients:
 - Domain: `portal.ctwebsiteco.com` (agency) + `admin.{clientdomain}.com` per client (subdomain-based, confirmed 2026-03-31)
 - TV Feed: Phase 6 (end) — it's a video + streaming management platform; full spec TBD
 - Onboarding: site built first → client invited to portal with pre-configured tenant (confirmed)
-- Template: **Makerkit** as starting point ($349) — has multi-tenancy, Stripe Portal, NextAuth, shadcn/ui, Playwright E2E, AI agent rules. We replace Supabase with Prisma+CRM API, add `next-sanity`
-- TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E). Feature files in `__tests__/e2e/features/`, step definitions in `__tests__/e2e/steps/`. Pre-commit: vitest --run + tsc --noEmit + eslint. E2E runs in CI, not pre-commit.
-- AI challenges documented in SPEC.md §10: hallucination, context window, scope creep, test coverage theater — with specific countermeasures
-- TV Feed note: video + streaming management platform we own, not just a feed
+- Template: **Vercel Platforms** (`vercel/platforms`, free) — multi-tenancy, shadcn/ui, Next.js 15
+- Auth: Magic link (NextAuth Email) + optional password on first login. Password setup on `/onboarding`. Portal users are NOT CRM users — separate user management.
+- Billing: CRM owns subscriptions + invoices. Portal reads status, embeds Stripe Elements payment form on `/billing` when `past_due` or `incomplete`. Webhook forwards to CRM, updates local cache.
+- No trials — pay upfront. Manual one-by-one onboarding by Sean via agency portal.
+- Sanity: embedded Studio, 100% CT Website Co. branded. CRM is source of truth — portal tenant links to CRM site ID → fetches Sanity credentials (projectId, token, dataset) from CRM API. Some existing CRM clients already have Sanity projects (CRM stores `sanity_project_id` per site). Custom per-client schemas, config factory `createSanityConfig(tenant)`.
+- TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E).
+- TV Feed: Phase 6 — video + streaming management platform (separate product).
 
 ## OpenClaw Setup
 - Running on `agency-claw` server (Linux 6.8.0-106-generic x64)

@@ -15,7 +15,7 @@
 
 ## Active Development
 During each heartbeat, pick ONE of the following and actually do work on it:
-1. **CRM Tickets** -- Check your ticket queue (`GET /api/v1/tickets/queue`), pick up a ticket, make progress
+1. **CRM Tickets** -- Check your ticket queue (`GET /api/v1/tickets?assigned_to=fcc77e15-ea54-43ca-8e53-b1caa727a46f&status=Backlog`), pick up a ticket, make progress
 2. **PR Reviews** -- Check open PRs on GitHub (`gh pr list`), review one, leave comments
 3. **Git Status** -- Check both repos for uncommitted changes >24h old, warn or commit
 4. **Cache/Code Fixes** -- Look at CRM issues, pick one labeled `bug` or `good-first-issue`, implement it

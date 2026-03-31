@@ -318,17 +318,27 @@ Assumption: This is a content feed (TV program schedule, weather, news tickers) 
 - Thread of comments/activities
 - Comment input at bottom (adds note to ticket in CRM)
 
-### 4.5 Billing (`/[tenant]/billing`)
+### 4.5 Billing (`/billing`)
+
+**CRM is the source of truth for subscriptions and invoices.** The portal displays what the CRM provides and collects payment when required — it does not manage plans, subscriptions, or invoice generation.
 
 **Overview page:**
-- Current plan card: plan name, price, renewal date, status badge (Active/Canceled/Trial)
-- "Manage Billing" button → opens Stripe Customer Portal (hosted Stripe page)
-- Next invoice preview: amount, due date
-- Last 3 invoices table: date, amount, status (Paid/Open/Void)
+- Current plan card: plan name, price, renewal date, status badge (Active / Trial / Past Due / Canceled)
+- Subscription status drives the experience:
+  - `active` or `trialing` → normal access, green badge
+  - `past_due` → orange "Payment required" banner, Stripe Elements payment form embedded inline
+  - `canceled` → red banner, read-only access, contact support CTA
+- "Manage Billing" → links to Stripe Customer Portal URL stored in tenant record (configured by agency in CRM)
+- Last 3 invoices table: date, amount, status (Paid/Open/Void), PDF download link (from CRM API)
 
-**Invoices page (`/[tenant]/billing/invoices`):**
-- Full invoice history
-- Each row: invoice #, date, amount, status, PDF download link
+**Payment form (shown when `past_due` or initial payment required):**
+- Stripe Elements embedded directly on `/billing` — same page, no redirect
+- Contextual message: "Update your card to restore access" (decline) or "Complete your setup" (incomplete)
+- On success → webhook fires → CRM updates subscription → portal UI unlocks immediately
+
+**Invoices page (`/billing/invoices`):**
+- Full invoice history (fetched from CRM API)
+- Each row: invoice #, date, amount, status (Paid/Open/Void), PDF download link
 - Pagination
 
 ### 4.6 Navigation
@@ -605,7 +615,758 @@ export async function middleware(req: NextRequest) {
 
 ---
 
-## 9. Starting-Point Templates — Research Notes
+## 9. Technology Deep-Dive Notes
+
+### 9.1 NextAuth v5 (Auth.js) — Magic Link + Password Setup
+
+NextAuth v5 Email provider (magic links) with optional password setup. Users receive a link via email, click it, and are logged in. Users who prefer a password can set one up on first login.
+
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Email({
+      server: {
+        transport: "smtp",
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      },
+      from: process.env.EMAIL_FROM,  // e.g. "Portal <no-reply@ctwebsiteco.com>"
+      maxAge: 60 * 60,  // Magic link valid for 1 hour
+    }),
+    // Password provider added after first login — see "Password setup flow" below
+  ],
+  callbacks: {
+    // Embed tenantId and role into JWT immediately after verification
+    async jwt({ token, user }) {
+      if (user) {
+        // On first magic link sign-in, look up the user's tenant + role from CRM
+        const crmUser = await crmApi.getUserByEmail(user.email!)
+        token.tenantId = crmUser.tenantId
+        token.role = crmUser.role
+        token.hasPassword = crmUser.hasPassword ?? false
+      }
+      return token
+    },
+    session({ session, token }) {
+      session.user.tenantId = token.tenantId as string
+      session.user.role = token.role as string
+      session.user.hasPassword = token.hasPassword as boolean
+      return session
+    },
+  },
+  pages: {
+    signIn: "/login",          // Custom login page (magic link request form)
+    error: "/login",
+    verifyRequest: "/login/verify",  // "Check your email" page after sending magic link
+    newUser: "/onboarding",   // First-time users: set password + profile
+  },
+})
+```
+
+**Magic link flow:**
+1. Client visits `/login` → enters email → clicks "Sign in"
+2. Server looks up email in CRM → confirms tenant exists → sends magic link via Resend/SMTP
+3. Client clicks link in inbox → redirected to `/api/auth/callback/email?token=...` → NextAuth verifies → JWT issued
+4. If `user.hasPassword === false` → redirect to `/onboarding` → set password → then go to dashboard
+
+**Password setup flow (first login):**
+- Magic link brings new users to `/onboarding` instead of dashboard
+- `/onboarding` page: "Set up your password to access your portal" — password field + confirm
+- On submit: password hashed with bcrypt, stored in CRM (or portal DB), `hasPassword = true`
+- Next login: client can use password OR request a new magic link
+
+**JWT strategy:** Token stored in HttpOnly cookie. No DB session table. `tenantId` + `role` + `hasPassword` embedded in JWT — middleware reads without a DB call.
+
+**Protecting routes:** `auth()` in Server Components, `getServerSession()` in API routes, `useSession()` in client components.
+
+### 9.2 Stripe Billing — Simplified (CRM Owns Subscriptions)
+
+Stripe subscriptions have a `status` that drives what the UI shows:
+
+| Stripe Status | Meaning | Client Access |
+|---|---|---|
+| `trialing` | Free or paid trial period active | Full access |
+| `active` | Payment received, subscription current | Full access |
+| `incomplete` | Subscription created, awaiting first payment | Limited access — payment required |
+| `incomplete_expired` | First invoice never paid within 23h window | No portal access |
+| `past_due` | Payment failed (card declined) | Limited access — update payment required |
+| `canceled` | Subscription ended (voluntary or failed) | No portal access |
+| `unpaid` | All attempts failed, subscription past grace period | No portal access |
+
+**The `incomplete` flow for new signups:**
+1. Sean creates tenant in portal DB → triggers subscription creation in Stripe via API
+2. Stripe subscription created with `payment_behavior: 'default_incomplete'` → status becomes `incomplete`
+3. Stripe creates an `open` invoice (23-hour window)
+4. Client logs in → Stripe subscription status read from webhook cache → sees `incomplete` → redirected to payment screen
+5. Client enters card via Stripe Checkout (or Stripe Elements embedded) → Stripe charges → webhook fires `invoice.paid` → subscription becomes `active` → client gets full portal access
+
+**Smart Retries for `past_due`:**
+Stripe automatically retries failed payments on a schedule (configurable: 1 day, 3 days, 5 days, 7 days). Smart Retries uses data to pick optimal retry timing. This recovers ~40% of failing payments automatically without any code.
+
+**Webhook events to handle:**
+```
+invoice.created          → log, no action
+invoice.paid             → subscription.status = 'active', unlock access ✅
+invoice.payment_failed   → subscription.status = 'past_due', trigger dunning email
+customer.subscription.updated → sync status to portal DB
+customer.subscription.deleted → subscription.status = 'canceled', revoke access
+```
+
+### 9.3 next-sanity — Embedded Studio + CT Website Co. Branding
+
+`next-sanity` v7+ is the official toolkit for embedding Sanity Studio in Next.js. The critical requirement: the embedded Studio must be 100% branded to CT Website Co., not Sanity.
+
+**What "100% branded" means:**
+- No Sanity logo, name, or visual identity anywhere in the Studio
+- Custom logo, favicon, and theme matching CT Website Co.'s design
+- Title: "Content Editor" (or configurable per tenant) — not "Sanity Studio"
+- Custom theme colors matching the portal's brand
+
+**Per-tenant config factory:**
+```typescript
+// lib/sanity-config-factory.ts
+export function createSanityConfig(tenant: Tenant) {
+  return defineConfig({
+    basePath: "/studio",
+    projectId: tenant.sanityProjectId,
+    dataset: tenant.sanityDataset,
+    // Custom CT Website Co. branding — no Sanity identity
+    title: `${tenant.name} Content Editor`,
+    logo: "/ct-website-logo.svg",  // CT Website Co. logo, not Sanity's
+    favicon: "/ct-website-favicon.ico",
+    theme: createCtWebsiteTheme({ accentColor: tenant.accentColor }),
+    // Hide all Sanity branding
+    studioUrl: "/studio",  // Prevents Sanity branding in URLs
+    plugins: [
+      structureTool({ structure: buildTenantStructure(tenant) }),
+      presentationTool({ ... }),  // Visual Editing
+    ],
+    schema: { types: tenant.schemaTypes },  // Custom per-client schema
+  })
+}
+```
+
+**Custom theme:**
+```typescript
+// lib/sanity-theme.ts
+import { createTheme } from "@sanity/ui"
+import { defineTheme } from "@sanity/ui/theme"
+
+export function createCtWebsiteTheme({ accentColor = "#6366F1" } = {}) {
+  return createTheme({
+    ...defineTheme({}),
+    // Override colors to match CT Website Co. brand
+    color: {
+      ...defineTheme({}).color,
+      primary: { 500: accentColor },
+    },
+    // Typography: match the portal's Inter font
+    font: {
+      ...defineTheme({}).font,
+      family: "Inter, system-ui, sans-serif",
+    },
+  })
+}
+```
+
+**Custom logo component:**
+```tsx
+// components/sanity/ct-logo.tsx
+export function CtWebsiteLogo() {
+  return (
+    <div className="flex items-center gap-2">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        {/* CT Website Co. SVG logo */}
+        <rect width="28" height="28" rx="6" fill="#6366F1" />
+        <text x="14" y="19" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">CT</text>
+      </svg>
+      <span className="text-sm font-semibold text-foreground">Content Editor</span>
+    </div>
+  )
+}
+```
+
+**Custom login screen:**
+Sanity Studio's default login screen shows Sanity branding. When embedded, we replace it with a CT Website Co.-branded screen. This requires overriding the Studio's `LoginScreen` component via a custom `StudioLayout`.
+
+**Hiding Sanity branding throughout:**
+- `document.options.hideCopyToClipboard = true`
+- No "Powered by Sanity" anywhere
+- Custom CSS overrides to remove Sanity footer
+- Custom `<title>` tag: "Acme Corp — Content Editor" not "Sanity Studio"
+
+**Per-client Sanity schemas:**
+Each client's website has different content types. The portal handles this by storing each client's schema definition in the tenant DB record:
+```typescript
+// Tenant record in portal DB
+{
+  id: "tenant_123",
+  slug: "acme-corp",
+  sanityProjectId: "abc123",
+  sanityDataset: "production",
+  schemaTypes: ["page", "blogPost", "author", "service", "testimonial", ...],  // custom per-client
+}
+```
+On the server, we resolve the schema types from the tenant record and pass them to the Sanity config factory. Schemas are registered at build/compile time — in practice, this means the portal app imports all possible schema types and the tenant config selects which subset to activate per client. This gives full schema flexibility without runtime schema loading.
+
+**Visual Editing (Presentation tool) — same branding:**
+The Presentation tool renders the client's live site inside an iframe. The toolbar and chrome around that iframe use CT Website Co. branding. The live site content itself is the client's, but the editing environment is fully branded.
+
+**CRM as source of truth for Sanity credentials:**
+The CRM already stores `sanity_project_id`, `sanity_preview_url`, `sanity_preview_secret`, and `sanity_path_template` per site. The portal tenant record references a CRM site ID, and the Sanity config factory fetches credentials from the CRM API at request time (server-side only, never exposed to the client):
+
+```typescript
+// lib/sanity-config-factory.ts
+export async function createSanityConfig(tenant: Tenant) {
+  // Fetch Sanity credentials from CRM API (server-side only)
+  const site = await crmApi.getSite(tenant.crmSiteId)
+  return defineConfig({
+    projectId: site.sanityProjectId,
+    dataset: site.sanityDataset || "production",
+    token: site.sanityToken,  // Editor token from CRM
+    ...
+  })
+}
+```
+
+This means no duplicate credential storage — the portal reads from the CRM's existing integration record.
+
+`next-sanity` v7+ is the official toolkit for embedding Sanity Studio in Next.js. The critical requirement: the embedded Studio must be 100% branded to CT Website Co., not Sanity.
+
+**What "100% branded" means:**
+- No Sanity logo, name, or visual identity anywhere in the Studio
+- Custom logo, favicon, and theme matching CT Website Co.'s design
+- Title: "Content Editor" (or configurable per tenant) — not "Sanity Studio"
+- Custom theme colors matching the portal's brand
+
+**Per-tenant config factory:**
+```typescript
+// lib/sanity-config-factory.ts
+export function createSanityConfig(tenant: Tenant) {
+  return defineConfig({
+    basePath: "/studio",
+    projectId: tenant.sanityProjectId,
+    dataset: tenant.sanityDataset,
+    // Custom CT Website Co. branding — no Sanity identity
+    title: `${tenant.name} Content Editor`,
+    logo: "/ct-website-logo.svg",  // CT Website Co. logo, not Sanity's
+    favicon: "/ct-website-favicon.ico",
+    theme: createCtWebsiteTheme({ accentColor: tenant.accentColor }),
+    // Hide all Sanity branding
+    studioUrl: "/studio",  // Prevents Sanity branding in URLs
+    plugins: [
+      structureTool({ structure: buildTenantStructure(tenant) }),
+      presentationTool({ ... }),  // Visual Editing
+    ],
+    schema: { types: tenant.schemaTypes },  // Custom per-client schema
+  })
+}
+```
+
+**Custom theme:**
+```typescript
+// lib/sanity-theme.ts
+import { createTheme } from "@sanity/ui"
+import { defineTheme } from "@sanity/ui/theme"
+
+export function createCtWebsiteTheme({ accentColor = "#6366F1" } = {}) {
+  return createTheme({
+    ...defineTheme({}),
+    // Override colors to match CT Website Co. brand
+    color: {
+      ...defineTheme({}).color,
+      primary: { 500: accentColor },
+    },
+    // Typography: match the portal's Inter font
+    font: {
+      ...defineTheme({}).font,
+      family: "Inter, system-ui, sans-serif",
+    },
+  })
+}
+```
+
+**Custom logo component:**
+```tsx
+// components/sanity/ct-logo.tsx
+export function CtWebsiteLogo() {
+  return (
+    <div className="flex items-center gap-2">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        {/* CT Website Co. SVG logo */}
+        <rect width="28" height="28" rx="6" fill="#6366F1" />
+        <text x="14" y="19" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">CT</text>
+      </svg>
+      <span className="text-sm font-semibold text-foreground">Content Editor</span>
+    </div>
+  )
+}
+```
+
+**Custom login screen:**
+Sanity Studio's default login screen shows Sanity branding. When embedded, we replace it with a CT Website Co.-branded screen. This requires overriding the Studio's `LoginScreen` component via a custom `StudioLayout`.
+
+**Hiding Sanity branding throughout:**
+- `document.options.hideCopyToClipboard = true`
+- No "Powered by Sanity" anywhere
+- Custom CSS overrides to remove Sanity footer
+- Custom `<title>` tag: "Acme Corp — Content Editor" not "Sanity Studio"
+
+**Per-client Sanity schemas:**
+Each client's website has different content types. The portal handles this by storing each client's schema definition in the tenant DB record:
+```typescript
+// Tenant record in portal DB
+{
+  id: "tenant_123",
+  slug: "acme-corp",
+  sanityProjectId: "abc123",
+  sanityDataset: "production",
+  schemaTypes: ["page", "blogPost", "author", "service", "testimonial", ...],  // custom per-client
+}
+```
+On the server, we resolve the schema types from the tenant record and pass them to the Sanity config factory. Schemas are registered at build/compile time — in practice, this means the portal app imports all possible schema types and the tenant config selects which subset to activate per client. This gives full schema flexibility without runtime schema loading.
+
+**Visual Editing (Presentation tool) — same branding:**
+The Presentation tool renders the client's live site inside an iframe. The toolbar and chrome around that iframe use CT Website Co. branding. The live site content itself is the client's, but the editing environment is fully branded.
+
+`next-sanity` v7+ is the official toolkit for embedding Sanity Studio in Next.js. Two key components:
+
+**`<NextStudio />`** — The full embedded Studio:
+```tsx
+// app/(portal)/studio/[[...tool]]/page.tsx
+import { NextStudio } from "next-sanity/studio"
+import config from "@/sanity.config"  // per-tenant config
+
+export const dynamic = "force-static"
+export { metadata, viewport } from "next-sanity/studio"
+
+export default function StudioPage() {
+  return <NextStudio config={config} />
+}
+```
+
+**Sanity config driven by tenant context:**
+The `sanity.config.ts` is a factory function, not a static export. On the server, we read the tenant's Sanity credentials and generate the config:
+```typescript
+// lib/sanity-config-factory.ts
+export function createSanityConfig(tenant: Tenant) {
+  return defineConfig({
+    basePath: "/studio",  // path within tenant subdomain
+    projectId: tenant.sanityProjectId,
+    dataset: tenant.sanityDataset,
+    plugins: [
+      structureTool({ structure: tenantStructure(tenant) }),
+      presentationTool({...}),  // Visual Editing
+    ],
+    schema: { types: tenant.schemaTypes },
+    token: tenant.sanityToken,  // editor token for read/write
+  })
+}
+```
+
+**Visual Editing (Presentation tool):**
+Sanity's Presentation tool lets editors click on their actual website to edit content. Requires:
+1. `presentationTool()` added to `sanity.config.ts` plugins
+2. A "presentation" route in Next.js where the live preview renders: `/studio/[[...tool]]/presentation/[pageId]`
+3. Content Source Maps enabled on the frontend (Sanity adds metadata to GROQ responses so it knows what Sanity document each DOM element corresponds to)
+4. `<VisualEditing />` component in the frontend's root layout (outside of `/studio` routes so it doesn't render inside the Studio itself)
+
+This is what makes the "visual page editor" work without us building a custom drag-drop builder.
+
+### 9.4 Billing Model — CRM as Source of Truth
+
+**Key simplification:** The CRM owns subscriptions and invoices. The portal only needs to:
+1. Display subscription status and invoice history
+2. Collect payment when the CRM says payment is required
+3. Know when to block access based on payment status
+
+This means no Stripe plan management, no pricing configuration, no subscription creation in the portal. The portal is a billing *display* + *payment collector*, not a billing engine.
+
+**Data flow:**
+```
+CRM (source of truth)               Stripe (payment processor)
+     │                                      │
+     ▼                                      ▼
+Creates subscription             Stripe processes charges
+Creates invoice                  Fires webhooks
+     │                                      │
+     └────────────────┬──────────────────────┘
+                     ▼
+              CRM webhook handler
+              (updates subscription status in CRM)
+                     │
+                     ▼
+              Portal DB cache
+              (subscription status synced via CRM API or webhook)
+                     │
+                     ▼
+              Portal UI reads:
+              - subscription.status → show active OR payment-required
+              - invoices[] → billing page table
+```
+
+**Subscription statuses the portal handles:**
+| CRM Status | Stripe Status | Portal Behavior |
+|---|---|---|
+| `active` | `active` | Full access |
+| `trialing` | `trialing` | Full access, show trial end date |
+| `past_due` | `past_due` | Orange banner, payment form on `/billing` |
+| `canceled` | `canceled` | Red banner, read-only, contact support |
+| `incomplete` | `incomplete` | Payment form on `/billing` — first payment |
+
+**Portal's Stripe webhook handler** (forwards to CRM, updates local cache):
+```typescript
+// app/api/webhooks/stripe/route.ts
+export async function POST(req: Request) {
+  const body = await req.text()
+  const sig = req.headers.get("stripe-signature")!
+  const event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET)
+
+  // Forward raw event to CRM for processing (CRM is source of truth)
+  await crmApi.forwardStripeEvent(event)
+
+  // Update local cache for fast UI rendering
+  switch (event.type) {
+    case "invoice.paid":
+      await prisma.subscription.update({ where: { stripeId: event.data.object.subscription }, data: { status: "active" } })
+      break
+    case "invoice.payment_failed":
+      await prisma.subscription.update({ where: { stripeId: event.data.object.subscription }, data: { status: "past_due" } })
+      break
+    case "customer.subscription.deleted":
+      await prisma.subscription.update({ where: { stripeId: event.data.object.id }, data: { status: "canceled" } })
+      break
+  }
+
+  return NextResponse.json({ received: true })
+}
+```
+
+**What the portal does NOT own:**
+- Stripe plan/product configuration (CRM + Stripe Dashboard)
+- Subscription creation (CRM)
+- Invoice generation (CRM)
+- Subscription cancellation (CRM + Stripe Customer Portal)
+- Trial periods and pricing (CRM)
+
+**What the portal does own:**
+- Subscription status display
+- Invoice history (fetched from CRM API)
+- Stripe Elements payment form (triggered when CRM says `past_due` or `incomplete`)
+- "Manage Billing" link → Stripe Customer Portal URL (stored in tenant record, configured by agency in CRM)
+
+Portal DB schema for tenant registry and user management:
+
+```typescript
+// prisma/schema.prisma
+
+model Tenant {
+  id          String   @id @default(cuid())
+  slug        String   @unique  // "acme-corp" — used in fallback URL
+  name        String            // "Acme Corporation" — display name
+  type        TenantType @default(CLIENT)
+
+  // Primary domain — their website
+  domain      String   @unique  // "acme-corp.com"
+
+  // Admin subdomain (optional — set when DNS is configured)
+  subdomain   String?  @unique  // "admin.acme-corp.com"
+
+  // Branding
+  logoUrl     String?
+  accentColor String   @default("#6366F1")
+
+  // Integrations
+  sanityProjectId  String?
+  sanityDataset     String   @default("production")
+  sanityToken      String?  // Encrypted at rest
+
+  stripeCustomerId  String?
+
+  // Relations
+  users     PortalUser[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PortalUser {
+  id       String @id @default(cuid())
+  email    String
+  name     String?
+  password String?  // Hashed with bcrypt. Null if CRM-managed SSO
+
+  role     UserRole @default(EDITOR)
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([email, tenantId])
+}
+
+enum TenantType {
+  AGENCY   // portal.ctwebsiteco.com — agency's own tenant
+  CLIENT   // admin.clientsite.com — per-client tenant
+}
+
+enum UserRole {
+  OWNER        // Full access
+  EDITOR       // Content/studio only
+  BILLING      // Billing read-only
+  SUPPORT      // Support tickets only
+}
+```
+
+**Indexing:** `Tenant.domain`, `Tenant.subdomain`, `PortalUser.email` — all unique indexes. Tenant lookup in middleware is a single indexed DB query.
+
+### 9.5 Middleware — Subdomain Resolution + Auth Guard
+
+```typescript
+// middleware.ts
+import { auth } from "@/auth"
+
+export async function middleware(req: NextRequest) {
+  const hostname = req.headers.get("host") || ""
+
+  // Resolve tenant from subdomain or path fallback
+  const tenant = await resolveTenant(hostname)  // see §3.1
+  if (!tenant) return NextResponse.next()       // Not a portal request
+
+  // Attach tenant context for downstream
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-tenant-id", tenant.id)
+
+  // Auth check — all portal routes require authentication
+  const session = await auth(req)
+  if (!session) {
+    const loginUrl = new URL("/login", req.url)
+    loginUrl.searchParams.set("tenant", tenant.slug)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // Role-based access: agency routes require agency role
+  if (req.nextUrl.pathname.startsWith("/admin") && session.user.role !== "OWNER") {
+    return NextResponse.redirect(new URL(`/${tenant.slug}/dashboard`, req.url))
+  }
+
+  return NextResponse.next({ request: { headers: requestHeaders } })
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+}
+```
+
+---
+
+## 10. UX Design Theory — B2B SaaS Client Portal
+
+### 10.1 Design Principles
+
+**B2B SaaS is different from consumer UX.** Clients are at work, often on a deadline, and they're using this portal reluctantly — it's not their primary business. The design must minimize cognitive load, not impress with creativity.
+
+**Three rules that govern every design decision:**
+
+1. **Orientation on every page.** Clients don't navigate B2B SaaS apps the way they'd browse consumer apps. They arrive via a link from an email, do one specific thing, and leave. Every page must answer "Where am I? What can I do here? How do I get back to what I need?" immediately — within 3 seconds.
+
+2. **Progressive disclosure, not overwhelming detail.** Show the most common action. Hide the rest. Expand sections only when the user asks. Don't surface 47 configuration options on first load.
+
+3. **Respect the 5-minute rule.** A new client invited to the portal should be able to complete their first meaningful task (file a ticket, find their invoice) in under 5 minutes, without asking for help. If they can't, the UX has failed — not the client.
+
+### 10.2 Navigation Architecture
+
+**Sidebar (desktop):**
+- Always visible, 240px wide, collapsible to 64px icon-only mode
+- Top: tenant logo + name (links to dashboard)
+- Middle: primary nav — Dashboard, Studio, Content, Support, Billing
+- Bottom: Settings, Help, Sign Out
+- Agency users: extra "All Clients" admin link at top
+
+**Active state:** Left border accent in brand color, icon + label, subtle background tint. Clients must always know which section they're in.
+
+**Breadcrumb:** Below header on every page. Shows: Home > Section > Page. Essential for deep pages (e.g., Support > Ticket #234 > Reply).
+
+**Mobile:** Bottom tab bar with 5 items. Icons only, no labels (too cramped). Long-press or tap opens sub-nav sheet.
+
+### 10.3 Color & Branding — White-Label Strategy
+
+Each client can set a custom `accentColor` (stored in tenant DB). The portal UI uses that accent throughout — buttons, links, active states, badges. This is the single most impactful white-label customization.
+
+**What the agency controls, not the client:**
+- Core layout and component design (not customizable)
+- UX patterns and flows (consistent, not customizable)
+- Typography (Inter, not customizable)
+
+**What clients can customize:**
+- Accent color (hex picker — stored in tenant record)
+- Logo (URL — displayed in sidebar and login page)
+
+**What stays fixed:** The portal feels like a CT Website Co. product. The goal is trust and reliability — not invisibility. Clients know they're in a professional tool, not their own DIY app.
+
+### 10.4 Empty States — First-Time Experience
+
+Every section handles the "nothing here yet" state deliberately. These aren't placeholder screens — they're the most important onboarding moments.
+
+**Examples:**
+- Ticket list (no tickets yet): "No support tickets yet. If something needs attention, create a ticket and we'll get right on it." + prominent "Create Ticket" button.
+- Studio (no content set up): Sanity handles this with its own onboarding, but we show a "Setting up your site? Contact your project manager" note.
+- Billing (no subscription yet): "Your subscription is being set up. You'll have full access once your plan is active." — no anxiety about missing billing info.
+
+### 10.5 Loading & Error States
+
+**Loading:** Skeleton shimmer matching the content shape. Never a spinner for content. Spinner only for actions being submitted.
+
+**Errors:** Plain English. "We couldn't load your tickets — check your connection and try again" + a Retry button. Error messages never expose technical details.
+
+**Stale data:** If ticket status updates via webhook, show a brief toast: "Ticket #123 status updated to In Progress" without disrupting the user. Don't require a page refresh.
+
+---
+
+## 11. Sign-In & Payment Flow — Full Design
+
+### 11.1 The Problem We're Solving
+
+Two distinct payment scenarios need UX:
+1. **New client signs up** → subscription is `incomplete` → they need to pay before full access
+2. **Existing client has a card decline** → subscription goes `past_due` → they need to update payment to restore access
+
+Both cases need a payment screen that: (a) is clear about what's happening, (b) doesn't require re-logging in, (c) gets them to payment quickly, (d) restores access immediately after payment succeeds.
+
+### 11.2 Auth Flow
+
+```
+[1] User visits portal
+    │
+    ▼
+[2] Middleware resolves tenant from subdomain
+    │
+    ▼
+[3] Check session cookie → Has valid JWT?
+    ├── YES → Read tenant + role from JWT
+    │         → Is subscription active?
+    │              ├── YES  → /dashboard
+    │              └── NO   → /billing (payment form inline)
+    │
+    └── NO  → /login
+              │
+              ▼
+        [4] Enter email → "Send magic link" button
+            → NextAuth sends magic link via Resend
+            → /login/verify page: "Check your email"
+            │
+            [5] User clicks magic link in inbox
+                → NextAuth verifies token
+                → JWT issued (tenantId + role + hasPassword embedded)
+                → First login with no password set?
+                     YES → redirect to /onboarding → set password
+                     NO  → redirect to /dashboard (or /billing if payment due)
+```
+
+### 11.3 Payment Form — Embedded on `/billing`
+
+**The payment form lives on `/billing`, not a separate page.** When the CRM sets `subscription.status === 'past_due'` or `status === 'incomplete'`, the billing page conditionally renders the payment form inline — no redirect, no separate page.
+
+**Why inline on `/billing`:** The client is already on the billing page when they see "Payment required" (or they navigate there from the dashboard banner). They update their card in context, see their plan and invoice history alongside it, and restore access without leaving the page.
+
+**Stripe Elements (embedded):** `@stripe/react-stripe-js` + `@stripe/stripe-js`. Card data goes directly from browser to Stripe — never touches our server (PCI compliant).
+
+```tsx
+// components/payment/payment-form.tsx
+function PaymentForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!stripe || !elements) return
+    setLoading(true)
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: elements.getElement(CardElement)! },
+    })
+    if (result.error) {
+      setError(result.error.message)
+      setLoading(false)
+    } else {
+      onSuccess()  // webhook fires → CRM updates status → portal UI unlocks
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <CardElement options={{ style: { base: { fontSize: "16px" } } }} />
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <Button type="submit" disabled={!stripe || loading} className="w-full">
+        {loading ? "Processing..." : "Update Payment Method"}
+      </Button>
+    </form>
+  )
+}
+```
+
+**How the form gets `clientSecret`:** The billing page calls `GET /api/billing/subscription` → CRM API returns `{ clientSecret, status }`. Portal renders `<PaymentForm clientSecret={clientSecret} />`.
+
+**On success:** Webhook fires `invoice.paid` → CRM updates subscription → next page load (or SWR refresh) shows `status: active` → banner disappears, full portal unlocked.
+
+### 11.5 Card Declined / `past_due` Flow
+
+When Stripe fires `invoice.payment_failed`:
+1. Webhook handler → forwards event to CRM → CRM updates subscription status to `past_due`
+2. Portal DB cache updated (fast UI re-render without waiting for CRM API poll)
+3. Client visits `/billing`:
+   - Banner: "Your last payment didn't go through. Update your card to restore access."
+   - Plan card shows `Past Due` badge
+   - Stripe Elements payment form renders inline (pre-filled if Stripe has saved card on file)
+   - "We tried charging your card on [date] — it was declined."
+
+4. On successful payment → `invoice.paid` webhook → CRM → portal cache → `status: active` → banner gone, full access restored
+
+**Smart Retries:** Stripe automatically retries on days 1, 3, 5, 7 (configurable). During the retry window, client still has access. Stripe sends dunning emails automatically. The portal shows a yellow warning banner but doesn't hard-lock.
+
+---
+
+## 12. Client Onboarding — Manual, One-by-One
+
+Onboarding is manual. Sean sets up each client one at a time. No self-service signup flow yet.
+
+**Sean's setup steps (agency portal):**
+1. **Create tenant** → `/admin/clients/new` → Enter client name, domain, logo URL, accent color
+2. **Create Sanity project** → Manually in Sanity dashboard → Copy project ID + dataset into tenant record
+3. **Configure schema types** → Select which content types apply to this client's site
+4. **Link Stripe customer** → Paste Stripe Customer ID into tenant record
+5. **Send invite** → Enter client's email → Magic link sent → First-login password setup
+
+**Client's first-login flow (after receiving magic link):**
+1. Click magic link → redirected to `/onboarding`
+2. "Welcome to your client portal" — set password
+3. Redirect to `/dashboard` → full portal access
+
+**What's already set up before the client gets their invite:**
+- Sanity project with their content schema
+- Stripe subscription (created by Sean in CRM)
+- Tenant record with logo, accent color, integrations configured
+
+The client never sees a setup wizard — by the time they get the invite link, everything is pre-configured.
+
+---
+
+## 13. Open Questions — Final
+
+1. ~~TV Feed~~ — postponed to Phase 6 (end)
+2. ~~Domain strategy~~ — RESOLVED: subdomain per client + agency domain fallback
+3. ~~Subscription model / Stripe setup~~ — RESOLVED: CRM owns subscription management. Portal reads status, shows payment form when required.
+4. ~~Invite flow~~ — RESOLVED: Magic link email → first login sets password → subsequent logins use magic link OR password.
+5. ~~Trial period~~ — RESOLVED: No trials. Pay upfront.
+6. ~~Sanity schema strategy~~ — RESOLVED: Custom per-client. All possible schema types imported in the app; tenant config selects which subset to activate per client.
+7. ~~CRM user sync~~ — RESOLVED: Portal users are NOT CRM users. Separate user management. Sean provisions each client manually in the agency portal.
+8. ~~Onboarding~~ — RESOLVED: Manual, one-by-one. Sean creates tenant in agency portal → sets up Sanity project → sends invite.
+9. ~~Existing clients + Sanity~~ — RESOLVED: Some existing CRM clients already have Sanity projects (CRM stores `sanity_project_id` per site). The portal tenant will reference the CRM site ID → portal fetches Sanity credentials from CRM API. Migration is per-client based on whether they already have a Sanity project.
+
+---
+
+*Spec version: 2.0 — Final — 2026-03-31: All decisions locked. Ready for scaffolding.*
 
 ### Options Considered
 
