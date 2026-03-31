@@ -161,6 +161,46 @@
 
 ---
 
+## Session 29 — 2026-03-31 23:30 UTC
+**Topic:** Automation Builder & Workflow Rules UX for Ticketing CRMs
+
+### Key Insights
+
+1. **"IF this, THEN that" is the right mental model — but complexity must be layered, not hidden.** Simple automations (IF ticket priority = Urgent THEN assign to Tier-2) should take under 30 seconds to configure. Multi-step flows requiring multiple AND/OR conditions, nested actions, and exceptions need progressive disclosure — show simple first, let advanced users expand. Zapier's two-step Zap UX vs. Make's complex canvas is the spectrum to learn from. CRMs that expose all complexity upfront paralyze non-technical admins; CRMs that hide complexity entirely make power users feel crippled.
+
+2. **Visual flow builders (canvas) vs. rule-list builders serve different purposes — offer both.** Canvas-based flow builders (Zendesk, Intercom) are best for multi-step automations where the sequence of actions matters visually. Rule-list builders (Freshdesk, HubSpot) are faster for single-condition → single-action rules and easier to scan for audit purposes. The right pattern: a rule-list view as the default management interface (see all rules at a glance, toggle on/off, set priority order), with an expandable flow/detail view for complex rules. Don't force users into a canvas to manage a simple routing rule.
+
+3. **Condition blocks need field-specific smart operators — not generic text matching.** When an admin selects a field for a condition, the operator dropdown must adapt to the field type: text fields get "contains / does not contain / matches regex"; numeric (priority score, SLA minutes) get "equals / greater than / less than / between"; date fields get "is before / is after / within last X hours"; dropdown/multi-select fields get "is / is not / includes any of." Using "contains" on a numeric SLA field is a silent error that produces unpredictable behavior. Smart, type-aware condition builders prevent bad automation logic at the source.
+
+4. **A live "matching tickets" preview before rule activation is the single highest-value safety feature.** Before saving, show a real-time count of how many tickets currently match the rule's conditions: "This rule will affect ~47 tickets." Even better: list the top 5 matching tickets as a preview. This prevents catastrophic mistakes like "assign all open tickets to Agent X." It also builds admin confidence — they can validate that the rule does exactly what they intend before it runs on live data. This is table stakes for any automation that changes ticket state.
+
+5. **Rule execution timing (immediate vs. scheduled vs. on-event) must be explicit per rule, not conflated.** Time-based triggers (run every 15 minutes, close tickets with no reply in 7 days) are fundamentally different from event-based triggers (run when SLA breaches, when customer replies). A ticket closing rule that runs on a schedule can have a 15-minute delay visible to admins; an SLA-breach escalation that runs on-event should feel instantaneous. Admins must understand which timing model their rule uses — and the UI should name it explicitly, not hide it in settings.
+
+6. **Rule conflicts and execution order must be explicit and controllable.** When Rule A and Rule B can both fire on the same ticket, which wins? The UI needs: (a) a visible rule priority/order list, (b) drag-to-reorder priority, (c) a "stop processing further rules" option per rule (for critical overrides like "VIP customers never get auto-closed"). Without explicit conflict handling, rule execution becomes non-deterministic and impossible to audit. CRMs that silently use creation-date order for rule priority create subtle, hard-to-debug failures.
+
+7. **Every rule needs a dry-run/test mode and a toggle — not just activate/delete.** Admins need to test rules against live data without firing real actions. Test mode should show: how many tickets match, which rules would fire, what actions would execute — without touching any tickets. Rules should also be togglable (on/off) without deletion, and the toggle state should be visible in the rules list at a glance (a red/green dot or enabled/disabled badge). Seasonal rules (holiday auto-responders) should be easy to disable for the off-season and re-enable later.
+
+8. **Automation audit logs must capture what fired, when, on which tickets, and any errors.** When a rule fires on 200 tickets and 3 fail, admins need to know which 3 and why — not just "3 errors." Each rule execution should log: rule name + version, trigger event, list of affected tickets, individual action results, and error details if any. Logs should be accessible without leaving the rule builder UI. An automation that runs silently with no logging is unmanageable at scale — and rule failures that go invisible are worse than no automation at all.
+
+9. **Rule templates and copy-clone accelerate onboarding and reduce errors.** Pre-built templates for common automations (route urgent tickets, auto-close resolved, send CSAT on resolution, escalate on SLA breach, tag social mentions) let admins start from proven logic rather than building from scratch. Copy-clone an existing rule as a starting point for a similar new rule. In team environments, an org-wide rule template library with sharing (similar to a template gallery) creates consistent automation hygiene across the org. Admins who clone a working rule make fewer mistakes than those who build from a blank canvas.
+
+10. **The rule builder UI must show existing rules that overlap with the one being created.** When an admin builds a new routing rule, the UI should surface: "Note: 2 existing routing rules already match Priority = Urgent tickets. Review them before activating." Overlap warnings before save, not after failures, prevent silent rule conflicts. Additionally, the rules dashboard should show per-rule firing frequency ("this rule fired 847 times this week") — helping admins identify which rules are high-impact (worth optimizing) and which rarely fire (may have stale conditions). A rule that matched 0 tickets in 30 days is a red flag.
+
+### How It Applies to Our CRM
+
+- Build a rule-list as the primary management UI (see all rules, toggle on/off, drag to reorder), with an expandable detail/flow view for complex rules. Don't force canvas for simple routing rules.
+- Use type-aware condition builders: adapt operator options to the selected field type. Never offer "contains" as an operator for numeric fields.
+- Add a live "matching tickets" preview panel before saving any rule: show count + top 5 examples of tickets that would match. Require this before activating rules that change ticket state.
+- Name execution timing explicitly per rule: "On event (immediate)" vs. "Scheduled (every 15 min)" vs. "On status change." Don't conflate different timing models.
+- Implement explicit rule conflict handling: visible priority ordering, drag-to-reorder, "stop further rules" option per rule. Show conflict warnings when new rules overlap with existing ones.
+- Add test/dry-run mode per rule: show what would happen without executing actions. Keep rules toggleable without deletion; seasonal rules should be easy to disable and re-enable.
+- Build automation audit logs per rule: trigger event, affected tickets, per-ticket action results, errors. Accessible from within the rule builder.
+- Provide pre-built rule templates for common automations. Enable copy-clone from any existing rule. Consider an org-wide template gallery for team sharing.
+- Surface per-rule firing frequency in the rules dashboard: "fired 847 times this week" vs. "matched 0 tickets in 30 days" — identify stale or broken rules at a glance.
+- When building a new rule, show overlap warnings with existing rules before saving. Prevent silent conflicts, don't reveal them only when things go wrong.
+
+---
+
 ## Session 17 — 2026-03-31 10:30 UTC
 **Topic:** Ticket Templates, Structured Forms & Macros UX for Ticketing CRMs
 
