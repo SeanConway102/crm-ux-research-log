@@ -1,5 +1,45 @@
 # CRM UX Research Log
 
+## Session 18 — 2026-03-31 11:30 UTC
+**Topic:** SLA & Deadline Visualization UX for Ticketing CRMs
+
+### Key Insights
+
+1. **SLA timers should be impossible to ignore — but not disruptive.** Color-coded urgency (green → yellow → red as deadline approaches) is the baseline. The critical UX distinction is between *ambient urgency* (color bleeding into the ticket row, badge, or inbox count) and *interruptive urgency* (toasts, badges that bounce). Ambient works continuously; interruptions should only fire at breach threshold or when a human action is required. Never auto-escalate without warning the agent first.
+
+2. **Show time remaining, not just the deadline timestamp.** "Due in 45 min" is actionable. "Due at 14:00" requires mental math the agent shouldn't have to do while triaging 20 tickets. The timer should count down in real-time and display in the ticket list view, ticket detail header, and agent dashboard — everywhere the agent looks. When <15 min remains, surface the exact minutes remaining prominently.
+
+3. **SLA status must be visible without opening the ticket.** In queue views, each ticket row should display its SLA state: a color dot or pill badge (breached/at-risk/on-track), the time remaining, and the policy name. Agents triage by scanning rows — they cannot open every ticket. Zendesk, Freshdesk, and Jira Service Management all show SLA pills in list views for this reason. Hiding SLA behind a ticket detail screen is a major triage failure.
+
+4. **"At-risk" is a UX state, not just a color.** At-risk tickets need more than red coloring — they need a clear escalation path visible in the same UI. A ticket that's 10 minutes from breaching should show not just a red timer but a suggested action: "Assign to Tier-2", "Escalate", or "Add note — SLA extension requested." This turns awareness into resolution momentum, not just anxiety.
+
+5. **SLA pauses should be clearly communicated with reason and timestamp.** When does the SLA clock pause? (Customer reply pending, ticket on hold, awaiting external vendor.) The pause must be visually distinct from "running," show *why* it's paused, and show when it will resume. Agents lose trust in SLA UIs that freeze silently — it feels like a bug, not a feature. Show: "🟡 SLA paused — awaiting customer reply (paused 2h ago)."
+
+6. **Breach notifications should be prioritized by impact, not sent uniformly.** Not all breaches are equal: a breached Tier-1 critical ticket needs immediate attention; a breached internal task ticket can wait. Batch breach alerts by severity tier and deliver them as a digest or escalation queue, not as individual noisy notifications that create alert fatigue. Manager dashboards should show breach counts by tier, not just a list of breached tickets.
+
+7. **Business hours vs. calendar hours must be visually differentiated.** A ticket with a 4-hour SLA that pauses at 18:00 and resumes at 09:00 looks identical to one running continuously in naive UIs. Show "SLA: 4h (business hours)" and track remaining business-hours time separately. When a ticket is approaching breach within business hours, the urgency is real. When it's approaching after-hours, the UI should explain why the deadline is still safe.
+
+8. **SLA performance analytics belong in the manager view, not just operational UIs.** Track: SLA hit rate by agent, by team, by ticket category, by time of day. Identify patterns — "Billing tickets always miss SLA on Mondays" is actionable intelligence. Show trends, not just snapshots. SLA dashboards should answer: "Are we improving?" and "Where are the bottlenecks?" with enough granularity to drive coaching decisions.
+
+9. **First Response Time (FRT) and Resolution Time (RT) are distinct SLAs with distinct UIs.** FRT measures when the customer first hears from a human; RT measures when the ticket is closed. Confusing these creates agent confusion about priorities. Each should have its own visible timer and breach indicator in the ticket header. Many CRMs collapse these into one SLA — that's a mistake. Agents need to know: "Have I responded yet?" AND "Is this ticket on track to close within the resolution window?"
+
+10. **SLA extensions should be a one-click, auditable action.** Agents need to be able to request an SLA extension without leaving the ticket context. A single "Extend SLA" button that opens a modal (new deadline, reason code: Customer-requested, Complex investigation, Third-party dependency) keeps the action in context and creates a structured audit log. Ad-hoc extension requests buried in notes fields are untrackable and create compliance gaps.
+
+### How It Applies to Our CRM
+
+- Add real-time countdown timers to ticket list rows, ticket detail headers, and dashboard widgets. Show "X min remaining" not just timestamps.
+- Use a three-state SLA badge (🟢 On Track / 🟡 At Risk / 🔴 Breached) visible in every list view without opening the ticket.
+- At-risk tickets (within 15 min of breach) should surface a suggested action button inline — "Escalate" or "Request Extension" — not just turn red.
+- Display SLA pause state with icon + reason + pause duration. Never pause silently.
+- Track and display FRT and RT as separate SLA types with separate timers. Agents should always know their current status on both.
+- Show business-hours vs. calendar-hours SLA time separately when business hours are configured.
+- Build a manager SLA dashboard: breach rate by tier/category/agent, trend over time, and actionable coaching flags.
+- SLA extension should be a structured one-click modal with reason codes, creating an auditable log entry on the ticket.
+- Build breach notification digests by severity tier rather than individual noisy alerts.
+- When displaying SLA timers, include the policy name so agents know which rule is being applied (e.g., "Priority: Urgent – 1h FRT").
+
+---
+
 ## Session 17 — 2026-03-31 10:30 UTC
 **Topic:** Ticket Templates, Structured Forms & Macros UX for Ticketing CRMs
 

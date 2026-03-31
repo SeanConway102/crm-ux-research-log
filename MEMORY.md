@@ -37,6 +37,43 @@
 5. Unused `statusOptions` variable in ticket detail page
 6. `handleStatusChange` is a no-op stub
 
+## Client Portal Project (new — 2026-03-31)
+**Repo:** Not yet created (Sean will provide git URL)
+**Local path:** `~/clawd/agency/client-portal/`
+**Spec:** `agency/client-portal/SPEC.md`
+
+### Concept
+Multi-tenant white-label client dashboard where Sean's clients:
+- Edit their Sanity-powered website (embedded Sanity Studio + Visual Editing)
+- Manage their satellite TV feed content
+- File support tickets (→ CRM)
+- Manage billing (Stripe Customer Portal)
+
+### Tech
+- Next.js 15 App Router, TypeScript, Tailwind, shadcn/ui
+- NextAuth.js v5 — credentials provider wired to existing CRM users table
+- Prisma (portal's own DB for tenant registry + portal users)
+- `next-sanity` — embedded Studio at `/[tenant]/studio`
+- Stripe Customer Portal for billing self-service
+- Path-based multi-tenancy: `/[tenant]/dashboard`, `/[tenant]/studio`, etc.
+- Middleware resolves tenant from path + validates auth
+
+### Phases
+1. Foundation: scaffold + auth + portal shell
+2. Sanity Studio embed + visual editing
+3. Support tickets (CRM API)
+4. Billing (Stripe Portal)
+5. Content hub + TV feed placeholder
+
+### Key Decisions (confirmed)
+- Domain: `portal.ctwebsiteco.com` (agency) + `admin.{clientdomain}.com` per client (subdomain-based, confirmed 2026-03-31)
+- TV Feed: Phase 6 (end) — it's a video + streaming management platform; full spec TBD
+- Onboarding: site built first → client invited to portal with pre-configured tenant (confirmed)
+- Template: **Makerkit** as starting point ($349) — has multi-tenancy, Stripe Portal, NextAuth, shadcn/ui, Playwright E2E, AI agent rules. We replace Supabase with Prisma+CRM API, add `next-sanity`
+- TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E). Feature files in `__tests__/e2e/features/`, step definitions in `__tests__/e2e/steps/`. Pre-commit: vitest --run + tsc --noEmit + eslint. E2E runs in CI, not pre-commit.
+- AI challenges documented in SPEC.md §10: hallucination, context window, scope creep, test coverage theater — with specific countermeasures
+- TV Feed note: video + streaming management platform we own, not just a feed
+
 ## OpenClaw Setup
 - Running on `agency-claw` server (Linux 6.8.0-106-generic x64)
 - Chrome at `/usr/bin/google-chrome-stable`
