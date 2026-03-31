@@ -323,3 +323,42 @@
 - Add a feedback mechanism on rejected AI suggestions (short reason picker: "Wrong tone / Inaccurate / Missing context") feeding back to improve the model.
 - Implement per-topic AI deferral policies for sensitive categories (billing, legal, account changes) — AI assists only where it's reliably accurate.
 - Track AI adoption rate per agent and team — surface this in manager dashboards so supervisors can identify who needs copilot onboarding help.
+
+---
+
+## Session 10 — 2026-03-31 03:30 UTC
+**Topic:** Omnichannel Inbox & Channel Consolidation UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Channel-of-origin must be instantly identifiable without reading.** A coloured icon or badge (email 📧, chat 💬, Twitter/X 🐦, WhatsApp 📱, phone 📞) at the subject line level — not buried in ticket metadata — lets agents instantly calibrate their tone and format. Email tickets get formal replies; chat tickets can be terse; WhatsApp tickets benefit from conversational language. Context-switching between channels requires different mental models.
+
+2. **Unified inbox doesn't mean identical treatment of all channels.** Agents need to handle email differently from live chat (where response time is seconds, not hours). The inbox should group or surface real-time channels (chat, web form) separately from asynchronous channels (email, social). Intercom's inbox does this with a "Real-time vs. Async" split — agents can context-switch between fast and slow modes.
+
+3. **Channel-specific composer constraints must be explicit.** If you're replying to a WhatsApp ticket, the composer shouldn't offer "CC another email address" — that's an email concept. Similarly, chat replies shouldn't have rich formatting options that look nothing like the customer's experience. Tailor composer fields and formatting toolbar to the channel. Showing channel-irrelevant options erodes trust in the system's coherence.
+
+4. **Cross-channel continuity: same customer, same context, regardless of channel.** If a customer emails from support@example.com, then switches to live chat from the same email, the agent should see the email ticket history in the chat view without hunting. A unified customer profile (email, phone, company, previous tickets) must follow the customer across channels, not be locked inside a channel-specific ticket silo.
+
+5. **Channel switching (e.g., email → phone → chat) should be seamless within a ticket.** Agents sometimes need to escalate from chat to a phone call mid-ticket. The ticket should remain the same entity with a new channel entry appended, not require the agent to close the chat ticket and open a new phone ticket. The thread grows; the context survives.
+
+6. **Channel偏好 settings must be visible to agents and customers.** The customer-facing channel preference ("We prefer to be contacted via email") should be visible in the customer sidebar so agents respect it. Similarly, the agent should be able to see which channels are officially supported — a Twitter DM response to a customer who submitted via phone-only support line is a policy violation waiting to happen.
+
+7. **Real-time channels need explicit "agent is typing" and "seen" indicators.** In live chat or WhatsApp-style channels, customers expect to see when an agent is composing a reply and when their message has been read. These are table-stakes for real-time channels. Email doesn't need these — the lack of them would actually be confusing. This is another reason to separate real-time from async in the inbox.
+
+8. **Fan-out: one customer message → one ticket, not one per channel.** If a customer sends the same message via email and WhatsApp simultaneously (multi-channel fan-out), the CRM must detect this and merge or link the tickets — not create two separate tickets for the same conversation. Duplicate fan-out is one of the most common omnichannel UX failures and drives agents crazy.
+
+9. **Inbox sorting by channel is as important as sorting by priority.** Agents doing high-volume queue management need to process email batches (can be slower, more formal) differently from chat spikes (fast, short responses). A "Sort by channel" option or a channel-grouped inbox view lets agents process queues in the right cognitive mode rather than switching between channel types constantly.
+
+10. **Channel-specific SLAs must be distinct and configurable.** A 1-minute response SLA for live chat is reasonable; applying the same 1-minute SLA to email is impossible. The SLA policy must be channel-aware — different first-response and resolution targets for chat vs. email vs. social. Agents need to see the active SLA for the current ticket's channel, not a generic "this ticket's SLA."
+
+### How It Applies to Our CRM
+
+- Display channel icons/badges prominently on every ticket row and in the ticket header — not hidden in metadata panels.
+- Separate real-time channels (chat, web form, phone callbacks) from async channels (email, social) in the inbox — either via grouping, filtering, or a dedicated "Live Queue" view.
+- Customise the reply composer per channel: strip email-specific fields (CC/BCC) from chat tickets; remove rich formatting from WhatsApp; add urgency flags to phone/callback tickets.
+- Build a unified customer profile sidebar that shows all tickets across all channels for the same customer — email, chat, social, phone — in one place.
+- Support channel-switching within a single ticket (add a phone note to an email ticket) without creating a new ticket or losing thread history.
+- Implement typing indicators and read receipts for WhatsApp and chat channels — omit for email.
+- Add channel-aware SLA enforcement: different response/resolution targets per channel, with distinct SLA timers surfaced accordingly.
+- Provide an inbox sort/group by channel option so agents can process queues in the right cognitive mode (batch email → batch chat, rather than random switching).
+- Handle cross-channel fan-out detection: one customer + similar message across channels = linked or merged tickets, not duplicated work.
