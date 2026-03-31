@@ -1,5 +1,5 @@
 /**
- * Embedded Sanity Studio — Phase 2.
+ * Embedded Sanity Studio — Phase 2 + 2b.
  *
  * This route is outside the `(portal)` route group so the portal sidebar/header
  * chrome does NOT wrap the Studio (Sanity provides its own chrome).
@@ -11,19 +11,37 @@
  * tenant's CRM site record so each client portal renders their own
  * Sanity project's Studio.
  *
+ * Phase 2b: config now includes structureTool (desk layout) and visionTool
+ * (GROQ playground), plus a per-tenant title.
+ *
  * @see /lib/sanity-config-factory.ts
- * @see SPEC.md Phase 2
+ * @see SPEC.md Phase 2 + 2b
  */
 
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { buildSanityConfig } from "@/lib/sanity-config-factory"
 import { NextStudio } from "next-sanity/studio"
-import { metadata, viewport } from "next-sanity/studio"
+import { metadata as studioMetadata, viewport } from "next-sanity/studio"
 import type { Metadata, Viewport } from "next"
 
-// Re-export Studio's default metadata (noindex, mobile viewport)
-export { metadata, viewport }
+// Re-export Studio's default viewport (noindex, mobile viewport)
+export { viewport }
+
+// Dynamic metadata — per-tenant page title in browser tab
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await auth()
+  if (!session?.user?.tenantId) return {}
+
+  const config = await buildSanityConfig(session.user.tenantId)
+  const title = config?.title ?? "Content Editor"
+
+  return {
+    title: {
+      absolute: title,
+    },
+  }
+}
 
 export const dynamic = "force-dynamic"
 
@@ -47,16 +65,10 @@ export default async function StudioPage() {
   // NextStudio is a Client Component (has "use client" inside its module graph).
   // Passing the config as a serializable prop from this Server Component is the
   // intended pattern for dynamic multi-tenant configs.
-  return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <NextStudio config={config as any}
-      // Themed to match the portal — uses Sanity's CSS variable injection.
-      // To fully customise, wrap with <StudioProvider> and pass children:
-      //   <NextStudio config={config}>
-      //     <StudioProvider config={config}>
-      //       <StudioLayout />
-      //     </StudioProvider>
-      //   </NextStudio>
-    />
-  )
+  //
+  // The config now includes:
+  //   title: "Acme Corp — Content Editor"      (Phase 2b: per-tenant)
+  //   plugins: [structureTool, visionTool]      (Phase 2b: tools enabled)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <NextStudio config={config as any} />
 }

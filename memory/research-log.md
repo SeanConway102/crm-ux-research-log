@@ -60,6 +60,46 @@ This is dramatically better UX than a loading spinner + page refresh.
 
 ---
 
+## 2026-03-31 PM — Multi-Tenant SaaS DB Patterns [arch]
+
+### What I Learned
+
+Three main patterns for multi-tenant database isolation:
+
+1. **Shared database + `tenant_id` column (row-level)** — current portal approach. All tenants share tables, differentiated by a `tenant_id` FK. Application enforces isolation. Prisma's `where: { tenantId }` on every query. Fast (single DB), cheap (shared resources), risky (one bug = data leak).
+
+2. **Separate PostgreSQL schemas per tenant** — `tenant_acme`, `tenant_smithco` schemas in one DB. Migration complexity is the killer: you must run every schema migration N times (once per tenant). Good for high-isolation, low-tenant-count use cases. Not practical for 50+ tenants.
+
+3. **Separate databases per tenant** — completely isolated DBs. Maximum security/compliance, maximum operational overhead. Each new tenant = new database provisioning. Used by healthcare/finance SaaS where compliance demands it.
+
+**Row-Level Security (RLS)** is the pragmatic upgrade to pattern 1: PostgreSQL-level enforcement of `tenant_id` filtering. Even if application code has a bug, RLS prevents cross-tenant reads. Postgres RLS uses `SET app.current_tenant = 'acme-corp'` in a transaction, then `Row Level Security` policies check it. This is what separates "professional multi-tenancy" from "startup multi-tenancy."
+
+**Key insight from Stripe docs:** The Customer Portal integration flow: create a billing portal session server-side (not client-side fetch → redirect), then redirect from the server. The correct pattern is `POST /api/billing/portal-session` which creates `stripe.billingPortal.sessions.create()` and does `redirect(session.url)`. The current portal code uses a hardcoded Stripe URL which won't work.
+
+### How It Applies to This Project
+
+The portal's Prisma schema (Tenant, PortalUser) uses pattern 1 — shared DB with `tenantId` column. The CRM tickets also use `tenant_id`. This is correct for the scale. Future hardening: add PostgreSQL RLS policies at the database level as a second line of defense.
+
+The Stripe Customer Portal bug fix (building today) will use the correct server-side redirect pattern.
+
+## 2026-03-31 PM — Sanity Studio structureTool + visionTool [ux]
+
+### What I Learned
+
+**structureTool** uses the Structure Builder API (`@sanity/structure`) to customize the desk layout. It takes a `structure` option — a function `(S) => StructureNode` where `S` is the desk structure builder. Common patterns:
+- `S.list()` → contains `S.listItem()` for each document type
+- `S.divider()` → separators between sections
+- `S.documentTypeList('page')` → auto-generates a list for a document type (all documents of that type, sortable)
+- Custom child nodes with `S.document()` or `S.component()` for richer UIs
+
+**visionTool** is a plugin (`@sanity/vision`) that embeds Sanity Vision (GROQ playground) inside the Studio. Great for debugging GROQ queries without leaving the Studio. Registered as `visionTool()` in the plugins array.
+
+**The portal's `sanity-config-factory.ts` currently has `plugins: []` and `schema: { types: [] }`** — Phase 2b needs to populate both. The config factory uses dynamic import of `sanity` to avoid TypeScript module resolution issues. The `defineConfig` from `sanity` returns a plain config object that accepts plugins like `structureTool({ structure })` and `visionTool()`.
+
+### How It Applies to This Project
+
+Phase 2b (building today): add `structureTool` and `visionTool` to the Studio config. The desk structure will be a simple default structure (list of all schema types, sorted). This makes the Studio actually usable — editors can browse their content types, not just an empty desk.
+
 ---
 
 ## 2026-03-31 PM — Embedded Sanity Studio in Next.js App Router

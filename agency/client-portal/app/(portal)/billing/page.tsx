@@ -105,14 +105,10 @@ export default async function BillingPage() {
               </p>
             )}
 
-            {/* Stripe Customer Portal link */}
+            {/* Stripe Customer Portal — server-side redirect */}
             {tenant && (
               <Button variant="outline" asChild className="w-full mt-2">
-                <a
-                  href={`https://billing.stripe.com/p/login/${tenant.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href="/api/billing/portal-session">
                   <CreditCard className="mr-2 h-4 w-4" />
                   Manage Billing
                   <ExternalLink className="ml-2 h-3 w-3" />

@@ -1,19 +1,13 @@
 /**
- * Sanity config factory for the embedded Studio.
+ * Sanity config factory — Phase 2b.
  *
- * Each tenant has its own Sanity project (stored in the CRM, fetched via
- * `crmSite.sanity_project_id`). This factory builds a per-tenant config at
- * request time — needed because:
+ * Builds a per-tenant Sanity Studio config with:
+ *   • structureTool  — customisable desk structure
+ *   • visionTool      — GROQ query playground (for debugging)
  *
- *   1. Tenant credentials are dynamic (not known at build time)
- *   2. Each tenant's Sanity dataset may differ
- *   3. The agency may want to restrict Studio access per tenant
+ * Phase 2b also sets a per-tenant Studio title.
  *
- * Note: `NextStudio` (which carries `"use client"`) is what actually renders
- * the Studio UI. This factory produces a plain serializable config object that
- * is passed as a prop from a Server Component → Client Component.
- *
- * @see https://www.sanity.io/docs/nextjs/embedding-sanity-studio-in-nextjs
+ * @see SPEC.md Phase 2b
  */
 
 import { getCrmSite } from "@/lib/crm-api"
@@ -27,6 +21,7 @@ type StudioConfig = {
   basePath: string
   projectId: string
   dataset: string
+  title: string
   schema: { types: unknown[] }
   plugins: unknown[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,13 +40,12 @@ export async function buildSanityConfig(
   tenantSlug: string
 ): Promise<StudioConfig | null> {
   // Dynamic import keeps `sanity` out of the serverless bundle until needed.
-  // At runtime, Node.js resolves `sanity` via pnpm's symlink structure.
   // TypeScript cannot resolve it statically (pnpm nested node_modules).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // @ts-ignore — sanity lives in pnpm nested node_modules; TS can't resolve it statically
-  const { defineConfig }: any = await import("sanity")
+  // @ts-ignore
+  const { defineConfig, structureTool, visionTool }: any = await import("sanity")
 
-  // 1. Look up the tenant to get its CRM site ID
+  // 1. Look up the tenant to get its CRM site ID and name
   const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } })
   if (!tenant) return null
 
@@ -74,19 +68,49 @@ export async function buildSanityConfig(
     process.env.NEXT_PUBLIC_SANITY_DATASET ??
     "production"
 
-  // 5. Build and return the config.
+  // 5. Per-tenant Studio title (Phase 2b)
+  const studioTitle = `${tenant.name} — Content Editor`
+
+  // 6. Build the default desk structure.
   //
-  //    Plugins and schema types are intentionally minimal for Phase 2.
-  //    Phase 2b will register shared CRM schema types:
-  //      const { schemaTypes } = await import("@/crm-schema")
-  //      return defineConfig({ ..., schema: { types: schemaTypes } })
+  //    Uses S.documentTypeList() which auto-generates a list for every schema
+  //    type registered in the config — no need to enumerate types here.
+  //    Tenants with custom schema types automatically get those types listed.
+  //
+  //    Structure builder docs:
+  //    https://www.sanity.io/docs/studio/structure-tool
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deskStructure = (S: any) =>
+    S.list()
+      .title("Content")
+      .items([
+        // "Singleton" placeholder for the home page — most sites have one
+        S.listItem()
+          .title("Home Page")
+          .child(
+            S.document()
+              .schemaType("page")
+              .documentId("home-page")
+          ),
+        S.divider(),
+        // Dynamic list of all document types registered in the schema.
+        // This is the key pattern for multi-tenant: we don't know which
+        // schema types each tenant has, so we list them all dynamically.
+        ...S.documentTypeListItems(),
+      ])
+
+  // 7. Build and return the config with plugins
   return defineConfig({
-    basePath: "/studio", // Must match the route path
+    basePath: "/studio",
     projectId,
     dataset,
+    title: studioTitle,
     schema: {
       types: [],
     },
-    plugins: [],
+    plugins: [
+      structureTool({ structure: deskStructure }),
+      visionTool(),
+    ],
   }) as StudioConfig
 }
