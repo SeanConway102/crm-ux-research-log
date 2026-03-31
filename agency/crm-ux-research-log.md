@@ -556,3 +556,42 @@
 - Ensure every drag-and-drop operation has a keyboard alternative (select → arrow keys → confirm).
 - Surface a personal keyboard efficiency stat in the agent dashboard ("Shortcut streak: 47 actions this week") — gamify adoption without turning it into a management surveillance tool.
 
+---
+
+## Session 16 — 2026-03-31 09:30 UTC
+**Topic:** Agent Onboarding & First-Use Experience for Ticketing CRMs
+
+### Key Insights
+
+1. **The first ticket is the moment that matters most.** Agents who handle their first real ticket successfully within 30 minutes of sitting down feel capable. Agents who sit for an hour with no clear path to their first ticket feel lost. Map the first-use flow explicitly: login → queue overview → pick up first ticket → send first reply. Every step should be guided and achievable in under 15 minutes. Linear and Notion nail this with explicit "your first X" checklists.
+
+2. **Guided tours and tooltips are appropriate for day-one only — not permanent fixtures.** A 5-step interactive tour on first login explaining the queue, the split pane, and the composer is valuable. But these tours must be one-time events that can be dismissed and never return. Persistent tooltip clutter on a UI is a failure of progressive disclosure, not a replacement for good defaults. Track tour completion so it doesn't re-trigger on every login.
+
+3. **Sandbox/demo mode before live queue access reduces anxiety.** Let new agents practice in a sandbox: fake tickets, simulated customer replies, a mock queue that behaves like the real thing — but nothing counts. They can make mistakes without consequences. When they feel ready, they flip to the live queue. A "Training mode" badge visually separates sandbox from live to prevent confusion. Zendesk Explore and Intercom both offer variants of this.
+
+4. **Role-specific onboarding paths outperform generic ones.** A new Tier-1 support agent and a new admin have completely different first-hour priorities. Tier-1 agents need: find your queue, pick a ticket, reply, escalate. Admins need: configure routing, set up SLAs, invite the team. Build role-based onboarding checklists or "wizards" that each user type completes only the steps relevant to them. Generic onboarding leaves half the audience under- or overwhelmed.
+
+5. **Agent profile and preferences setup must be front-loaded but deferrable.** Asking for notification preferences, keyboard shortcut style, default queue view, and timezone on first login creates cognitive overload before the agent has touched a single ticket. Set only the essentials (display name, timezone) on day one — defer notification and layout preferences until after the agent has handled 3–5 real tickets and has actual context for those choices.
+
+6. **Contextual micro-learning beats pre-flight video courses.** 10-minute videos before touching any ticket are forgettable. The most effective learning happens at the moment of need: when an agent opens their first escalation, surface a 3-step micro-guide ("Escalating: 1. Change status to Escalated → 2. Add the escalation reason → 3. Assign to Tier-2 queue"). Contextual tips that appear exactly when relevant beat a pre-loaded knowledge dump that agents have to remember from a week ago.
+
+7. **Peer shadowing and "Take over my screen" must be built-in, not bolted on.** High-turnover support teams rely on peer mentoring. A "Shadow Agent" mode where a senior agent can observably take over a junior's screen (with permission) for a live call or ticket review is dramatically more effective than any written guide. Zoom/Teams integration for co-browsing works but needs CRM-level integration to be in-context. Without it, mentors have to switch tools mid-review.
+
+8. **Onboarding completion rate should be a manager-visible metric.** Track which agents have completed which onboarding steps. If an agent is stuck on "Send your first reply" for more than 2 hours, a manager should get an nudge — not to micromanage, but to check if they need help. This turns onboarding from a self-serve checklist into an active process that managers own alongside the agent.
+
+9. **Empty state design for new agents must guide, not intimidate.** A brand-new agent's queue view is either empty (terrifying — "are there no tickets? did I break something?") or overwhelming (200 tickets — where do I start?). Show neither. Guide new agents to a curated "Start here" view: 3–5 recommended first tickets that are low-stakes (informational requests, password resets) and clearly labelled "Great first tickets for new agents." This gives confidence and momentum.
+
+10. **Progressive feature unlocking (not a hard gate) reduces day-one cognitive load.** The full CRM might have 40 features; a day-one agent needs 5. Show only what's relevant for their role and tenure. Unlock advanced panels, automation rules, and bulk macros as agents grow into the role — with a subtle "New feature unlocked" notification that doubles as a discovery mechanism and a reward signal. Jira's project-level feature flags are a good mental model.
+
+### How It Applies to Our CRM
+
+- Build a role-based first-use checklist: Tier-1 agents get "Your first 5 tickets" flow; admins get routing and SLA setup wizard. Both complete in under 30 minutes.
+- Introduce a "Training Mode" sandbox state — fake tickets, no consequences, clearly labelled — before live queue access.
+- Keep first-login asks to a minimum: display name, timezone, avatar. All preferences deferred to post-onboarding.
+- Show contextual micro-guides at moments of first encounter: "How to escalate," "How to merge," etc. — inline, dismissable, one-time.
+- Design a "Start here" curated view for new agents: 3–5 low-stakes tickets labelled as ideal first work.
+- Surface onboarding completion stats to managers (which agents are stuck on which step) so managers can intervene proactively.
+- Implement progressive feature unlocking: agents see only role-relevant features on day one. Advanced panels unlock with a "New feature" badge as they progress.
+- Track first-ticket completion time as a KPIs — if most agents take >1 hour to send their first reply, the onboarding flow needs redesign.
+- Build a "Shadow Mode" for peer screen co-observation with explicit agent permission and a visible "Being shadowed" indicator.
+
