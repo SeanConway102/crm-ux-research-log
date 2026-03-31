@@ -247,3 +247,41 @@
 - Log all merge/split events as first-class audit entries (actor, timestamp, source tickets, target ticket).
 - Allow SLA policies to define per-category dedupe sensitivity (e.g., incident tickets get stricter detection thresholds than billing tickets).
 - Make merge reversible for 30 minutes with an "Undo Merge" action that restores original ticket IDs and relationships.
+
+---
+
+## Session 8 — 2026-03-31 00:30 UTC
+**Topic:** Agent Desktop Layout & Information Architecture for Ticketing CRMs
+
+### Key Insights
+
+1. **Split-pane (list + detail) outperforms tabbed and modal layouts for high-volume agents.** Agents processing 40+ tickets/hour lose momentum when every ticket opens as a new tab or a blocking modal. A persistent master-detail split — queue on the left (collapsible), ticket detail on the right — lets them work through a queue without navigating away. Datadog's issue tracker and Linear use this pattern precisely for this reason.
+
+2. **The queue list must support variable density.** Senior agents handling 200+ tickets need a compact row view (2–3 lines per ticket). New agents or complex tickets need a expanded card view. Neither should require a settings change — toggle between densities in the toolbar, persisted per user.
+
+3. **The detail pane's anatomy should follow a fixed spatial contract.** Agents build muscle memory for where things live: header (ticket ID, subject, status, assignee, SLA) → primary action area (reply composer) → thread (conversation history) → sidebar (custom fields, tags, related tickets). Don't reinvent this contract. Breaking it (moving the composer below the thread) is a common and costly mistake.
+
+4. **Sidebars belong in the detail pane, not the global layout.** Contextual info (ticket properties, linked tickets, customer info) belongs in a collapsible right-side panel within the ticket detail view — not as a persistent global sidebar that steals screen real estate from the queue list and thread.
+
+5. **Sticky headers and action bars reduce navigation waste.** The ticket header (subject, ID, status) and the reply composer toolbar should remain visible while scrolling through a long thread. Agents shouldn't lose the ticket's identity or the primary action when they scroll to read older messages.
+
+6. **Collapse navigation chrome to maximise ticket workspace.** A minimal top bar (logo, search, notifications, agent avatar) + collapsible left nav frees up significant vertical space. Jira and Notion both collapse their sidebar to icons-only on demand. For agents on 13–15" laptops, every pixel of ticket workspace matters.
+
+7. **Keyboard shortcuts must be discoverable without leaving the UI.** A `?` shortcut that opens an overlay showing all available shortcuts is table stakes. Shortcuts that aren't discoverable are shortcuts that don't get used. Overlay should be searchable and categorised (navigation, ticket actions, composer).
+
+8. **Dark mode is not cosmetic — it's a functional requirement for all-day use.** Agents staring at ticket queues for 6–8 hours benefit from dark mode to reduce eye strain. It must be a first-class toggle (system preference detection + manual override), not an afterthought. Tailwind and CSS variables make this straightforward to implement — no excuse for it being missing.
+
+9. **Responsive breakpoints must protect the split-pane at tablet sizes.** Agents increasingly use iPads and Android tablets in stand or folio configurations. At 768–1024px width, the split pane should stack (queue top, detail bottom) rather than compress into unusable narrow columns. Touch targets must also scale up on tablet (≥44×44px).
+
+10. **Provide a "focus mode" that hides everything except the ticket thread and composer.** For agents deep in a complex or sensitive ticket, a single-click focus mode that hides the queue, sidebar, and all chrome creates a distraction-free environment. Exit via `Esc` or a floating "Exit Focus" button. This is especially valuable for escalations and executive tickets.
+
+### How It Applies to Our CRM
+
+- Implement a persistent master-detail split pane (queue left, ticket right) as the default layout — collapsible queue to icon-rail when space is tight.
+- Add a density toggle (compact/expanded) in the queue toolbar, persisted per agent.
+- Keep the ticket header and reply composer sticky within the detail pane while scrolling thread content.
+- Move all contextual/ticket-level info (fields, tags, related tickets, customer details) to a collapsible right sidebar within the detail pane.
+- Provide keyboard shortcut overlay (`?`) with searchable, categorised shortcut reference.
+- Ship dark mode as a first-class, system-preference-aware toggle — not a low-priority cosmetic.
+- Add a "Focus Mode" toggle that hides queue and chrome, leaving only thread + composer.
+- Ensure the layout degrades gracefully on tablet: stack queue above detail at <1024px instead of squeezing the split.
