@@ -363,6 +363,45 @@
 - Provide an inbox sort/group by channel option so agents can process queues in the right cognitive mode (batch email → batch chat, rather than random switching).
 - Handle cross-channel fan-out detection: one customer + similar message across channels = linked or merged tickets, not duplicated work.
 
+## Session 13 — 2026-03-31 06:30 UTC
+**Topic:** CSAT & Customer Feedback UX for Post-Resolution Ticketing
+
+### Key Insights
+
+1. **Ask immediately — within 1–2 hours of resolution, while the experience is fresh.** Timing is the single biggest lever on response rates. CSAT surveys sent same-day score meaningfully higher than those sent 24h later. The ticket resolution email or the portal's "ticket closed" state should be the trigger, not a delayed batch send.
+
+2. **One question is better than five for in-ticket CSAT.** The "How did we do?" inline survey with a single 1–5 star or emoji tap has dramatically higher completion rates than multi-question forms inside a ticket thread. Save multi-question surveys (NPS-style, effort score, open text) for separate email follow-ups — not the ticket closure moment.
+
+3. **Rating scales must be labelled at endpoints, not just numbered.** A 1–5 scale with no labels forces guesswork. Use "Very dissatisfied → Very satisfied" with the extremes labelled (1 = "Not at all satisfied", 5 = "Extremely satisfied"). Labelled endpoints reduce ambiguous responses and make data more actionable.
+
+4. **Pair every low-score response with a mandatory open-text prompt — courteously.** When a customer selects 1–2 stars, ask one follow-up: "What could we have done better?" This is where the most actionable intelligence lives. Frame it as an opportunity, not an accusation. Customers who churn after a bad experience rarely complain — they just leave. The low-score open text is the only window.
+
+5. **Show the CSAT score to the agent — it closes the feedback loop and drives behaviour change.** Agents who see their own CSAT scores respond to them. Agents who never see them have no reason to care. Zendesk and Hiver surface individual scores in the agent's view. Managers who share team scores publicly (anonymised) create healthy competition. Private individual scores avoid shaming.
+
+6. **Detractor follow-up: auto-create an internal flag, not an auto-reopen of the ticket.** When a CSAT score is 1–2, the system should flag the ticket for manager review and trigger a follow-up workflow (email template or automated check-in) — not reopen the ticket automatically. Auto-reopening creates a support-loop trap. The follow-up should be human-led, not robotic.
+
+7. **Contextual CES (Customer Effort Score) outperforms generic CSAT for support interactions.** "How easy was it to get your issue resolved today?" (CES) is a stronger predictor of retention than "How satisfied are you?" CES predicts churn better because it measures the absence of friction. Consider it as a secondary or replacement metric for support-focused surveys.
+
+8. **CSAT must be segmented by channel, agent, ticket category, and time period.** A single "team CSAT = 4.1" number is useless for diagnosis. Segment by channel (email tickets vs. chat tickets will differ wildly), by agent (some agents need coaching, others are strengths), by ticket category (billing tickets are inherently more frustrating than information requests), and by week (trends matter more than snapshots).
+
+9. **Survey fatigue is real — rate-limit per customer, not just per ticket.** If a customer has had 4 tickets this month, do not send 4 separate CSAT surveys. Cap at 1 per month per customer regardless of ticket count, with a note: "We've already heard from you this month — your recent feedback is being acted on." Suppressing surveys for active customers prevents annoyance and improves the quality of responses you do receive.
+
+10. **NPS is a different metric from CSAT — don't conflate them.** CSAT measures interaction-level satisfaction. NPS measures relationship-level loyalty ("would you recommend us?"). NPS is suited for quarterly company-level surveys, not per-ticket support feedback. Keep them separate, use CSAT for ticket-level, NPS for broader relationship health.
+
+### How It Applies to Our CRM
+
+- Trigger CSAT survey within 1–2 hours of ticket resolution, via email or portal. No batch delays.
+- Use a single-question inline survey (1–5 labelled scale + optional one-line comment) in the ticket closure state. No multi-question forms in-ticket.
+- Add a "How easy was it to resolve?" CES question as an alternative or secondary prompt for low-volume, high-stakes tickets.
+- Show agent-level CSAT scores in the agent dashboard view — personal scores visible to the agent, team averages visible to managers.
+- On low scores (1–2), auto-flag ticket for manager review and trigger a human-led follow-up workflow. Do not auto-reopen the ticket.
+- Segment all CSAT reporting by channel, agent, ticket category, and week-over-week trend. No flat aggregate numbers.
+- Cap survey frequency: max 1 per customer per month regardless of ticket count. Suppress rest with a "we've heard from you" message.
+- Keep CSAT (ticket-level) and NPS (relationship-level) as separate metrics with separate cadences and reporting views.
+- Surface CSAT in manager dashboards alongside SLA performance — they should be reviewed together to identify whether SLA pressure is driving low scores.
+
+---
+
 ## Session 12 — 2026-03-31 05:30 UTC
 **Topic:** Customer Self-Service Portal & Ticket Submission UX
 
