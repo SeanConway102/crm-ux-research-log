@@ -36,6 +36,7 @@ model Tenant {
 
   // Relations
   users PortalUser[]
+  featureFlags TenantFeatureFlag[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -103,4 +104,31 @@ model VerificationToken {
   expires  DateTime
 
   @@unique([email, token])
+}
+
+// ─── Feature Flags ─────────────────────────────────────────────────────────────
+
+// Registry of all available feature flags (defined in code, seeded to DB)
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique // "studio", "support", "billing", etc.
+  label       String            // "Site Editor", "Support Tickets", etc.
+  description String?
+  isBeta      Boolean  @default(false)
+
+  // Relations
+  tenants TenantFeatureFlag[]
+
+  createdAt DateTime @default(now())
+}
+
+// Per-tenant feature flag override — null means "use default" (usually false)
+model TenantFeatureFlag {
+  tenantId     String
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  featureFlagId String
+  featureFlag  FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  enabled      Boolean @default(false) // true = flag is ON for this tenant
+
+  @@id([tenantId, featureFlagId])
 }

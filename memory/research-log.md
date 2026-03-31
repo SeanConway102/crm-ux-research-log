@@ -165,3 +165,107 @@ The `invoice.payment_failed` → `past_due` flow:
 5. User pays via embedded Stripe Elements → webhook fires `invoice.payment_succeeded` → CRM sets `active`
 
 The embedded Stripe Elements form needs a SetupIntent, which requires a `/api/billing/setup-intent` route. Phase 4b will complete the full embedded form.
+
+---
+
+## 2026-03-31 PM — React 19 `useOptimistic` + `startTransition` — The Critical Pair [react], [ux]
+
+### What I Learned
+
+`useOptimistic` is **designed to work inside `startTransition`** — and without it, the rollback-on-error behavior doesn't work.
+
+**The mechanism:** When `useOptimistic` is used with a reducer, React tracks the "optimistic" state while a Transition is in-flight. If the Transition's async action **throws an unhandled error**, React automatically re-renders using the real state (`value` from `useOptimistic`) instead of the optimistic state — this is the "rollback." If the action completes successfully, React commits the optimistic state as the real state.
+
+**The key insight from React docs:**
+> "There's no extra render to 'clear' the optimistic state. The optimistic and real state converge in the same render when the Transition completes."
+> 
+> "If `saveChanges` threw an error, the Transition ends, and React renders with whatever value `value` currently is."
+
+**Why this matters for error handling:**
+- When wrapped in `startTransition`, errors cause an **automatic rollback** — no manual state restoration needed.
+- Without `startTransition`, the optimistic update is just a regular `useReducer` dispatch — it stays in the state permanently until manually removed.
+
+**The portal's comment thread had this bug:** It used `useOptimistic` with a reducer but called `dispatch` directly in an async function (not inside `startTransition`). When the server returned an error, the optimistic comment remained stuck with no way to remove it.
+
+**Correct pattern:**
+```tsx
+const [isPending, startTransition] = useTransition()
+const [optimisticComments, dispatch] = useOptimistic(initialComments, commentsReducer)
+
+function handleSubmit(e) {
+  e.preventDefault()
+  dispatch({ type: "add", comment: optimisticComment }) // immediate UI update
+  
+  startTransition(async () => {
+    try {
+      const result = await saveComment(body)
+      // Replace optimistic with real
+      dispatch({ type: "replace", tempId, real: result })
+    } catch (err) {
+      // React automatically rolls back to real state — BUT only if
+      // the error is thrown OUTSIDE the startTransition callback.
+      // If caught inside, no rollback happens.
+      // Solution: either re-throw, or handle the failed state manually
+      // (mark comment as failed, show retry button)
+      dispatch({ type: "replace", tempId, real: { ...failedComment, _failed: true } })
+    }
+  })
+}
+```
+
+**Important nuance:** Throwing inside `startTransition`'s async callback does NOT trigger the automatic rollback — the error is caught by the async machinery, not by React's transition tracking. To get automatic rollback, you need to throw **after** the `startTransition` call returns (synchronously), or handle failure state manually.
+
+**The portal's solution:** On failure, mark the comment as `_failed: true` with a retry/dismiss UI. This is better UX than silent rollback anyway — users see what failed and can retry.
+
+### [ux] — B2B SaaS Navigation: Why `/content` Needs to Exist
+
+The sidebar links to `/content`. If that route 404s, it breaks the core navigation contract. B2B SaaS users arrive via email link → do one thing → leave. They don't explore. Every broken nav link destroys trust.
+
+Rule: **every sidebar link must resolve to a real page, even if it's a "coming soon" placeholder.**
+
+---
+
+*Tags: [react], [ux], [arch]*
+
+---
+
+## 2026-03-31 — Feature Flag Architecture for Multi-Tenant SaaS [arch], [dx]
+
+### What I Learned
+
+**Feature flags in multi-tenant SaaS face a key architectural challenge: where to evaluate flags, and how to avoid a DB call on every request?**
+
+Three patterns for flag storage:
+1. **Database + in-memory cache** — what I implemented. Flags stored in Prisma SQLite. A module-level `Map<tenantId, {flags, ts}>` caches results with a 60s TTL. This is the pragmatic approach for small-to-medium SaaS. No external dependencies, works in Next.js serverless, and refreshes within 60s of a flag change.
+
+2. **Redis (or any KV store)** — production pattern for larger scale. Each tenant's flags are a single `GET tenant:features:{id}` call. Typical TTL: 30-60s. Writes invalidate the key. Pros: fast, shared across instances. Cons: another dependency to manage.
+
+3. **External SDK (LaunchDarkly, Unleash)** — the "correct" production pattern. SDK bootstraps from a streaming data export (SSE or webhook), stores flags in memory, and evaluates locally. Evaluation: 1-5ms (local) vs 100-500ms (remote call). This is what separates serious flag systems from amateur ones.
+
+**The critical Edge Runtime constraint in Next.js:**
+Next.js middleware runs on the Edge Runtime, which has no Node.js APIs. Prisma, `fs`, `crypto` (Node.js), and database connections don't work at the Edge. Three solutions:
+- **Keep middleware lightweight** (auth check only), evaluate flags in Server Components where Prisma is available
+- **Use the Node.js runtime for middleware** (`export const runtime = 'nodejs'`) — trades Edge performance for DB access
+- **Pass flags via HTTP header** from a server-side layer (API route or Server Component sets `x-feature-flags` header, middleware reads it)
+
+**Flag types matter for lifecycle management:**
+- **Permission flags** (permanent, per-tenant entitlements like "studio", "billing") — our use case
+- **Release flags** (temporary, progressive rollout) — removed after 100% rollout
+- **Ops flags** (kill switches, circuit breakers) — permanent but should rarely be used
+
+**Key insight from LaunchDarkly docs:** The percentage rollout pattern uses consistent hashing on user ID (`hash(userId + flagKey) % 100`) to ensure the same user always gets the same experience. This prevents the "feature flicker" problem where a user might see a feature on one request and not on the next.
+
+**SQLite and Prisma at the Edge:**
+SQLite doesn't work at the Edge (no filesystem). But Prisma can work in Next.js Server Components and API routes (Node.js runtime). The pattern: middleware runs at Edge, reads auth from JWT (stateless), passes tenant context via headers. Server Components (Node.js runtime) read the DB for actual feature flag values.
+
+### How It Applies to This Project
+
+The portal's `lib/features.ts` uses pattern 1 — in-memory cache with Prisma. The cache is module-level (`Map`), persists across invocations in the same serverless instance, and expires after 60s. This is the right choice for our scale. When we hit real multi-instance production scale, the upgrade path is to Redis.
+
+The sidebar hides nav items for disabled features. The portal layout server component fetches enabled features and passes them to the client sidebar. The middleware handles auth; flag enforcement lives in page components (Node.js runtime).
+
+The `TenantFeatureFlag` model uses a composite PK `@@id([tenantId, featureFlagId])` because SQLite doesn't support auto-incrementing IDs well in composite scenarios, and this is more efficient for our access pattern (always look up by tenant + flag).
+
+---
+
+*Tags: [arch], [dx]*

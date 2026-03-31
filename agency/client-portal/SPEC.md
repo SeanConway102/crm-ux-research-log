@@ -100,7 +100,86 @@ middleware.ts intercepts every request:
 | `agency` | `portal.ctwebsiteco.com` | Internal — all client tenants, onboarding, agency-level billing |
 | `client` | `admin.{clientdomain}.com` | Per-client — studio, content, support, billing |
 
-### 3.2 App Structure
+### 3.2.1 Per-Tenant Feature Flags
+
+Every feature in the portal is gated by a feature flag. Tenants don't all get the same features — some have Studio, some have TV Feed, some have billing, etc. Flags are managed by Sean from the agency admin page.
+
+**Flag registry (defined in code — not user-editable):**
+
+| Flag Key | Label | Description | Default |
+|---|---|---|---|
+| `studio` | Site Editor | Sanity Studio embedded content editor | `false` |
+| `support` | Support Tickets | File and track support tickets | `false` |
+| `billing` | Billing | Subscription status, invoices, payment form | `false` |
+| `content_hub` | Content Hub | Overview of content types with Studio links | `false` |
+| `tv_feed` | TV Feed | Satellite TV feed management | `false` |
+| `media_library` | Media Library | Sanity media browser | `false` |
+
+**Database schema:**
+
+```prisma
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique  // "studio", "support", etc.
+  label       String            // "Site Editor", "Support Tickets"
+  description String?
+  isBeta      Boolean @default(false)
+
+  tenants     TenantFeatureFlag[]
+
+  createdAt   DateTime @default(now())
+}
+
+model TenantFeatureFlag {
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  featureFlagId String
+  featureFlag FeatureFlag @relation(fields: [featureFlagId], references: [id])
+  enabled     Boolean @default(false)
+
+  @@id([tenantId, featureFlagId])
+}
+```
+
+**Enforcement in the portal:**
+
+```typescript
+// lib/features.ts
+export async function isFeatureEnabled(
+  tenantId: string,
+  feature: string
+): Promise<boolean> {
+  const flag = await prisma.tenantFeatureFlag.findUnique({
+    where: { tenantId_featureFlagId: { tenantId, featureFlagId: feature } },
+  })
+  return flag?.enabled ?? false
+}
+
+// Middleware — block access to feature routes
+if (pathname.startsWith("/studio") && !(await isFeatureEnabled(tenantId, "studio"))) {
+  return NextResponse.redirect(new URL(`/${tenantSlug}/dashboard`, request.url))
+}
+
+// Page component — hide nav items
+{await isFeatureEnabled(tenantId, "support") && <NavItem href="/support" ... />}
+```
+
+**Admin UI (agency `/admin`):**
+
+Each client tenant detail page (`/admin/clients/[tenantId]`) has a "Features" section:
+- Toggle switches for each flag
+- Visual indicator of which features are active
+- "Coming Soon" badge on beta features not yet enabled
+
+**Adding a new flag (developer process):**
+1. Add entry to `FEATURE_FLAGS` constant in `lib/features.ts`
+2. Add to the database: `prisma.featureFlag.create({ key, label, description })`
+3. Flag is now available in the admin UI
+4. Enforce in middleware/page components using `isFeatureEnabled()`
+
+---
+
+
 
 Subdomain routing means the route tree is at the root — no `[tenant]` segment. Tenant context comes from middleware, not the URL.
 
@@ -545,54 +624,45 @@ export async function middleware(req: NextRequest) {
 
 ## 7. Phased Delivery Plan
 
-### Phase 1: Foundation (Weeks 1–2)
-- [ ] Project scaffolding: Next.js 15 + TypeScript + Tailwind + shadcn/ui
-- [ ] Prisma schema + DB migration
-- [ ] NextAuth.js credentials provider wired to CRM API
-- [ ] Middleware: tenant resolution + auth guard
-- [ ] Portal shell: sidebar + header + layout
-- [ ] Login page with tenant-branded design
-- [ ] Dashboard page (static skeleton — no data yet)
+### Phase 0: Feature Flags (Foundation prerequisite)
+- [ ] Add `FeatureFlag` + `TenantFeatureFlag` to Prisma schema
+- [ ] Seed `FEATURE_FLAGS` registry into DB
+- [ ] `lib/features.ts` — `isFeatureEnabled(tenantId, flag)` + `getEnabledFeatures(tenantId)`
+- [ ] Middleware: enforce flags per route (block if flag disabled)
+- [ ] Page components: hide features if flag disabled
+- [ ] Admin UI: toggle switches per tenant on `/admin/clients/[id]`
 
-**Deliverable:** A working, authenticated portal shell at `/[tenant]/dashboard` that redirects to login if unauthenticated. No Sanity, no tickets, no billing yet.
+### Phase 2: Sanity Studio ✅
+- [x] `next-sanity` + Sanity config factory
+- [x] Embedded Studio at `/studio` (force-dynamic, role-guarded)
+- [x] Fetches Sanity credentials from CRM per-tenant
+- [x] `structureTool` with desk structure + `visionTool`
+- [x] Per-tenant metadata title
 
-### Phase 2: Sanity Studio (Weeks 2–3)
-- [ ] `next-sanity` + Sanity config setup
-- [ ] Embedded Studio at `/[tenant]/studio/[[...tool]]`
-- [ ] Tenant-scoped Sanity config (projectId, dataset from DB)
-- [ ] Role-gated access (owner + editor roles only)
-- [ ] Sanity Presentation tool integration for visual editing
+### Phase 3: Support Tickets ✅
+- [x] Ticket list page with filters + search
+- [x] New ticket form (subject, description, priority)
+- [x] `POST /api/tickets` → CRM API
 
-**Deliverable:** Clients can log in and fully manage their Sanity content, including visual page editing via Presentation.
+### Phase 4: Billing + Payments ✅
+- [x] Stripe webhook handler (verifies sigs, forwards to CRM)
+- [x] Billing overview page: plan card + invoice table
+- [x] Stripe Customer Portal session redirect
+- [x] SetupIntent API for `past_due` card update
+- [x] Stripe Elements payment form (inline on `/billing`)
+- [x] 38 tests passing
 
-### Phase 3: Support Tickets (Week 3)
-- [ ] Ticket list page with filters + search
-- [ ] New ticket form (subject, description, priority, attachment)
-- [ ] Ticket detail page with comment thread
-- [ ] `POST /api/tickets` → CRM API
+### Phase 5: Content Hub + TV Feed ⬜
+- [ ] Content overview page with links to Studio content types
+- [ ] "Coming Soon" TV Feed card (placeholder)
+- [ ] TV Feed management UI (Phase 6 scope — spec TBD)
 
-**Deliverable:** Clients can file and track support tickets. Tickets appear in Sean's existing CRM.
-
-### Phase 4: Billing (Week 3–4)
-- [ ] Stripe SDK integration
-- [ ] Billing overview page: plan card + invoice table
-- [ ] Stripe Customer Portal redirect button
-- [ ] Invoice PDF download links
-
-**Deliverable:** Clients can see their plan, invoice history, and self-manage billing via Stripe Portal.
-
-### Phase 5: Content Hub + TV Feed (Week 4+)
-- [ ] Content overview page (links to common content types)
-- [ ] TV Feed management UI (details TBD — scoped after requirements gathering)
-- [ ] "TV Feed" submissions create support tickets
-
-**Deliverable:** Clients have a dedicated content section alongside Studio.
-
-### Phase 6: Polish + Launch (Week 5+)
+### Phase 6: Polish + Launch ⬜
+- [ ] **Phase 0: Feature flags** (see §3.2.1) — prerequisite before launch
+- [ ] Agency admin UI: client tenant management + feature flag toggles
 - [ ] Tenant theme system (logo, accent color from DB)
 - [ ] Mobile responsive + bottom nav
 - [ ] Error boundaries + loading skeletons throughout
-- [ ] Email notifications (ticket confirmation, invoice paid, etc.)
 - [ ] Vercel deployment + DNS configuration
 
 ---

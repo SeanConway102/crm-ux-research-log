@@ -74,6 +74,7 @@ Multi-tenant white-label client dashboard where Sean's clients:
 - Billing: CRM owns subscriptions + invoices. Portal reads status, embeds Stripe Elements payment form on `/billing` when `past_due` or `incomplete`. Webhook forwards to CRM, updates local cache.
 - No trials — pay upfront. Manual one-by-one onboarding by Sean via agency portal.
 - Sanity: embedded Studio, 100% CT Website Co. branded. CRM is source of truth — portal tenant links to CRM site ID → fetches Sanity credentials (projectId, token, dataset) from CRM API. Some existing CRM clients already have Sanity projects (CRM stores `sanity_project_id` per site). Custom per-client schemas, config factory `createSanityConfig(tenant)`.
+- Feature flags: per-tenant, managed via admin UI. `FeatureFlag` + `TenantFeatureFlag` Prisma models. Flags: `studio`, `support`, `billing`, `content_hub`, `tv_feed`, `media_library`. Enforced in middleware + page components. `lib/features.ts`.
 - TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E).
 - TV Feed: Phase 6 — video + streaming management platform (separate product).
 

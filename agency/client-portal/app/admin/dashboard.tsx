@@ -12,6 +12,7 @@ type Tenant = {
   subdomain: string;
   emoji: string;
   createdAt: number;
+  tenantId: string | null; // Prisma tenant ID, if this subdomain has a Tenant record
 };
 
 type DeleteState = {
@@ -92,15 +93,23 @@ function TenantGrid({
                 Created: {new Date(tenant.createdAt).toLocaleDateString()}
               </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 space-y-1">
               <a
                 href={`${protocol}://${tenant.subdomain}.${rootDomain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:underline text-sm"
+                className="block text-blue-500 hover:underline text-sm"
               >
                 Visit subdomain →
               </a>
+              {tenant.tenantId && (
+                <a
+                  href={`/admin/clients/${tenant.tenantId}`}
+                  className="block text-indigo-600 hover:underline text-sm"
+                >
+                  Feature flags →
+                </a>
+              )}
             </div>
           </CardContent>
         </Card>
