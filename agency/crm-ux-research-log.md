@@ -285,3 +285,41 @@
 - Ship dark mode as a first-class, system-preference-aware toggle — not a low-priority cosmetic.
 - Add a "Focus Mode" toggle that hides queue and chrome, leaving only thread + composer.
 - Ensure the layout degrades gracefully on tablet: stack queue above detail at <1024px instead of squeezing the split.
+
+---
+
+## Session 9 — 2026-03-31 02:30 UTC
+**Topic:** AI Copilot / Agent Assist UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Transparency is non-negotiable — label every AI output.** Every generated reply, suggested macro, or summarised ticket must be visually labelled "AI-generated" or "AI-suggested" with a confidence indicator (e.g., high/medium/low or a percentage). Agents must never mistake AI output for human output — and customers absolutely must not receive an AI response without knowing it came from AI. Intercom and Zendesk both surface this with a badge and subtle background tint in the composer.
+
+2. **Agents are the authors; AI is the drafting tool.** The copilot must feel like a helpful collaborator, not an autopilot. Present suggestions as editable first drafts — not as auto-sent responses or forced macros. The goal: accelerate the agent's thinking, not replace it. Agents who feel replaced disengage; agents who feel empowered adopt AI enthusiastically.
+
+3. **Inline suggestion UX beats modal/panel-based AI.** The strongest pattern: AI suggestions appear directly inside the reply composer as a faded draft, with an "Insert" or "✕" button. Agents read, edit if needed, and send. Avoid patterns that require opening a separate AI panel or switching context — every context switch is friction. (Reference: Zendesk Agent Copilot's inline composer suggestions.)
+
+4. **Show the AI's sources — ground it in your knowledge base.** When AI suggests a reply or action, show the source: "Based on KB Article #412" or "Similar to resolved ticket #8821." This grounds the suggestion in verifiable data, reduces hallucination risk, and gives agents confidence in what they're sending. Ungrounded "magic" suggestions erode trust fast.
+
+5. **Confidence indicators must drive agent behaviour, not just curiosity.** A "Low confidence" suggestion shouldn't just display a grey badge — it should visually de-emphasise the suggestion and prompt the agent to edit more carefully. Consider auto-disabling "Insert as-is" for low-confidence drafts, forcing manual review. Don't give agents a fast path to sending unchecked low-quality output.
+
+6. **AI-generated ticket summaries belong in the header, not hidden in a panel.** For tickets with long threads, surface a one-paragraph AI summary at the top of the detail pane ("Customer's issue: billing overcharge on March invoice, requesting refund of £47"). Agents reading a 20-reply thread shouldn't have to reconstruct context manually. Zendesk Copilot does this at the ticket open moment.
+
+7. **"Improve writing" is the most universally useful AI action — make it prominent.** Beyond full reply drafts, the single most adopted AI feature by agents is a tone/clarity rewriter. A button labelled "Make it friendlier" or "Make it professional" that rewrites the current draft in-place, with Undo, is high-value, low-risk, and widely used. Zendesk's "Enhance writing" follows this pattern.
+
+8. **Feedback loops are a first-class feature, not an afterthought.** When an agent rejects or edits an AI suggestion, capture that feedback — "Why was this wrong?" with a short reason field. Thumbs up/down alone don't teach the model. This is the difference between a copilot that gets smarter over time and one that repeatedly makes the same mistakes. Surface this data to admins for KB improvement.
+
+9. **AI actions beyond drafting — ticket routing, priority, summarisation — need explainability.** When AI auto-prioritises a ticket or suggests routing it to a different team, show the reasoning: "Routed to Billing team — keywords 'refund' and 'invoice' detected." Agents should be able to override AI routing with a one-click correction that feeds back into the model. Invisible automation breeds resentment.
+
+10. **The copilot should be context-aware about its own limitations.** For sensitive topics (billing disputes, legal, health, account closures), the copilot should either defer entirely or surface a "This topic may require human judgment — AI assistance limited" notice. Over-confident AI in high-stakes situations is a liability. Zendesk Copilot's "Auto assist" mode handles this via policy-based deferral.
+
+### How It Applies to Our CRM
+
+- Surface AI reply suggestions as editable inline drafts inside the reply composer with a visible "AI-generated" badge and confidence level — never as auto-sent content.
+- Add a "Sources" pill to every suggestion showing the KB article or similar resolved ticket it drew from.
+- Include a one-click "Enhance writing" / "Make it friendlier" button as the most accessible AI feature for reluctant agents.
+- Auto-generate a ticket context summary (1–2 sentences) at the top of the thread when opening long or stale tickets.
+- For routing, priority, and SLA AI suggestions, show a plain-language reasoning string so agents can validate before accepting.
+- Add a feedback mechanism on rejected AI suggestions (short reason picker: "Wrong tone / Inaccurate / Missing context") feeding back to improve the model.
+- Implement per-topic AI deferral policies for sensitive categories (billing, legal, account changes) — AI assists only where it's reliably accurate.
+- Track AI adoption rate per agent and team — surface this in manager dashboards so supervisors can identify who needs copilot onboarding help.
