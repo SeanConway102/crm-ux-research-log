@@ -79,6 +79,16 @@ export interface CrmTicket {
   assignee_id: string | null
 }
 
+export interface CrmComment {
+  id: string
+  ticket_id: string
+  author_name: string
+  author_email: string
+  body: string
+  is_internal: boolean
+  created_at: string
+}
+
 // ── Methods ───────────────────────────────────────────────────────────────────
 
 export async function getCrmSite(siteId: string): Promise<CrmSite | null> {
@@ -143,6 +153,34 @@ export async function createCrmTicket(
   }
 ): Promise<CrmTicket> {
   return crmFetch<CrmTicket>(`/tenants/${tenantId}/tickets`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getCrmTicket(ticketId: string): Promise<CrmTicket | null> {
+  try {
+    return await crmFetch<CrmTicket>(`/tickets/${ticketId}`)
+  } catch {
+    return null
+  }
+}
+
+export async function getCrmTicketComments(
+  ticketId: string
+): Promise<CrmComment[]> {
+  try {
+    return await crmFetch<CrmComment[]>(`/tickets/${ticketId}/comments`)
+  } catch {
+    return []
+  }
+}
+
+export async function createCrmTicketComment(
+  ticketId: string,
+  payload: { body: string; author_name: string; author_email: string }
+): Promise<CrmComment> {
+  return crmFetch<CrmComment>(`/tickets/${ticketId}/comments`, {
     method: "POST",
     body: JSON.stringify(payload),
   })
