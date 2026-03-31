@@ -40,6 +40,46 @@
 
 ---
 
+## Session 19 — 2026-03-31 13:30 UTC
+**Topic:** Agent Workspace UX: Queue Views, Multi-Tasking & Focus Mode for High-Volume Ticketing
+
+### Key Insights
+
+1. **Split-pane layout (list + detail, no full-page navigation) is the productivity baseline.** Agents must see their queue and a ticket simultaneously. Every full-page navigation to open a ticket = context loss and cognitive load reset. The standard three-panel layout (queue list left, ticket thread center, customer context/actions right) keeps agents in flow. Full-page ticket views that hide the queue are a known anti-pattern in high-volume environments — Zendesk Agent Workspace, Front, and Freshdesk all converged on split-pane independently for this reason.
+
+2. **Context switching is the #1 agent productivity killer — the UI must acknowledge it.** Agents handling 20+ tickets/day constantly switch between tickets, channels, and tasks. The workspace should display "working on X tickets" count prominently, allow agents to flag a ticket as "in progress" (locked to them, visible to others), and never auto-reassign a ticket while an agent has it open. Surprise reassignments during reply composition are catastrophic UX. A ticket's status should reflect its true state: Open / In Progress / Pending Customer / Resolved — not just the assignee name.
+
+3. **Keyboard shortcuts are non-negotiable for power users — discoverability is the gap.** Agents who handle 40+ tickets/day will develop muscle memory. Required shortcuts: next ticket (J/→), previous ticket (K/←), resolve (R), add internal note (N), reply (E for edit/reply), change status (S). The UX failure is making shortcuts invisible. Zendesk solves this with a `?` help overlay showing all shortcuts. The shortcuts panel should be accessible from anywhere in the workspace without leaving current context. Power agents who discover shortcuts become dramatically faster; agents who never discover them plateau.
+
+4. **"Focus mode" / ambient status prevents interruption overload during complex tickets.** When an agent is mid-draft on a sensitive or complex ticket, the queue should remain visible but notifications should mute. The agent manually exits focus mode when ready. This is different from Do Not Disturb (DND) — DND silences everything; focus mode silences only new ticket notifications while keeping breach alerts and @mentions alive. The distinction matters: an agent working a complex billing dispute doesn't need a new ticket popup, but a SLA breach on their queue is still their responsibility.
+
+5. **Queue filters must persist across the session — not reset on every ticket open.** If an agent filters to "Priority: Urgent + Status: Open + Assignee: Me" and opens a ticket, the filter should survive when they return to the queue. Many CRMs silently reset filters on navigation, forcing agents to re-apply filters constantly — this is a major friction source. Filters should be URL-addressable and bookmarkable so agents can share specific queue views by link.
+
+6. **Queue tabs for multi-channel agents reduce channel-switching cognitive load.** An agent handling email + chat + phone benefits from separate queue tabs per channel. Switching channels mid-ticket is a known error cause — context from an email thread bleeds into a chat response. Channel-separated tabs (or a unified queue with prominent channel icon per ticket) let agents batch-process by channel when appropriate. At minimum, each ticket row should display its source channel icon prominently in the list view.
+
+7. **Bulk actions must feel safe — require confirmation and show exactly what will change.** Bulk-resolve, bulk-assign, bulk-tag operations affect dozens of tickets at once. The confirmation dialog must list: how many tickets are affected, what the action will do (e.g., "assign all 12 to Tier-2 queue"), and what cannot be undone. A "select all visible" vs "select all matching filter" distinction prevents accidental mass actions. Slack-style undo toast (5-second window) after bulk actions is a strong safety net that agents trust.
+
+8. **Empty queue states are missed UX opportunities — guide the next action.** "Your queue is empty" should never be a dead-end screen. It should show: tickets pending customer reply (awaiting response), recently resolved tickets, team queue health summary, or a prompt for follow-up actions. This transforms idle time into productive ones — agents can proactively reach out to customers waiting too long for a response rather than sitting idle or closing the CRM.
+
+9. **Real-time presence indicators reduce collision and duplicate work.** Who else is viewing or has this ticket open? Multi-agent environments create silent collisions: two agents work the same ticket, both reply, the customer gets a confusing duplicate response. Show other agents' avatars in the ticket header if they're currently viewing it. Some CRMs go further: lock the ticket to the first agent who clicks into it (with an override option for supervisors) — this is controversial but reduces collision significantly in very high-volume environments.
+
+10. **Agent queue health widgets should surface actionable summary, not raw numbers.** A dashboard showing "You have 47 open tickets" is anxiety-inducing but not actionable. A better summary: "3 urgent/at-risk, 12 awaiting your reply, 8 awaiting customer" — each bucket is a different workflow with a different next action. This turns a number into a prioritized task list. The goal is for agents to look at the queue summary and immediately know what to do next without mental triage.
+
+### How It Applies to Our CRM
+
+- Implement a persistent split-pane layout: queue list (left, ~30% width) + ticket detail (center) + customer context panel (right, collapsible). Never use full-page ticket navigation as the default.
+- Build a persistent ticket status system: Open / In Progress / Pending / Resolved, visible in queue rows. Status must be URL-addressable and filterable.
+- Implement keyboard shortcuts for all frequent actions (next/prev, resolve, note, reply, status change) with a `?` overlay accessible from anywhere.
+- Add a Focus Mode toggle — mutes new ticket notifications but preserves SLA breach alerts and @mentions. Differentiate from system DND.
+- Ensure queue filters persist across ticket opens and across the session. Filters should be bookmarkable/shareable by URL.
+- Display source channel icon per ticket row. Consider channel-separated queue tabs for multi-channel agents.
+- For bulk actions: require confirmation listing exact count + change, with an undo toast (5s window). Distinguish "select all visible" from "select all matching filter."
+- Replace empty queue screen with an actionable state: show tickets awaiting customer reply, team summary, or proactive follow-up prompts.
+- Add real-time presence indicators: show other agents viewing the same ticket. Consider soft-lock on ticket open (with supervisor override).
+- Replace "X open tickets" with categorized buckets: "3 urgent, 12 awaiting your reply, 8 awaiting customer" — each linked to the filtered queue view.
+
+---
+
 ## Session 17 — 2026-03-31 10:30 UTC
 **Topic:** Ticket Templates, Structured Forms & Macros UX for Ticketing CRMs
 
