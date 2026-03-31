@@ -242,6 +242,46 @@
 
 ---
 
+## Session 27 — 2026-03-31 21:30 UTC
+**Topic:** Multi-Channel Support & Channel Switching UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Each channel has a different customer intent signature — the UI must acknowledge this, not just unify.** Email = asynchronous, expects detail; Live chat = real-time, expects speed; Phone = emotional, expects empathy; Social = public, expects discretion. Conflating all channels into one "unified inbox" strips the contextual signals that agents need. The best CRMs unify ticket *ownership* across channels while preserving channel-specific context: show the channel icon per ticket, surface expected response time by channel (customers on live chat expect <60 seconds; email customers expect hours), and adapt the reply composer accordingly (chat = short, punchy; email = formal, thorough).
+
+2. **Channel switching (customer starts on email, escalates to chat, finishes on phone) must preserve full context.** The most infuriating customer experience is repeating information across channels. When a customer escalates from email to phone, the agent on the phone must see the full email thread without the customer having to re-explain. The CRM's thread view should be channel-agnostic — one chronological timeline showing all interactions regardless of channel — with clear channel badges per message. The agent should never ask "Can you tell me what you emailed about?"
+
+3. **Agents working multi-channel need explicit "channel mode" in the UI — not simultaneous mixed handling.** Agents handling email + chat simultaneously make more errors on both channels than agents batch-processing by channel. The workspace should support channel-mode switching: "I'm in Email mode now" (queue filters to email tickets, chat notifications suppressed) vs. "I'm in Chat mode" (email queue paused, focus on live chat). Mixed simultaneous handling should be opt-in with a low concurrent cap (e.g., max 2 chats while processing email). Front, Zendesk, and HubSpot all limit concurrent chat sessions for this reason.
+
+4. **Chat and phone channels introduce real-time typing indicators and presence — these must integrate into the ticket view.** When a customer is actively typing on chat, the agent should see "Customer is typing..." before the message arrives. Phone calls should show call duration and hold status in the ticket header. These real-time signals require different UI patterns than email (no typing indicator for email). Conflating them into one notification model creates false expectations — agents monitoring chat tickets expect real-time updates; agents monitoring email tickets don't.
+
+5. **Channel-specific SLA policies must be visible and distinct in the ticket header.** A "2-hour FRT" SLA for email and a "60-second first-response" SLA for chat are very different targets. Showing both as "SLA: 2h" in a unified inbox is misleading. Chat tickets must display chat-specific SLA (often measured in seconds/minutes, not hours) prominently in the ticket header and queue list. Mixing SLA units in one column without unit labels causes agents to misprioritize — treating a chat ticket's 45-second SLA deadline like an email's 45-minute one.
+
+6. **Social media channel tickets require urgent triage and privacy-aware escalation UX.** A Twitter complaint from an influencer with 50K followers is not the same as a DM from a nobody. Social tickets should carry a visibility/risk score (follower count, verified badge, public-facing vs. private DM) and surface this in the queue. Public social tickets need faster escalation to prevent viral spread — the UI should show "⚠️ Public tweet — 2.3K followers — suggest immediate response" as an inline flag. Private social DMs (Instagram DMs, LinkedIn) need the same privacy handling as email, not the same urgency as public tweets.
+
+7. **Phone/voice channel integration must handle interruptions gracefully in the ticket UI.** When an agent is mid-reply on an email ticket and gets a phone call, the email composer must auto-save as a draft and the ticket status should reflect "On phone" (not "Open" or "Pending"). The agent returning from a call needs: the draft email pre-filled, a call log auto-attached (duration, disposition code), and any ticket activity that occurred during the call surfaced as a summary. CRMs that lose draft email content during phone interruptions cause agents to lose work and customers to receive fragmented replies.
+
+8. **Channel switching by the customer (email → chat on website) should trigger a "same customer" recognition event.** If the same email address initiates a chat session, the CRM should recognize the customer, surface their open ticket history, and alert the chat agent: "This customer has an open email ticket #4021 — do you want to link this chat to it?" Without this, the same customer gets two separate tickets for one issue. Linking channels to a single customer journey creates a unified timeline and prevents duplicate work. The recognition should be automatic (email match, phone number match) not rely on the customer self-identifying.
+
+9. **Channel-specific reply templates must be separate from universal templates.** Templates for chat should be short, conversational, and action-oriented. Templates for email should include formal greeting, detailed explanation, and sign-off. Using a chat template ("Hey! Let me look into that") in an email response is tone-deaf; using an email template in a chat is too slow. The template picker should filter or flag templates by applicable channel. At minimum, channel scope (Email / Chat / Phone / Social) should be a visible tag on every template in the picker.
+
+10. **Mixed-channel queue views need clear channel filtering and sorting, not just a mixed bag.** When an agent's queue shows email tickets alongside chat tickets, the cognitive load of switching between "read and compose long reply" and "read and reply in 60 seconds" is high. The queue should visually distinguish channels with icons and allow agents to sort or filter by channel type. Better: allow agents to set a "primary channel focus" that sorts their queue by that channel first while still showing other tickets. Channel-based queue tabs (Email queue / Chat queue / Phone queue) give agents full context separation when they need it.
+
+### How It Applies to Our CRM
+
+- Display channel icon per ticket in all list views and the ticket detail header. Show channel-specific SLA (with unit labels: "60s FRT" for chat, "2h FRT" for email) separately, not collapsed into one SLA field.
+- Build a channel-agnostic timeline: one chronological thread per ticket showing all channel messages with clear channel badges. An agent on any channel sees the full history.
+- Add a "Channel mode" toggle in the agent workspace: Email mode / Chat mode / Phone mode. In each mode, queue filters to that channel and cross-channel notifications suppress appropriately.
+- When a customer initiates a new channel session (chat, phone) while having an open ticket on another channel, auto-recognize and prompt: "Link to open ticket #4021?" — create one linked journey, not two tickets.
+- For social media tickets: add a visibility/risk badge (follower count, verified, public/private) visible in the queue. Flag public tweets with urgent escalation prompts inline.
+- Integrate real-time typing indicators for chat, call duration/hold status for phone — these require WebSocket-based presence, not polling. Keep them out of email tickets.
+- When an agent is interrupted by a phone call while composing an email: auto-save draft, show "On phone" status, and pre-fill draft on return. Auto-attach call log with disposition code.
+- Scope templates by channel: tag each template with applicable channel(s). Filter the template picker by current channel context. Never show a chat template in email composer unless explicitly requested.
+- Support channel-based queue tabs or a "primary channel focus" sort. Don't force agents to context-switch between slow (email) and fast (chat) tickets in the same view without visual separation.
+- Track cross-channel journey metrics: % of tickets that touch more than one channel, average channel count per ticket, first-contact resolution rate by channel. This data reveals where channel integration is failing customers.
+
+---
+
 ## Session 25 — 2026-03-31 19:30 UTC
 **Topic:** CSAT, Ticket Ratings & Customer Feedback UX for Ticketing CRMs
 
