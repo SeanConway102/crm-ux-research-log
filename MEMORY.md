@@ -82,3 +82,10 @@ All tests PASSED:
 - ✅ Payments tab: search box, status filter chips (All/Succeeded/Processing/Failed), timeline view work
 - ✅ New Invoice sheet opens correctly (customer select, collection method, days until due, description, footer, line items)
 - ⚠️ Stripe not configured in sandbox — all data shows $0.00/empty (expected)
+
+### Lighthouse Audit (2026-03-31)
+Full audit of 19 client sites completed. 9 sites critical (<60 perf), 13 new CRM tickets filed.
+- Critical: DMarie's Pizza (27), Townsend Agency (25), Manhattan Southington (43), Refillpen (42), Chai for Congress (51), Brimatco (56), Middlebury Contracting (57), Southington Gardens (59), A&B Entertainment (60)
+- Known good: Pals (93), Fairway (68), Li Zhai (69), Tax Career (71), Salisbury (78)
+- Energy Busters regressed from 95+ to 62 — re-audit needed
+- Reports stored: `memory/lh-audit/`
