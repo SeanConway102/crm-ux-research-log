@@ -362,3 +362,38 @@
 - Add channel-aware SLA enforcement: different response/resolution targets per channel, with distinct SLA timers surfaced accordingly.
 - Provide an inbox sort/group by channel option so agents can process queues in the right cognitive mode (batch email → batch chat, rather than random switching).
 - Handle cross-channel fan-out detection: one customer + similar message across channels = linked or merged tickets, not duplicated work.
+
+## Session 11 — 2026-03-31 04:30 UTC
+**Topic:** Manager & Supervisor Analytics Dashboard UX for Ticketing CRMs
+
+### Key Insights
+
+1. **One core question per view — dashboards are decision surfaces, not data displays.** The most common dashboard failure is showing everything and answering nothing. Supervisors need a home view that answers "Do I need to intervene right now?" at a glance. If the answer requires scanning 15 KPIs, the dashboard has already failed. Group metrics into decision clusters: Queue Health, Team Performance, SLA Compliance, Customer Sentiment.
+
+2. **The glanceable zone is sacred — protect it for the most urgent signals.** Cognitive-load research defines the "glanceable zone" as the area scannable in under 3 seconds. Reserve this zone for real-time breach counts, queue depth, and active SLA warnings — not historical averages or static totals. Everything else is a drill-down. Stripe and Datadog both respect this contract instinctively.
+
+3. **Semantic colour is a communication layer, not decoration.** Reserve red exclusively for conditions requiring immediate action (SLA breach, queue overflow, agent offline). Amber/yellow for warning thresholds. Green for normal. Never use these colours decoratively in a support dashboard — supervisors learn to trust colour as a signal and will miss real alerts if colour is overused.
+
+4. **Pair every chart with a declarative sentence.** A line graph showing "Tickets Resolved — Last 7 Days" is ambiguous. Adding "↑ 12% vs. last week — best week since February" converts data into a decision prompt. NN/g testing shows sentences improve comprehension by 20–30% versus chart-only presentations. Supervisors should know what to *do* with the data, not just what the data is.
+
+5. **Summary view + deep-dive views for different decision depths.** The manager's home view answers "Is everything OK?" in 5 seconds. Clicking into "SLA Performance" answers "Why isn't it OK?" in 30 seconds. A final drill-down into individual agent tickets answers "Who needs coaching?" — this three-tier structure maps naturally to different management workflows and time budgets.
+
+6. **Real-time queue health must show agent workload distribution, not just totals.** A queue with 80 open tickets split across 4 agents is a different problem than 80 tickets split across 1 agent. Show per-agent ticket counts (bar chart or avatar stack) alongside the total. When one agent's workload diverges sharply from the team average, surface it visually — a bottleneck indicator that prompts immediate rebalancing action.
+
+7. **Time-window controls must be immediately visible and intuitive.** Supervisors don't live in the dashboard — they check it between meetings. Every session start should default to "Today" or "Last 7 days" with a prominent but non-disruptive time picker. Never default to an unbounded historical range that requires the supervisor to set a filter before seeing anything useful. Relative presets (Today, Yesterday, This Week, Last Week, Custom) outperform calendar pickers for quick lookups.
+
+8. **Trend indicators beat raw numbers for detecting drift.** "47 tickets resolved today" means nothing without context. Show the delta versus the same day last week: "+14 vs. last Tuesday" with a directional arrow and colour. Supervisors scanning 15 dashboards between meetings need to detect anomalies in under a second — raw numbers without trend baselines are invisible.
+
+9. **SLA breach attribution must name names without shaming.** When an SLA is breached, supervisors need to know which agent was holding the ticket and whether the breach was preventable. Show breach events in the timeline with agent attribution, but frame it as "Bottleneck at Step 3 — 47 min with Agent X" rather than "Agent X breached SLA." This enables coaching conversations, not blame assignments.
+
+10. **Role-based dashboard views are non-negotiable.** Agents should see personal metrics (their tickets, their SLA, their CSAT). Team leads need team-wide views. Admins need system-wide SLA policy performance and cross-team comparisons. Building one monolithic dashboard and hiding panels behind permissions is a common failure — build separate views per role from the start.
+
+### How It Applies to Our CRM
+
+- Design a three-tier dashboard hierarchy: Home (queue health, SLA status, workload distribution) → Drill-down (SLA by policy, CSAT trends, agent performance) → Detail (individual agent ticket list, breach timeline).
+- Implement a real-time workload bar/avatar stack showing per-agent open ticket counts on the team view — surface imbalance indicators proactively.
+- Use semantic colour strictly: red = breach requiring action, amber = warning threshold, green = normal. Never decorative use.
+- Pair every KPI chart with a one-line declarative summary including trend delta ("+18% vs. last week — trending up").
+- Default every dashboard session to "Today" with prominent relative time presets (Today, This Week, Last Week).
+- Surface SLA breach events with agent attribution in a timeline view, framed for coaching, not blame.
+- Build three distinct dashboard views from the ground up: Agent (personal stats), Team Lead (team stats + individual drill-down), Admin (cross-team + policy performance).
