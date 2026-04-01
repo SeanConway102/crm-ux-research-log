@@ -455,6 +455,49 @@
 
 ---
 
+## Session 46 — 2026-04-01 14:37 UTC
+**Topic:** Workflow Automation Builder UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Visual node-based builders outperform rule-list builders for complex workflows — but rule-lists outperform node-based for simple automations.** A node/graph canvas (circles connected by lines) works well for workflows with multiple branches, loops, and parallel paths. But for the 80% case — "when ticket is created with category=Billing → assign to Billing team, set priority=standard" — a flat rule list with IF/THEN rows is faster to scan and requires less screen real estate. The right architecture: rule-list as the default editor, with an optional "expand to canvas" button for rules that grow complex. Zapier, Make (Integromat), and Zendesk's automation rules follow this hybrid model. Forcing everything into a visual canvas makes simple rules feel over-engineered.
+
+2. **Every automation must be testable before activation — a "dry run" mode is non-negotiable.** An admin who builds a workflow that auto-assigns and auto-prioritizes tickets should be able to run it against real historical tickets before flipping the switch. The test run shows: which tickets would have matched, what actions would have fired, and any conditions that evaluated unexpectedly. ServiceNow's Flow Designer includes "test with sample data" and Zendesk's automation rules have a "test" view showing recent matching tickets. Automations deployed without testing are an incident waiting to happen — an incorrectly scoped auto-assignment rule can redistribute an entire queue in minutes.
+
+3. **Trigger selection must be immediately actionable — show common triggers upfront, not buried in a dropdown.** Ticket Created, Ticket Updated, Ticket Status Changed, Customer Replied, SLA Breached, Time Elapsed, and Field Changed are the 7 triggers that cover 90% of ticketing automations. These should appear as pill/button options at the top of the builder, not in a nested dropdown. After selecting a trigger, the condition builder expands inline — not in a separate screen. This one-screen flow (trigger → conditions → action) keeps the admin in context. Every additional screen or modal in the builder breaks the flow and causes misconfiguration.
+
+4. **Conditions must use natural language framing, not technical field names.** "Category is Billing" is readable. "custom\_field\_cf\_23 equals 'billing'" is not. The condition builder should map internal field names to human-readable labels: show "Category" not "ticket.category_id". For field-value comparisons, offer a searchable picker, not a raw text field: "Category → is → [Billing ▼]" rather than "Category → is → [text input]". This matters because the people building automations in CRMs are often team managers, not developers. If they can't read the conditions at a glance, they'll misconfigure them.
+
+5. **Workflows must support sequencing — actions that fire in order, not simultaneously.** A ticket breach automation shouldn't email the customer AND escalate to Tier-2 at the exact same millisecond. It should: notify the customer first (or suppress if already contacted), then escalate. The builder must support action ordering with clear numbering (1, 2, 3) and drag-to-reorder. Each action should show its estimated execution time if known ("Email delay: 0s", "API call: ~500ms"). If an action fails, subsequent actions should be haltable with an explicit "stop on error" toggle. This is basic procedural logic — but many CRM automation builders treat all actions as simultaneous.
+
+6. **Error handling within workflows must be visible and actionable — "if action fails, do X."** When an automation's action hits a failure (API timeout, rate limit, invalid field), the system must: log the error with the full payload, notify a designated admin or team, optionally retry with backoff, and skip or halt subsequent actions based on a configurable policy. Admins should be able to view a per-automation error log directly in the builder (collapsed by default, expandable). Workflows that fail silently are a trust-breaker — agents see tickets not updating and assume the CRM is broken when actually an automation silently errored out on their ticket.
+
+7. **Version history and rollback are required for any workflow that affects live tickets.** An admin who modifies a critical routing automation needs to know: what changed between v1 and v2, who made the change and when, and how to roll back to the previous working version. The workflow editor should show a version history panel with one-click rollback. Active workflows that are modified should be versioned automatically — not overwrite-in-place. ServiceNow, Zendesk, and Zapier all implement versioning this way. Overwriting-in-place is the automation equivalent of editing production code without a git commit.
+
+8. **Workflow templates are the fastest onboarding path — start with proven patterns, customize from there.** Pre-built templates for common ticketing automations ("New email ticket → assign by category," "SLA breach in 30m → notify agent + escalate," "Customer replies → reopen ticket") let admins deploy working automations in minutes. Templates should be: searchable by use case, parameterized (admins fill in team names, priorities, SLAs), and annotated with notes explaining how each step works. A template marketplace (searchable library of community-shared workflows) accelerates adoption and reduces the configuration surface the CRM vendor must support directly.
+
+9. **Workflow permissions must restrict who can create, edit, and delete automations — and separate deploy from edit.** A Tier-1 agent who can create automations is a security and operational risk. The CRM should support: viewer role (see what automations exist), editor role (edit but not publish), and admin role (edit + publish + delete). Additionally, a separate "deploy" action — editing a workflow doesn't automatically republish it; a "Deploy" button with a confirmation confirmation step ensures changes are deliberate. This prevents accidental republishing of a broken workflow and creates an audit trail for who deployed what.
+
+10. **Workflow analytics must show automation impact — which automations are firing, how often, and with what effect.** An automation that fires 500 times/day but resolves 0 tickets is noise. An automation that fires 3 times/day and resolves 3 SLA breaches is critical. The builder should include an analytics panel per workflow: fire count (last 7/30 days), error rate, and a sample of recent tickets it affected. This data identifies: underperforming automations (scope too narrow, never fires), overfiring automations (scope too broad, causes unintended side effects), and broken automations (firing but actions are failing). Analytics turn automations from "set and forget" into a measurable, optimizable system.
+
+### How It Applies to Our CRM
+
+- Build a hybrid rule builder: flat rule-list as the default (one row = one trigger/condition/action), with an "expand to canvas" option when a rule gains complexity (multiple branches, loops). Keep simple rules simple.
+- Add a mandatory "test run" step before publishing any automation: run against last 7 days of historical tickets, show match count and a sample of affected tickets. Require acknowledgment of test results before activation.
+- Surface the 7 common triggers as pill buttons at the top of the automation builder. Trigger selection → inline condition builder → action builder, all on one screen.
+- Use human-readable field names in all condition builders. Replace internal field IDs with labels. Use searchable pickers for field values — never raw text fields.
+- Support ordered action sequences with drag-to-reorder and numbered steps. Add a "stop on error" toggle per automation. Show estimated execution time per action.
+- Log all automation errors with full payload in a visible error log per workflow (collapsed by default). Notify designated admin on failure. Support retry with configurable backoff.
+- Implement workflow versioning: every publish creates a new version. Show version history with diff view and one-click rollback. No overwrite-in-place on live automations.
+- Provide pre-built templates for the top 10 automation use cases. Templates are parameterized, annotated, and searchable. Consider a community template gallery.
+- Enforce role-based permissions: Viewer / Editor / Admin tiers. Separating "edit" from "deploy" — an admin must explicitly deploy after editing, with a confirmation step.
+- Add per-automation analytics: fire count (7d/30d), error rate, match rate. Show sample affected tickets. Identify underfiring, overfiring, and broken automations from the data.
+- Add a "workflow health" dashboard for admins: shows total automations, error rate across all, recent deployments, and a list of workflows that haven't fired in 30+ days (likely stale).
+- Prevent circular automations: if Automation A triggers Automation B which triggers Automation A, detect and block at publish time with a clear error message.
+- Support "pause" without deleting: admins should be able to pause an automation (stops firing but retains configuration) rather than deleting it to stop its behavior.
+
+---
+
 ## Session 44 — 2026-04-01 12:39 UTC
 **Topic:** Performance & Speed UX for Ticketing CRMs
 
