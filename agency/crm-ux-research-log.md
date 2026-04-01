@@ -244,3 +244,46 @@
 - Track dashboard usage: which metrics do agents and managers actually click? If CSAT trend is never clicked, it's clutter — remove it from the primary view.
 - Add "My improvement" summary card on agent dashboards: shows week-over-week trend for resolution time, CSAT, and tickets resolved. Makes individual progress visible and motivating without peer comparison.
 
+---
+
+## Session 55 — 2026-04-01 23:30 UTC
+**Topic:** Notification & Alert UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Notification overload is the primary driver of CRM abandonment — every notification must earn its place.** Agents receiving 200+ notifications per day stop trusting the system and miss critical alerts. The CRM should apply a notification necessity test: does this require the agent to act right now? If yes, send it. If it's informational and can be checked asynchronously, suppress it and let agents find it in the queue. The failure mode most CRMs have: notify about everything, which means nothing gets noticed. The right default is conservative — agents should be able to opt into more notifications, not opt out of a flood.
+
+2. **Notification priority levels must map to SLA tiers and agent roles, not just event types.** A "ticket assigned" notification means very different things depending on SLA (1-hour enterprise vs. 5-day standard) and agent role (senior agent vs. trainee). The notification system should: send push + in-app + badge for SLA-critical events (breach imminent, breach occurred, escalation triggered), send in-app + badge only for standard events (new assignment, customer reply, mention), and send nothing but an unread count increment for low-priority events (system notices, policy updates). Most CRMs use a single notification channel for everything — this flattens urgency and breeds ignore.
+
+3. **In-app notification centers must be scannable and actionable — not just a list of alerts.** A notification panel that shows 30 items oldest-first forces agents to hunt for what matters. The correct pattern: sort by urgency/time (newest first), group by urgency tier, show the first 10 with "Show all" expansion, display ticket subject + event type + time (e.g., "Ticket #10432 — SLA breach imminent — 3m ago"), and let agents click to open the ticket directly. Notifications should never require agents to open the queue and search — deep-link to the specific ticket.
+
+4. **Desktop browser notifications must complement in-app notifications, not duplicate them.** When agents are focused in the CRM tab, a browser notification ("New reply on Ticket #10432") is redundant noise. The notification system should detect CRM tab focus and suppress browser push for events already visible in the in-app notification center. Browser push should activate only when the CRM tab is not currently active, or for high-urgency SLA events regardless of tab state. Most CRMs blast browser notifications regardless of CRM tab state — this creates notification fatigue and makes agents disable push entirely.
+
+5. **Email digests are the right fallback for low-priority, time-insensitive information.** Email has its place: end-of-day ticket summaries, weekly SLA compliance reports, policy change announcements. The mistake CRMs make: sending real-time emails for every ticket event ("Customer replied to ticket #10432" — sent immediately). Email digests should be: daily at most (weekly is fine for low-priority), formatted for mobile reading (short subject, bullet points, one-ticket-per-line), and opt-in per notification category. Agents who receive real-time emails from the CRM start sending those emails to spam — the channel becomes useless when it actually matters.
+
+6. **"Do Not Disturb" / focus modes must respect agent workflows, not system defaults.** Agents in a flow state (writing a complex reply, debugging a customer issue) should be able to temporarily suppress non-critical notifications without disabling the CRM entirely. The pattern: a "Focus Mode" toggle in the CRM header that suppresses all except SLA-breach notifications for a configurable duration (25min Pomodoro-style, 1hr, until toggled off). When focus mode ends, a summary toast shows what was suppressed: "5 notifications while in focus mode — view now?" This respects agent flow without leaving them blind to genuine urgencies.
+
+7. **Badge counts on queue views and tabs are high-signal when accurate — and actively harmful when stale.** An unread badge showing "5" that never changes (or always shows the same number) teaches agents to ignore it. Badge counts must: update in real-time via WebSocket or polling, clear when the agent opens/reviews those tickets, and reflect only actionable items (not system notices). Never show a badge count that requires a click to determine what it means — the number should be self-explanatory. Stale badge counts are worse than no badges.
+
+8. **Sound and visual alert differentiation lets agents triage notifications without looking at the screen.** Distinct sounds for distinct urgency levels (SLA breach = urgent alarm, new assignment = subtle ping, customer reply = neutral chime) let agents know whether to look at the screen immediately or keep working. Visual differentiation matters equally: SLA breach notifications should flash the CRM tab title ("🔴 SLA BREACH — Ticket #10432"), use distinct toast colors (red for breach, amber for warning, neutral for info), and persist until acknowledged. Intercom uses distinct sound cues per event type — agents learn to react to the sound before reading the notification.
+
+9. **Multi-agent team notifications need escalation chains, not just "assigned to" alerts.** When a ticket breaches, who gets notified and in what order? A tiered escalation: Level 1 = assigned agent gets push + in-app immediately; Level 2 = team lead gets notified if no action within X minutes; Level 3 = manager gets notified if still unresolved. The escalation chain must be visible to agents ("Sarah has been notified as team lead escalation") so they know the system is handling it. Without visible escalation, agents feel personally responsible for every breach — which creates anxiety and avoidance.
+
+10. **Notification preferences must be granular per event type, per channel, per device.** The notification settings UI should let agents configure: which events generate push (SLA events? assignments? mentions? replies?), which generate in-app only, which generate email digest only, and which are suppressed entirely. This level of granularity (10+ toggleable options) is better than three broad buckets (All / Mentions / None). When agents can tune their notifications precisely, they receive what matters and suppress what doesn't. The settings should show real-time preview: "With your current settings, you'd receive ~45 notifications today."
+
+### How It Applies to Our CRM
+
+- Audit current notification volume per agent per day. If agents receive 150+ notifications/day, the system is creating noise. Target < 30 actionable notifications/day for typical agents.
+- Implement three notification tiers: Critical (SLA breach imminent/occurred, escalation) = push + in-app + badge; Standard (assignment, customer reply, @mention) = in-app + badge; Info (system notices) = unread count increment only.
+- Suppress browser push when the CRM tab is active. Only send browser push for critical tier events or when the tab is backgrounded.
+- Build a real-time in-app notification center: newest-first, grouped by urgency, "Show all" for history. Deep-link each notification to its ticket. Mark notifications as read on ticket open.
+- Implement a daily email digest for low-priority updates. No real-time email notifications for ticket events — digest only.
+- Add a "Focus Mode" toggle in the CRM header. Suppress Standard and Info notifications while active. Show a summary of suppressed notifications when focus mode ends.
+- Keep badge counts accurate and real-time. Clear on ticket open. If WebSocket is unreliable, poll every 30 seconds as fallback.
+- Differentiate alert sounds: breach = urgent (3 short beeps), warning = amber tone, assignment = single soft ping, reply = neutral chime. Allow agents to mute/solo sounds in settings.
+- Flash the browser tab title for SLA-breach events ("🔴 BREACH — #10432") so agents notice even when the tab is unfocused.
+- Build visible escalation chains on breached tickets: "Escalation: Sarah (Team Lead) notified in 5m if unresolved." Agents see the chain and know they're not alone.
+- Expose granular notification settings per event type × channel (push/in-app/email/suppressed). Show estimated daily notification count based on current settings.
+- Track notification response times: how long between a breach notification and the agent's first action? Long response times may indicate notification fatigue — agents aren't noticing or aren't reacting.
+- Allow managers to set team-wide notification policies (minimum SLA alert threshold, required escalation chain) while letting agents configure personal preferences within those bounds.
+
