@@ -11,7 +11,7 @@
 
 ## Active Projects
 - **Client Portal** — `~/clawd/agency/client-portal/` | Spec: `agency/client-portal/SPEC.md` | Phase 0 done, Phase 1 WIP, Phase 6 near-complete | Auth: NextAuth v5 | Multi-tenancy: path-based + subdomain per client | Vercel: `v0-client-portal-*.vercel.app`
-- **CRM System** — See `agency/skills/crm-api/SKILL.md` for full API reference | Frontend: `v0-crm-frontend-build-peach.vercel.app` | Backend repo: SeanConway102/crm | Frontend repo: SeanConway102/crm-frontend
+- **CRM System** — See `agency/skills/crm-api/SKILL.md` for full API reference | Frontend: `crm-frontend-nine-indol.vercel.app` | Backend repo: `ctwebsiteco/crm` (GitHub) | Frontend repo: `ctwebsiteco/crm-frontend` (GitHub) | Vercel project: `prj_KSRgu3SXxVgozDt9ytTPzBPG1mLu`
 - **Credentials** — CRM key: `~/.openclaw/workspace-agency/.crm-key` | Other env vars in `~/.bashrc` | Do NOT hardcode keys
 
 ## Architecture Decisions
@@ -27,6 +27,8 @@
 - `@next/third-parties` incompatible with Next.js v16: replaced with vanilla gtag.js
 - Switch import path: `./actions` not `../actions`
 - DB key format: `tenantId:flagId` not `tenantId:flagKey`
+- CRM tickets React #185: `closedBulkAssignUserId ?? "__unassigned__"` + `InlineOwnerSelect` guard against orphan owner IDs
+- CRM tickets render loop: `filtersRef` memoization to prevent `fetchTickets` recreation on every render
 - CRM Dashboard all-0s: known, not yet fixed
 - Duplicate fairwayirrigationandlawn.com rows: known, not yet fixed
 
@@ -41,12 +43,13 @@
 - Open tickets: see `agency/memory/graph.md` (Open Tickets section)
 
 ## CRM Credentials
-- **URL:** https://v0-crm-frontend-build-peach.vercel.app (or `crm-frontend-2evvh0r7i-*.vercel.app` after deploy)
+- **URL:** https://crm-frontend-nine-indol.vercel.app (alias to latest deployment)
 - **Email:** sully@ctwebsiteco.com
 - **Password:** SullyAgent2026
 - **API:** crm-api-1016182607730.us-east1.run.app (MCP endpoint at `/mcp`, auth via `X-API-Key`)
 - CRM API key: `~/.openclaw/workspace-agency/.crm-key`
 
 ## GitHub / Auth
+- GitHub: `SeanConway102` (personal) | `ctwebsiteco` (org) | PAT in `~/.git-credentials`
+- CRM repos moved to `ctwebsiteco` org: `ctwebsiteco/crm` (backend) and `ctwebsiteco/crm-frontend` (frontend)
 - Global git identity: `Sean Conway <srconway0@gmail.com>`
-- PAT in `~/.git-credentials`; last rotated 2026-03-31

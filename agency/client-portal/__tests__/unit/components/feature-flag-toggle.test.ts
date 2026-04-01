@@ -4,6 +4,7 @@
  * Tests the useEffect-based toast pattern:
  * - useActionState tracks pending/success/error state
  * - A useEffect watches state transitions and fires toast.{success/error}
+ * - useSession().update() is called on success to refresh the JWT
  * - The Switch reflects optimistic state from the server revalidation
  *
  * These tests use a mock action and check that state transitions are tracked
@@ -38,30 +39,43 @@ type FeatureFlagToggleProps = {
 
 /**
  * Simulates the React useActionState state machine for the toggle action:
- * 1. Initial state: { tenantId, flagKey, success: false }
+ * 1. Initial state: { tenantId, flagKey, success: undefined }
  * 2. After pending: { tenantId, flagKey, success: true } (action resolved)
  * 3. After error: { tenantId, flagKey, success: false, error: "..." }
  */
 function simulateToggleAction(
   prevState: FeatureFlagToggleState,
-  newEnabled: boolean
+  _newEnabled: boolean
 ): FeatureFlagToggleState {
-  // Simulate a successful toggle
   return { tenantId: prevState.tenantId, flagKey: prevState.flagKey, success: true }
 }
 
 // ─── Toast notification logic (mirrors what useEffect would fire) ─────────────
+//
+// NOTE: The component fires toasts based on STATE TRANSITIONS, not render values.
+// It uses a `prevOutcomeRef` to detect: was the previous outcome "success"|"error"?
+// If the new state matches the previous outcome, no toast fires (avoiding repeat toasts).
+//
+// The toast message includes the OPTIMISTIC state ("enabled" if newEnabled=true,
+// "disabled" if newEnabled=false) because this is set BEFORE the server responds.
 
 type ToastCall = { type: "success" | "error"; message: string }
 
+/**
+ * Mirrors the FeatureFlagToggle useEffect toast logic.
+ * Detects state TRANSITIONS and fires toasts accordingly.
+ * The `optimisticEnabled` param reflects the Switch's optimistic state (before server confirms).
+ */
 function getToastFromStateTransition(
   prevState: FeatureFlagToggleState,
   newState: FeatureFlagToggleState,
-  flagLabel: string
+  flagLabel: string,
+  optimisticEnabled: boolean
 ): ToastCall | null {
-  // Detect successful state transition (was pending/unset, now success=true)
+  // Detect successful state transition (was not-success, now success=true)
   if (newState.success === true && prevState.success !== true) {
-    return { type: "success", message: `${flagLabel} enabled` }
+    const action = optimisticEnabled ? "enabled" : "disabled"
+    return { type: "success", message: `${flagLabel} ${action}` }
   }
   // Detect error state transition
   if (newState.error && !prevState.error) {
@@ -76,7 +90,7 @@ describe("FeatureFlagToggle state machine", () => {
   const initialState: FeatureFlagToggleState = {
     tenantId: "tenant-1",
     flagKey: "studio",
-    success: false,
+    success: undefined,
   }
 
   it("transitions to success=true when toggle action resolves", () => {
@@ -97,11 +111,11 @@ describe("FeatureFlagToggle state machine", () => {
 })
 
 describe("Toast notification trigger logic", () => {
-  it("fires success toast on successful state transition", () => {
+  it("fires success toast with 'enabled' when enabling a feature", () => {
     const prevState: FeatureFlagToggleState = {
       tenantId: "tenant-1",
       flagKey: "studio",
-      success: false,
+      success: undefined,
     }
     const newState: FeatureFlagToggleState = {
       tenantId: "tenant-1",
@@ -109,16 +123,37 @@ describe("Toast notification trigger logic", () => {
       success: true,
     }
 
-    const toast = getToastFromStateTransition(prevState, newState, "Site Editor")
+    // optimisticEnabled=true → user toggled switch to "enabled" position
+    const toast = getToastFromStateTransition(prevState, newState, "Site Editor", true)
     expect(toast).not.toBeNull()
     expect(toast?.type).toBe("success")
     expect(toast?.message).toBe("Site Editor enabled")
+  })
+
+  it("fires success toast with 'disabled' when disabling a feature", () => {
+    const prevState: FeatureFlagToggleState = {
+      tenantId: "tenant-1",
+      flagKey: "studio",
+      success: undefined,
+    }
+    const newState: FeatureFlagToggleState = {
+      tenantId: "tenant-1",
+      flagKey: "studio",
+      success: true,
+    }
+
+    // optimisticEnabled=false → user toggled switch to "disabled" position
+    const toast = getToastFromStateTransition(prevState, newState, "Site Editor", false)
+    expect(toast).not.toBeNull()
+    expect(toast?.type).toBe("success")
+    expect(toast?.message).toBe("Site Editor disabled")
   })
 
   it("fires error toast when state enters error", () => {
     const prevState: FeatureFlagToggleState = {
       tenantId: "tenant-1",
       flagKey: "studio",
+      success: undefined,
     }
     const newState: FeatureFlagToggleState = {
       tenantId: "tenant-1",
@@ -127,7 +162,7 @@ describe("Toast notification trigger logic", () => {
       error: "Failed to update feature flag",
     }
 
-    const toast = getToastFromStateTransition(prevState, newState, "Site Editor")
+    const toast = getToastFromStateTransition(prevState, newState, "Site Editor", true)
     expect(toast).not.toBeNull()
     expect(toast?.type).toBe("error")
     expect(toast?.message).toBe("Failed to update feature flag")
@@ -146,7 +181,7 @@ describe("Toast notification trigger logic", () => {
     }
 
     // No transition from non-success to success — no toast
-    const toast = getToastFromStateTransition(prevState, newState, "Site Editor")
+    const toast = getToastFromStateTransition(prevState, newState, "Site Editor", true)
     expect(toast).toBeNull()
   })
 
@@ -162,7 +197,7 @@ describe("Toast notification trigger logic", () => {
       success: true,
     }
 
-    const toast = getToastFromStateTransition(prevState, sameState, "Billing")
+    const toast = getToastFromStateTransition(prevState, sameState, "Billing", true)
     expect(toast).toBeNull()
   })
 })

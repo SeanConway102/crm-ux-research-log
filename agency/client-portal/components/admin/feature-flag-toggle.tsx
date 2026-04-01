@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
+import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +35,8 @@ type FeatureFlagToggleProps = {
  * and reverts if the server action returns an error.
  */
 export function FeatureFlagToggle({ flag, tenantId }: FeatureFlagToggleProps) {
+  const { update } = useSession()
+
   const initialState: ToggleFeatureFlagState = {
     tenantId,
     flagKey: flag.key,
@@ -62,10 +65,14 @@ export function FeatureFlagToggle({ flag, tenantId }: FeatureFlagToggleProps) {
     }
   }, [flag.enabled, state.success])
 
-  // Fire toast on state transitions
+  // Fire toast + refresh session on state transitions
   useEffect(() => {
     if (state.success === true && prevOutcomeRef.current !== "success") {
       toast.success(`${flag.label} ${optimisticEnabled ? "enabled" : "disabled"}`)
+      // Force NextAuth to re-call jwt() callback → embeds fresh enabledFeatures into JWT.
+      // This ensures the admin sees the feature appear/disappear from their own sidebar
+      // immediately, instead of waiting up to 5 minutes for the next periodic refresh.
+      update()
       prevOutcomeRef.current = "success"
     }
     if (state.error && prevOutcomeRef.current !== "error") {
@@ -74,7 +81,7 @@ export function FeatureFlagToggle({ flag, tenantId }: FeatureFlagToggleProps) {
       setOptimisticEnabled(flag.enabled)
       prevOutcomeRef.current = "error"
     }
-  }, [state.success, state.error, flag.label, optimisticEnabled, flag.enabled])
+  }, [state.success, state.error, flag.label, optimisticEnabled, flag.enabled, update])
 
   function handleToggle(checked: boolean) {
     setOptimisticEnabled(checked)

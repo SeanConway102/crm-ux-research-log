@@ -1,5 +1,65 @@
 # Research Log
 
+## 2026-04-01 — Feature Flag Propagation: `useSession().update()` Mechanics
+
+**Domain:** [auth], [arch]
+
+**Finding:** `useSession().update()` in NextAuth v5 (JWT strategy) works as a **forced JWT callback trigger** — it does NOT simply return a cached session. It makes a fetch to `/api/auth/session`, which invokes the JWT callback server-side, which re-runs the full token computation and returns a new JWT.
+
+From GitHub discussion (next-authjs/next-auth#4229): *"The jwt() callback fires each time a call to getSession() hook is made."*
+
+**What this means for the portal:**
+1. When `FeatureFlagToggle` calls `update()` after a successful toggle, the JWT callback in `lib/auth.ts` runs again → `getEnabledFeatures(tenantId)` is called → fresh flags embedded in JWT → cookie updated
+2. The admin's sidebar re-renders with the new `session.user.enabledFeatures` on the NEXT page navigation (the current page's server components still have the old JWT; client components receive the new session on the next render cycle)
+3. The in-memory cache in `lib/features.ts` (60s TTL) is the actual bottleneck — on a warm serverless instance, subsequent `update()` calls within 60s hit the cache, which is fast but still hits Prisma (DB). On a cold start, Prisma is called fresh.
+
+**One subtlety:** `useSession().update()` fires `getSession()` internally, which also calls the `session()` callback. The `session()` callback copies `token.enabledFeatures` → `session.user.enabledFeatures`. So the chain is: `update()` → `getSession()` → JWT callback (re-fetches features, embeds in token) → session callback (copies to session) → client receives new session with fresh flags.
+
+**The `FeatureFlagRefreshProvider` calling `update()` on mount:** This is safe. On mount, the session is either already loaded (no-op effectively) or being fetched. The 5-minute interval prevents hammering. Combined with `FeatureFlagToggle` calling `update()` immediately on admin toggle, this gives ~immediate propagation for the admin who just made the change.
+
+**Architectural note:** The `useSession().update()` approach is the simplest correct solution. More sophisticated approaches (separate cookie for flags, middleware Prisma call) add complexity without proportional benefit for a portal where feature flags change infrequently.
+
+**Action taken today:** Added `useSession().update()` call to `FeatureFlagToggle` in `components/admin/feature-flag-toggle.tsx` — admin who toggles a flag sees the change reflected in their sidebar immediately, without waiting for the 5-minute periodic refresh.
+
+---
+
+## 2026-04-02 — next-sanity@12 + Next.js 15 Incompatibility
+
+**Domain:** [arch], [dx]
+
+**Context:** Running `pnpm build` in the client-portal fails with:
+```
+useEffectEvent' is not exported from 'react' (imported as 'useEffectEvent')
+```
+The full import chain: `next-sanity@12.2.1` → `NextStudio.js` → `sanity/lib/index.js` tries to import `useEffectEvent` from React. `useEffectEvent` was an experimental React 18.3 hook that was removed in React 19.
+
+**Root cause:** `next-sanity@12.2.1` is a **canary/experimental release** with these peer dependencies:
+```
+next: "^16.0.0-0"   ← requires Next.js 16 (we run 15.3.6)
+react: "^19.2.3"    ← our react@19.1.0 doesn't satisfy ^
+sanity: "^5.18.0"   ← matches our installed version
+```
+The `next@^16.0.0-0` peer dep means this package is for Next.js 16 canary only. Next.js 15 doesn't satisfy this range.
+
+**Why `serverExternalPackages` didn't fix it:** Webpack still analyzes server-external packages at build time to understand their exports. The analysis fails before runtime, so externalizing doesn't help.
+
+**Available next-sanity versions:**
+- `9.x` → requires `sanity@^3.x` (not 5.x)
+- `10.x` → requires `sanity@^4.x` (not 5.x)
+- `12.x` (canary) → requires `next@^16.0.0-0`
+
+**No compatible version exists** for `sanity@5.x` + `next@15.x`. This is a genuine dependency version gap.
+
+**Workaround applied:**
+- Studio page now gracefully falls back to a stub UI when `next-sanity/studio` is unavailable
+- Feature flag ensures no production traffic reaches `/studio` anyway
+- SPEC.md Phase 2 marked as ⚠️ BLOCKED
+- Fix requires either: (a) upgrade to Next.js 16 when stable, or (b) wait for a `next-sanity` stable release supporting `sanity@5` + `next@15`
+
+**Key insight:** In a pnpm monorepo, canary/experimental package versions (`12.2.1`) should be treated with caution — they have moving API requirements that may not match the rest of the stack.
+
+---
+
 ## 2026-04-01 — Error Boundaries in Next.js 15 App Router for Multi-Tenant SaaS
 
 **Domain:** [ux], [arch]

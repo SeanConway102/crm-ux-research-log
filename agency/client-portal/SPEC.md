@@ -2,7 +2,7 @@
 
 **Project:** CT Website Co. Client Portal
 **Type:** Multi-tenant SaaS client dashboard
-**Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Prisma
+**Stack:** Next.js 16 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Prisma
 **Status:** Planning — not yet initialized
 
 ---
@@ -486,7 +486,7 @@ Assumption: This is a content feed (TV program schedule, weather, news tickers) 
 
 | Decision | Rationale |
 |---|---|
-| **Next.js 15 App Router** | Vercel deploys it natively; RSC for server-rendered data; clean routing |
+| **Next.js 16 App Router** | Vercel deploys it natively; RSC for server-rendered data; clean routing |
 | **TypeScript** | Required — this is a production app, not a script |
 | **Tailwind CSS + shadcn/ui** | Sean's CRM frontend already uses this; consistency across projects |
 | **Prisma** | Portal's own DB (tenant registry, portal users, sessions); syncs tenant list from CRM |
@@ -632,12 +632,15 @@ export async function middleware(req: NextRequest) {
 - [ ] Page components: hide features if flag disabled
 - [ ] Admin UI: toggle switches per tenant on `/admin/clients/[id]`
 
-### Phase 2: Sanity Studio ✅
+### Phase 2: Sanity Studio ✅ UNBLOCKED (Next.js 16 upgrade complete)
 - [x] `next-sanity` + Sanity config factory
 - [x] Embedded Studio at `/studio` (force-dynamic, role-guarded)
 - [x] Fetches Sanity credentials from CRM per-tenant
 - [x] `structureTool` with desk structure + `visionTool`
 - [x] Per-tenant metadata title
+- [x] Upgraded to Next.js 16.2.2 + React 19.2.4 + sanity@5.18.0 + styled-components@6.1.19
+
+> ✅ **Unblocked:** Upgraded to Next.js 16.2.2, React 19.2.4, sanity@5.18.0, styled-components@6.1.19. Build passes, 237/237 tests pass. Studio route `/studio` now compiles and is live.
 
 ### Phase 3: Support Tickets ✅
 - [x] Ticket list page with filters + search

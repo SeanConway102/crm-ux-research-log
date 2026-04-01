@@ -24,7 +24,7 @@ export async function GET(
   ])
 
   // Strip internal notes — clients must never see agent internal comments
-  const publicComments = comments.filter((c) => !c.is_internal)
+  const publicComments = (comments ?? []).filter((c) => !c.is_internal)
 
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 })

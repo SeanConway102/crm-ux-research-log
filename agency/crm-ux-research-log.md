@@ -43,6 +43,49 @@
 
 ---
 
+## Session 51 — 2026-04-01 19:30 UTC
+**Topic:** Search & Filtering UX for Ticket Queues
+
+### Key Insights
+
+1. **Filters are a discovery layer, not just a search tool — they teach agents what the system knows.** When filters surface values that aren't visible in the queue itself (e.g., filtering by "tags" shows agents that tagging exists as a data field), they serve a double purpose: narrowing results AND educating agents about available data properties. Every filterable field should mirror a visible data column in the queue. If "Last Updated" appears on ticket rows but can't be filtered, agents notice the gap — it feels incomplete.
+
+2. **Filter positioning follows data scope: sidebar for global queue filters, inline for contextual needs.** For a standard ticket queue, a left-hand sidebar filter panel scales well — it holds many filter options in expandable sections without consuming content space. A horizontal filter bar above the queue works for smaller, more focused filter sets. Inline filters (filters embedded within a specific component) are right for mixed-data dashboards where different widgets need different filter scopes. For a CRM ticket queue, a collapsible sidebar with grouped filters is the correct default — Zendesk and Intercom both use this.
+
+3. **Live filtering (instant results as you type) beats apply-button filtering for queues under ~500 items.** When fetch latency is under 300ms, live filtering feels instantaneous and keeps agents in flow. When latency is higher or the dataset is large, use an "Apply" button to batch filter changes before executing. The failure mode of apply-button filtering: agents don't realize they need to click Apply, wonder why their results haven't changed, and blame the system. For a CRM where agents may have 50-200 open tickets, live filtering is the right default.
+
+4. **Sort and filter are not the same — sort order is a separate control that deserves its own prominence.** Sort (ordering) and filter (narrowing) are often conflated in CRM implementations. Agents need a clear, always-visible sort control separate from filters: "Sort by: Newest / Oldest / SLA Urgency / Last Updated / Priority." The default sort should be SLA urgency descending — agents should always see the most time-sensitive tickets first. If sort defaults to alphabetical or newest-first, it actively works against efficient triage.
+
+5. **Checkbox multi-select filters work for tags, agents, channels, and statuses — but only with visible counts.** Every checkbox filter option should show the number of matching tickets in real-time: "Open (42) | Pending (7) | Resolved (103)." Without counts, agents guess whether a filter will actually narrow anything. With counts, they can make an informed decision in one glance. Range filters (e.g., SLA time remaining: "Under 1hr / 1-4hrs / 4-8hrs / Over 8hrs") are better than checkboxes for time-based filters because they match how agents actually think about urgency.
+
+6. **Saved and shareable filter views are a high-value feature that teams consistently undervalue.** Agents and teams have recurring filter needs: "All open tickets assigned to me from enterprise customers" or "All unresolved tickets older than 48hrs." These should be saveable as named views (like Gmail filters). Bonus: saved filter URLs should be shareable via a link — managers can send a filtered view to a team without explaining what to click. This turns the CRM queue into a collaborative triage tool rather than an individual one.
+
+7. **Smart defaults eliminate setup friction — the first queue view should require zero configuration.** New agents should see a sane default queue: "My tickets, sorted by SLA urgency, all statuses." Power users should be able to override these defaults and persist their preferences. When an agent opens the queue and sees 5,000 tickets with no filters pre-applied, it communicates "we haven't thought about your workflow" — it's immediately overwhelming. The queue should feel like it was built for them, not generically for everyone.
+
+8. **Filters must show their active state clearly — inactive filters look the same as irrelevant ones.** When multiple filters are active, the queue view must: show a "X filters active" summary with a quick-clear option, highlight active filter chips above the results (e.g., "Status: Open × | Priority: High × | Assignee: Me ×"), and distinguish between a filter that's set to "all values" (inactive) vs. a specific value (active). Visual ambiguity between "all" and "none selected" is the #1 source of agent confusion in filter UIs.
+
+9. **Full-text search in a ticket queue must handle partial, typo-tolerant queries against ticket subject, customer name, and ticket ID.** Agents search differently on a CRM than on Google: they search ticket IDs ("#10432"), customer names they've seen before, and specific words in subjects. The search bar must be: accessible with Cmd/Ctrl+K as a global shortcut, tolerant of partial matches (typing "inv" finds "Invoice", "Investigate", "Inventory"), and scoped to the current queue by default (not global search). Search and filters must work together — applying filters should not clear the search query.
+
+10. **The "clear all filters" action must be one click and visually obvious — never buried or require a page reload.** Every filter interaction needs an escape hatch. The clear-all button should: appear whenever any filter is active, sit in the filter bar itself (not require scrolling), and execute instantly (no confirmation dialog needed). This is a safety/ recoverability principle — agents should never feel trapped by a filter state they can't easily undo. A reset-to-default button is equally important for power users who want to return to the baseline view quickly.
+
+### How It Applies to Our CRM
+
+- Mirror every visible queue column as a filter option. If "Last Updated" is a column, it must be filterable. Every gap between visible data and filterable data erodes agent trust.
+- Use a collapsible left sidebar for queue filters. Keep a horizontal sort control (SLA urgency / Newest / Last Updated) always visible above the queue — don't bury sort in the filter panel.
+- Implement live filtering with instant results for queues under 200 tickets. If latency exceeds 300ms, fall back to an "Apply" button — but signal this clearly so agents don't think it's broken.
+- Default sort to SLA urgency descending (most urgent first). Never default to alphabetical or newest-first — those sort orders actively harm triage efficiency.
+- Add real-time counts to every checkbox filter option. Agents deciding whether to filter by "Open" need to know there are 42 open tickets — otherwise they're guessing.
+- Use range filters for SLA time windows (Under 1hr / 1-4hrs / 4-8hrs / Over 8hrs) rather than checkboxes — agents triage by time buckets, not by individual SLA values.
+- Build saveable named filter views (e.g., "My Urgent Queue", "Enterprise Customers — All Statuses"). Make saved views shareable via URL.
+- Set smart defaults per agent role: new agents see "My Tickets / Open / SLA Urgency sort." Managers see "All Team Tickets / All Statuses / SLA Urgency sort."
+- Show active filter chips above results whenever any filter is active. Each chip has an × to remove that specific filter. Add a single "Clear all" button in the filter bar.
+- Implement Cmd/Ctrl+K global search in the queue. Support partial and typo-tolerant matching on ticket subject, customer name, and ticket ID. Search and filters must be composable without mutual interference.
+- Add a "Reset to defaults" button that's always visible when non-default filters are active. One click to return to the baseline view — no page reload required.
+- Track filter usage analytics: which filters are used most? Which filters are set but rarely changed? This tells you which filters agents actually need vs. which ones are clutter.
+- Consider an "agent speed" metric: average time from queue open to first ticket action. Good filter/sort defaults should keep this under 5 seconds for an experienced agent.
+
+---
+
 ## Session 50 — 2026-04-01 18:43 UTC
 **Topic:** Omnichannel Inbox UX for Ticketing CRMs — Agent Workspace Design
 

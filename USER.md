@@ -7,7 +7,7 @@
 - **Notes:** Uses Telegram (+1 879-430-6096)
 
 ## CRM Access
-- **URL:** https://v0-crm-frontend-build-peach.vercel.app
+- **URL:** https://crm-frontend-nine-indol.vercel.app
 - **Email:** sully@ctwebsiteco.com
 - **Password:** SullyAgent2026
 - **API:** crm-api-1016182607730.us-east1.run.app
