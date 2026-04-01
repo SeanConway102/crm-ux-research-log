@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getTenantBySlug } from "@/lib/tenant"
 import { getCrmSubscription, getCrmInvoices } from "@/lib/crm-api"
+import { isFeatureEnabled } from "@/lib/features"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,11 @@ function StatusBadge({ status }: { status: string }) {
 export default async function BillingPage() {
   const session = await auth()
   if (!session?.user?.tenantId) redirect("/login")
+
+  // Phase 0 feature flag enforcement
+  if (!(await isFeatureEnabled(session.user.tenantId, "billing"))) {
+    redirect("/dashboard")
+  }
 
   const tenant = await getTenantBySlug(session.user.tenantId)
   const [subscription, invoices] = await Promise.all([

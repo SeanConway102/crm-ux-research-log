@@ -235,87 +235,188 @@ describe("Feature flag evaluation — in-memory simulation", () => {
   })
 })
 
-describe("setFeatureFlag logic", () => {
+describe("setFeatureFlag — integration-level simulation", () => {
   /**
-   * Simulates the upsert + cache-invalidation logic
+   * These tests simulate the full upsert + cache-invalidation flow that
+   * setFeatureFlag() performs with Prisma. Since we can't run real Prisma
+   * in unit tests (no test DB), we simulate the DB state and cache.
+   *
+   * These mirror the actual implementation's behavior.
    */
 
-  function setFeatureFlagLogic(
-    tenantId: string,
-    flagKey: string,
-    enabled: boolean,
-    db: {
-      tenantFeatureFlags: Array<{
-        tenantId: string
-        featureFlagId: string
-        enabled: boolean
-      }>
-    },
-    cache: Map<string, boolean>
+  // In-memory DB simulation: tenantFeatureFlags keyed by `${tenantId}:${featureFlagId}`
+  type DbState = Map<string, { tenantId: string; featureFlagId: string; enabled: boolean }>
+  type FlagRegistry = Map<string, { id: string; key: string; label: string }>
+  type Cache = Map<string, { flags: Record<string, boolean>; ts: number }>
+
+  function createSimulatedSetFeatureFlag(
+    db: DbState,
+    flagRegistry: FlagRegistry,
+    cache: Cache
   ) {
-    // Find the flag ID (in real code: query FeatureFlag table)
-    const flagIds: Record<string, string> = {
-      studio: "ff-studio",
-      support: "ff-support",
-      billing: "ff-billing",
-    }
-    const flagId = flagIds[flagKey]
-    if (!flagId) throw new Error(`Unknown feature flag: ${flagKey}`)
+    return function setFeatureFlag(tenantId: string, flagKey: string, enabled: boolean) {
+      const flag = flagRegistry.get(flagKey)
+      if (!flag) throw new Error(`Unknown feature flag: ${flagKey}`)
 
-    const existingIdx = db.tenantFeatureFlags.findIndex(
-      (tf) => tf.tenantId === tenantId && tf.featureFlagId === flagId
-    )
+      const pk = `${tenantId}:${flag.id}`
 
-    if (enabled) {
-      if (existingIdx >= 0) {
-        db.tenantFeatureFlags[existingIdx].enabled = true
+      if (enabled) {
+        db.set(pk, { tenantId, featureFlagId: flag.id, enabled: true })
       } else {
-        db.tenantFeatureFlags.push({ tenantId, featureFlagId: flagId, enabled: true })
+        db.delete(pk)
       }
-    } else {
-      if (existingIdx >= 0) {
-        db.tenantFeatureFlags.splice(existingIdx, 1)
-      }
-    }
 
-    // Invalidate cache
-    cache.delete(tenantId)
+      // Invalidate cache
+      cache.delete(tenantId)
+    }
   }
 
-  it("creates an override when enabling a flag", () => {
-    const db = { tenantFeatureFlags: [] as any[] }
-    const cache = new Map<string, boolean>()
+  function createSimulatedGetEnabledFeatures(
+    db: DbState,
+    flagRegistry: FlagRegistry,
+    cache: Cache
+  ) {
+    const FEATURE_FLAG_KEYS = ["studio", "support", "billing", "content_hub", "tv_feed", "media_library"]
 
-    setFeatureFlagLogic("tenant-a", "studio", true, db, cache)
-    expect(db.tenantFeatureFlags).toContainEqual({
-      tenantId: "tenant-a",
-      featureFlagId: "ff-studio",
-      enabled: true,
-    })
-    expect(cache.has("tenant-a")).toBe(false) // cache was invalidated
+    return function getEnabledFeatures(tenantId: string): Record<string, boolean> {
+      const cached = cache.get(tenantId)
+      if (cached) return cached.flags
+
+      const allFlags = FEATURE_FLAG_KEYS.reduce<Record<string, boolean>>((acc, key) => {
+        acc[key] = false
+        return acc
+      }, {})
+
+      for (const [pk, record] of db.entries()) {
+        if (pk.startsWith(`${tenantId}:`) && record.enabled) {
+          // Find the flag key by its id
+          for (const [key, flag] of flagRegistry.entries()) {
+            if (flag.id === record.featureFlagId) {
+              allFlags[key] = true
+              break
+            }
+          }
+        }
+      }
+
+      cache.set(tenantId, { flags: allFlags, ts: Date.now() })
+      return allFlags
+    }
+  }
+
+  it("enabling a flag creates a TenantFeatureFlag record and invalidates cache", () => {
+    // Setup simulated DB
+    const db: DbState = new Map()
+    const flagRegistry: FlagRegistry = new Map([
+      ["studio", { id: "ff-studio", key: "studio", label: "Site Editor" }],
+      ["support", { id: "ff-support", key: "support", label: "Support Tickets" }],
+    ])
+    const cache: Cache = new Map()
+    // Pre-populate cache to verify it gets invalidated
+    cache.set("tenant-a", { flags: { studio: true, support: false }, ts: Date.now() })
+
+    const setFeatureFlag = createSimulatedSetFeatureFlag(db, flagRegistry, cache)
+    const getEnabledFeatures = createSimulatedGetEnabledFeatures(db, flagRegistry, cache)
+
+    // Enable studio for tenant-a
+    setFeatureFlag("tenant-a", "studio", true)
+
+    // Cache should be invalidated
+    expect(cache.has("tenant-a")).toBe(false)
+
+    // New call should reflect the change
+    const flags = getEnabledFeatures("tenant-a")
+    expect(flags.studio).toBe(true)
+
+    // Support should still be off
+    expect(flags.support).toBe(false)
   })
 
-  it("removes the override when disabling a flag (returns to default)", () => {
-    const db = {
-      tenantFeatureFlags: [
-        { tenantId: "tenant-a", featureFlagId: "ff-studio", enabled: true },
-      ],
-    }
-    const cache = new Map<string, boolean>()
-    cache.set("tenant-a", true)
+  it("disabling a flag removes the TenantFeatureFlag record", () => {
+    const db: DbState = new Map()
+    const flagRegistry: FlagRegistry = new Map([
+      ["studio", { id: "ff-studio", key: "studio", label: "Site Editor" }],
+    ])
+    const cache: Cache = new Map()
 
-    setFeatureFlagLogic("tenant-a", "studio", false, db, cache)
-    expect(db.tenantFeatureFlags).not.toContainEqual(
-      expect.objectContaining({ tenantId: "tenant-a", featureFlagId: "ff-studio" })
-    )
-    expect(cache.has("tenant-a")).toBe(false)
+    // Pre-existing: studio enabled for tenant-a
+    db.set("tenant-a:ff-studio", { tenantId: "tenant-a", featureFlagId: "ff-studio", enabled: true })
+
+    const setFeatureFlag = createSimulatedSetFeatureFlag(db, flagRegistry, cache)
+    const getEnabledFeatures = createSimulatedGetEnabledFeatures(db, flagRegistry, cache)
+
+    // Disable studio
+    setFeatureFlag("tenant-a", "studio", false)
+
+    // Record should be removed
+    expect(db.has("tenant-a:ff-studio")).toBe(false)
+
+    // Flags should reflect the change
+    const flags = getEnabledFeatures("tenant-a")
+    expect(flags.studio).toBe(false)
   })
 
   it("throws for unknown flag keys", () => {
-    const db = { tenantFeatureFlags: [] }
-    const cache = new Map()
-    expect(() =>
-      setFeatureFlagLogic("tenant-a", "nonexistent", true, db, cache)
-    ).toThrow("Unknown feature flag: nonexistent")
+    const db: DbState = new Map()
+    const flagRegistry: FlagRegistry = new Map()
+    const cache: Cache = new Map()
+
+    const setFeatureFlag = createSimulatedSetFeatureFlag(db, flagRegistry, cache)
+
+    expect(() => setFeatureFlag("tenant-a", "nonexistent", true)).toThrow(
+      "Unknown feature flag: nonexistent"
+    )
+  })
+
+  it("multiple tenants are isolated", () => {
+    const db: DbState = new Map()
+    const flagRegistry: FlagRegistry = new Map([
+      ["studio", { id: "ff-studio", key: "studio", label: "Site Editor" }],
+      ["billing", { id: "ff-billing", key: "billing", label: "Billing" }],
+    ])
+    const cache: Cache = new Map()
+
+    const setFeatureFlag = createSimulatedSetFeatureFlag(db, flagRegistry, cache)
+    const getEnabledFeatures = createSimulatedGetEnabledFeatures(db, flagRegistry, cache)
+
+    // Enable studio for tenant-a, billing for tenant-b
+    setFeatureFlag("tenant-a", "studio", true)
+    setFeatureFlag("tenant-b", "billing", true)
+
+    const flagsA = getEnabledFeatures("tenant-a")
+    const flagsB = getEnabledFeatures("tenant-b")
+
+    expect(flagsA.studio).toBe(true)
+    expect(flagsA.billing).toBe(false)
+    expect(flagsB.studio).toBe(false)
+    expect(flagsB.billing).toBe(true)
+  })
+
+  it("repeatedly toggling a flag is idempotent (upsert)", () => {
+    const db: DbState = new Map()
+    const flagRegistry: FlagRegistry = new Map([
+      ["studio", { id: "ff-studio", key: "studio", label: "Site Editor" }],
+    ])
+    const cache: Cache = new Map()
+
+    const setFeatureFlag = createSimulatedSetFeatureFlag(db, flagRegistry, cache)
+    const getEnabledFeatures = createSimulatedGetEnabledFeatures(db, flagRegistry, cache)
+
+    // Toggle on, off, on, off — DB should always have exactly one record when enabled
+    setFeatureFlag("tenant-a", "studio", true)
+    expect(db.get("tenant-a:ff-studio")?.enabled).toBe(true)
+
+    setFeatureFlag("tenant-a", "studio", true) // Idempotent: already enabled
+    expect(db.get("tenant-a:ff-studio")?.enabled).toBe(true)
+
+    setFeatureFlag("tenant-a", "studio", false)
+    expect(db.has("tenant-a:ff-studio")).toBe(false)
+
+    setFeatureFlag("tenant-a", "studio", false) // Idempotent: already disabled
+    expect(db.has("tenant-a:ff-studio")).toBe(false)
+
+    // Verify final state
+    const flags = getEnabledFeatures("tenant-a")
+    expect(flags.studio).toBe(false)
   })
 })

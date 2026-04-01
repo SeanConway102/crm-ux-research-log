@@ -1,11 +1,16 @@
 /**
- * Embedded Sanity Studio — Phase 2 + 2b.
+ * Embedded Sanity Studio — Phase 2 + 2b + Phase 0 (feature flag enforcement).
  *
  * This route is outside the `(portal)` route group so the portal sidebar/header
  * chrome does NOT wrap the Studio (Sanity provides its own chrome).
  *
  * Auth: middleware.ts already guards this route — only EDITOR and OWNER roles
  * pass through. Unauthorized users are redirected to the dashboard.
+ *
+ * Feature flags (Phase 0): The "studio" feature flag must be enabled for the
+ * tenant. If disabled, the user is redirected to the dashboard. This check lives
+ * here (Server Component, Node.js runtime) because middleware cannot use Prisma
+ * on Edge Runtime.
  *
  * Multi-tenancy: config is built per-request (force-dynamic) from the
  * tenant's CRM site record so each client portal renders their own
@@ -23,6 +28,8 @@ import { auth } from "@/lib/auth"
 import { buildSanityConfig } from "@/lib/sanity-config-factory"
 import { NextStudio } from "next-sanity/studio"
 import { metadata as studioMetadata, viewport } from "next-sanity/studio"
+import { isFeatureEnabled } from "@/lib/features"
+import { prisma } from "@/lib/prisma"
 import type { Metadata, Viewport } from "next"
 
 // Re-export Studio's default viewport (noindex, mobile viewport)
@@ -52,6 +59,18 @@ export default async function StudioPage() {
   // but we check again in case this route is called directly.
   if (!session?.user?.tenantId) {
     redirect("/login")
+  }
+
+  // Phase 0 feature flag enforcement: redirect if studio is not enabled for this tenant.
+  // Middleware cannot check Prisma (Edge Runtime), so we check here (Node.js runtime).
+  const studioEnabled = await isFeatureEnabled(session.user.tenantId, "studio")
+  if (!studioEnabled) {
+    // Look up tenant slug for the redirect URL
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: session.user.tenantId },
+      select: { slug: true },
+    })
+    redirect(`/${tenant?.slug ?? ""}/dashboard`)
   }
 
   // Build the per-tenant config — returns null if Sanity is not configured

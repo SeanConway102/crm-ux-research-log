@@ -1,10 +1,145 @@
 # Research Log
 
-Tags: [ux], [react], [dx]
+Tags: [ux], [react], [dx], [arch]
 
 ---
 
-## 2026-03-31 — React 19 `useOptimistic` for Comment Threads
+## 2026-04-01 AM — Tenant White-Label Theming with CSS Variables in Tailwind v4 [ux], [arch]
+
+### What I Learned
+
+**How `bg-[var(--accent)]` works in Tailwind v4:**
+Tailwind v4 arbitrary value syntax `bg-[var(--name)]` generates a CSS class that sets the property to the literal CSS variable:
+```css
+.bg-\[var\(--accent\)\] { background-color: var(--accent); }
+```
+This is the standard Tailwind v3/v4 mechanism for using CSS custom properties as color values. The class is generated at build time; the variable value is resolved at runtime by the browser. ✅ Works.
+
+**The right way to apply per-tenant accent colors:**
+The portal layout is a Server Component that fetches the tenant's `accentColor` from Prisma. It can pass the hex value to Client Components as a prop, which then applies it as a CSS variable inline:
+```tsx
+// Server Component: fetch and pass
+const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } })
+return <PortalSidebar accentColor={tenant.accentColor} />
+
+// Client Component: apply CSS variable
+<aside style={{ "--accent": accentColor } as React.CSSProperties}>
+  {/* active state */}
+  <div className={cn("bg-[var(--accent)]", active && "...")} />
+</aside>
+```
+
+**Why not use `data-theme` + CSS selectors:**
+Tailwind v4's `@custom-variant dark` and CSS `[data-theme]` selectors require pre-defined themes in CSS. For per-tenant dynamic colors (not just dark/light), CSS variables with inline `style` props are the right tool. `data-theme` would require a CSS class per tenant, which doesn't scale.
+
+**The `--primary` vs `--accent` question:**
+The portal uses `--primary` as its brand color throughout (buttons, sidebar active state). Setting `--primary` via CSS variable overrides ALL `text-primary`, `bg-primary`, etc. usages throughout the portal. This is a blunt instrument — it would also override the CT Website Co. primary in the header logo area.
+**Better approach:** Use a separate `--accent` variable only for the tenant-specific active state and accent elements, keeping `--primary` for core CT Website Co. branding.
+
+### How It Applies to This Project
+
+Phase 6 tenant theme system:
+1. Fetch `tenant.accentColor` in `app/(portal)/layout.tsx`
+2. Pass `accentColor` to `PortalSidebar` and `PortalHeader`
+3. Sidebar applies `style={{ "--accent": accentColor }}` on the active nav item
+4. Header avatar uses `bg-[var(--accent)]` for the user's avatar background
+5. CSS variable `--accent` defined in `globals.css` defaults to `#6366F1` (CT Website Co. indigo)
+
+---
+
+## 2026-04-01 AM — Tailwind v4 `tw-animate-css` Animation System [ux], [dx]
+
+### What I Learned
+
+`tw-animate-css` is a Tailwind CSS v4 plugin that provides a complete set of animation utilities via CSS custom properties. Unlike Tailwind v3 where animations are defined in `tailwind.config.js`, v4 uses `@utility` directives in CSS that register classes at compile time.
+
+**Key discovery:** `tw-animate-css` provides ALL the slide/direction/animation utilities I need for the mobile Sheet drawer:
+- `slide-in-from-left` / `slide-out-to-left` ✅
+- `slide-in-from-right` / `slide-out-to-right` ✅
+- `slide-in-from-bottom` / `slide-out-to-bottom` ✅
+- `fade-in` / `fade-out` ✅
+- `zoom-in` / `zoom-out` ✅
+
+**How `data-[state=open]:` works with tw-animate-css:**
+```css
+/* The tw-animate-css plugin registers these as utilities:
+data-[state=open]:animate-in → animation: enter 150ms ease
+data-[state=closed]:animate-out → animation: exit 150ms ease
+
+/* And the slide utilities set CSS vars:
+slide-in-from-left → --tw-enter-translate-x: -100%
+slide-out-to-left → --tw-exit-translate-x: -100%
+
+/* The enter/exit keyframes use these vars:
+@keyframes enter {
+  from { opacity: var(--tw-enter-opacity,1); 
+         transform: translate3d(var(--tw-enter-translate-x,0), ...) }
+}
+```
+
+**Why this matters for the Sheet component:**
+- The Sheet's `animate-in`/`animate-out` classes work out of the box with `tw-animate-css`
+- No custom `@keyframes` needed in globals.css — the plugin handles everything
+- The `data-[state=open]:` prefix from Radix Dialog state attribute wires perfectly to the animation classes
+
+**The 150ms default duration** (`--tw-duration,.15s`) is appropriate for the mobile Sheet — fast enough to feel responsive, slow enough to communicate "new content appeared."
+
+### How It Applies to This Project
+
+The `Sheet` component uses:
+```tsx
+className="data-[state=open]:animate-in data-[state=closed]:animate-out
+          data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0
+          data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left
+          fixed top-0 left-0 z-50 h-full w-3/4 max-w-sm border-r bg-surface"
+```
+
+All of these classes are provided by `tw-animate-css`. The Sheet component needs zero custom CSS.
+
+---
+
+## 2026-04-01 AM — Multi-Tenant Mobile Navigation UX Patterns [ux], [arch]
+
+### What I Learned
+
+**Three common patterns for mobile nav in multi-tenant B2B SaaS:**
+
+1. **Bottom tab bar (spec approach)** — 5 primary destinations as tabs. Best for portals where users frequently switch between a fixed set of sections. Clear active state. Takes up valuable screen real estate (60px on iPhone with home indicator).
+
+2. **Hamburger → full-screen drawer** — Traditional approach. Hamburger in top-left. Drawer slides in from left. Good for complex nav with many items. Less discoverable.
+
+3. **Bottom bar + contextual drawer** — Hybrid: bottom bar shows 3-4 key destinations; secondary nav lives in a hamburger drawer. Best for feature-rich portals where 5 tabs aren't enough.
+
+**Spec choice: Bottom tab bar** — Matches SPEC §10.2 which specifies "5 items max: Dashboard, Studio, Content, Support, Billing." Simple, discoverable, consistent with iOS/Android conventions.
+
+**The "hamburger inside layout" pattern:**
+The hamburger trigger (Radix `SheetTrigger`) must be rendered inside the flex container (not the sidebar) so it's always visible on mobile. The `SheetContent` (drawer) can be rendered anywhere in the component tree because Radix portals it to `document.body`. Best practice: render the drawer near the header in the layout, so it's logically grouped.
+
+**Bottom nav safe-area insets:**
+On iOS with a home indicator, the bottom nav needs `padding-bottom: env(safe-area-inset-bottom)` to avoid being obscured. Tailwind utility: `style={{ paddingBottom: "env(safe-area-inset-bottom)" }}`.
+
+**Mobile content offset:**
+When a fixed bottom nav is present, page content needs extra bottom padding (`pb-20`) to avoid being hidden behind the nav. Desktop (`md:`) removes this extra padding.
+
+**The `SheetTrigger` placement challenge:**
+`SheetTrigger` must be inside `<Sheet>`. In the portal layout:
+```tsx
+<Sheet> {/* drawer state owner */}
+  <PortalMobileDrawer />  {/* SheetContent lives here */}
+  <PortalHeader>
+    <SheetTrigger asChild>  {/* hamburger button in header */}
+      <button>...</button>
+    </SheetTrigger>
+  </PortalHeader>
+</Sheet>
+```
+But `PortalHeader` is a separate component from `PortalMobileDrawer`. Solution: render `<Sheet>` wrapping the header and drawer together, OR use a shared state (React context or lifted state) to coordinate.
+
+**Simpler approach used:** `<Sheet>` wraps the entire flex column, with `SheetTrigger` as a sibling inside `<PortalHeader>`. This works because Radix Dialog/Sheet uses a Portal to render the overlay/content to `document.body` — the DOM position of `SheetTrigger` doesn't need to be a direct parent of `SheetContent`.
+
+---
+
+## 2026-04-01 — React 19 `useOptimistic` for Comment Threads
 
 ### What I Learned
 
@@ -60,7 +195,7 @@ This is dramatically better UX than a loading spinner + page refresh.
 
 ---
 
-## 2026-03-31 PM — Multi-Tenant SaaS DB Patterns [arch]
+## 2026-04-01 PM — Multi-Tenant SaaS DB Patterns [arch]
 
 ### What I Learned
 
@@ -82,7 +217,7 @@ The portal's Prisma schema (Tenant, PortalUser) uses pattern 1 — shared DB wit
 
 The Stripe Customer Portal bug fix (building today) will use the correct server-side redirect pattern.
 
-## 2026-03-31 PM — Sanity Studio structureTool + visionTool [ux]
+## 2026-04-01 PM — Sanity Studio structureTool + visionTool [ux]
 
 ### What I Learned
 
@@ -102,7 +237,7 @@ Phase 2b (building today): add `structureTool` and `visionTool` to the Studio co
 
 ---
 
-## 2026-03-31 PM — Embedded Sanity Studio in Next.js App Router
+## 2026-04-01 PM — Embedded Sanity Studio in Next.js App Router
 
 ### What I Learned
 
@@ -149,7 +284,7 @@ The client portal's Phase 2 (Sanity Studio) is now scaffolded:
 
 **Why `usage: "off_session"`:** Required for Stripe to use the newly-attached payment method for automatic subscription retries without requiring the customer to be present.
 
-**Portal pattern:** The billing page stays as a Server Component (fetches subscription/invoices). A `"use client"` `BillingPaymentForm` component fetches the SetupIntent client_secret and wraps `PaymentForm` inside Stripe's `Elements` provider. No `next/dynamic` needed.
+**Portal pattern:** The billing page stays as a Server Component (fetches subscription/invoices). A `"use client"` `BillingPaymentForm` component fetches the SetupIntent client secret and wraps `PaymentForm` inside Stripe's `Elements` provider. No `next/dynamic` needed.
 
 ---
 
@@ -168,7 +303,7 @@ The embedded Stripe Elements form needs a SetupIntent, which requires a `/api/bi
 
 ---
 
-## 2026-03-31 PM — React 19 `useOptimistic` + `startTransition` — The Critical Pair [react], [ux]
+## 2026-04-01 PM — React 19 `useOptimistic` + `startTransition` — The Critical Pair [react], [ux]
 
 ### What I Learned
 
@@ -178,7 +313,7 @@ The embedded Stripe Elements form needs a SetupIntent, which requires a `/api/bi
 
 **The key insight from React docs:**
 > "There's no extra render to 'clear' the optimistic state. The optimistic and real state converge in the same render when the Transition completes."
-> 
+>
 > "If `saveChanges` threw an error, the Transition ends, and React renders with whatever value `value` currently is."
 
 **Why this matters for error handling:**
@@ -195,7 +330,7 @@ const [optimisticComments, dispatch] = useOptimistic(initialComments, commentsRe
 function handleSubmit(e) {
   e.preventDefault()
   dispatch({ type: "add", comment: optimisticComment }) // immediate UI update
-  
+
   startTransition(async () => {
     try {
       const result = await saveComment(body)
@@ -222,10 +357,6 @@ function handleSubmit(e) {
 The sidebar links to `/content`. If that route 404s, it breaks the core navigation contract. B2B SaaS users arrive via email link → do one thing → leave. They don't explore. Every broken nav link destroys trust.
 
 Rule: **every sidebar link must resolve to a real page, even if it's a "coming soon" placeholder.**
-
----
-
-*Tags: [react], [ux], [arch]*
 
 ---
 
@@ -268,4 +399,130 @@ The `TenantFeatureFlag` model uses a composite PK `@@id([tenantId, featureFlagId
 
 ---
 
-*Tags: [arch], [dx]*
+## 2026-03-31 — Vercel Flags SDK + Edge Config for Feature Flags at Edge
+
+### The Problem
+Our client portal has feature flags stored in Prisma. The SPEC says to enforce flags in middleware, but **Prisma can't run on Next.js Edge Runtime** (middleware runs on Edge, Prisma is Node.js-only). This is a genuine architectural gap.
+
+### What Vercel Offers
+**`@vercel/flags`** — a lightweight feature flag SDK designed specifically for the Vercel/Next.js ecosystem:
+- Flags stored in **Vercel Edge Config** (global, low-latency KV store at the edge)
+- Evaluated **without a database call** in middleware and edge functions
+- Integrates with **Vercel Toolbar** — lets developers override flags locally via encrypted cookie (great for testing)
+- Flag definitions in code (`lib/flags.ts`), values in Edge Config
+- The Flags SDK handles the override precedence: toolbar override > Edge Config > default
+
+### Architecture Pattern (from benseymour.com)
+```
+Edge Config store (Vercel) → stores flag values
+Flags SDK → evaluates flags at edge (no DB call)
+Middleware → reads flags, enforces route access
+Vercel Toolbar → local developer overrides
+```
+
+In middleware:
+```typescript
+import { createClient } from '@vercel/edge-config'
+const flagsConfig = createClient(process.env.EDGE_CONFIG_FLAGS)
+const flags = await flagsConfig.get('homepage_variant')
+```
+
+### Trade-off vs Our Current Approach
+| Aspect | Our Prisma approach | Vercel Edge Config + Flags SDK |
+|---|---|---|
+| Middleware enforcement | ❌ Can't do (Prisma on Edge) | ✅ Native |
+| Page-level enforcement | ✅ Works | ✅ Works |
+| Admin UI | ✅ Done | ✅ Done (Edge Config dashboard) |
+| Flag changes propagation | ~60s (cache TTL) | Instant (edge read) |
+| New infrastructure | None | Vercel Edge Config (paid add-on) |
+| Toolbar for local dev | ❌ No | ✅ Yes |
+| Vercel dependency | None | Required (not portable) |
+
+### Decision for Now
+Stick with our Prisma approach. Middleware enforcement is a "nice to have" — the page-level enforcement we have (sidebar hides features, pages redirect) is sufficient for a Phase 0. Vercel Edge Config would help but adds infrastructure cost/complexity.
+
+If the portal grows and flag-checks become a bottleneck or if we need real-time flag changes without 60s cache TTL, revisit `@vercel/flags`.
+
+### Useful Links
+- https://flags-sdk.dev — Flags SDK docs
+- https://github.com/vercel/flags — SDK source
+- https://benseymour.com/blog/2026-03-21-Feature-flags-with-Vercel-Toolbar-and-Edge-Config — Practical setup guide
+
+---
+
+## 2026-03-31 — TDD in Next.js: Testing Server Components is Hard
+
+### The Challenge
+Our project uses Next.js App Router with React Server Components (RSC). RSCs are async server functions that render HTML — they're not "called" like regular functions, they're rendered. This makes unit testing them directly impossible with Vitest/Jest.
+
+### Patterns That Work
+1. **Pure function extraction** — extract the logic into a testable function, test that. E.g., `getEnabledFeatures(tenantId)` is pure-ish and testable.
+2. **Integration tests with a real test DB** — spin up a SQLite in-memory Prisma instance, run the actual Prisma queries, test the results. Our `__tests__/integration/` directory could house these.
+3. **Mock at the HTTP layer** — use Supertest or just `fetch()` to call Next.js API routes and check responses. Good for `/api/` route testing.
+
+### What's NOT Worth Doing
+- Trying to import and call RSC page components directly in Vitest — the module graph is too complex, hydration issues abound
+- Mocking Prisma at the import level — it requires complex `vi.mock()` gymnastics with TypeScript paths
+
+### Our Current Test Strategy
+The existing `__tests__/unit/lib/features.test.ts` takes the right approach: **simulate the logic in-memory without Prisma**, testing the pure evaluation logic. This is unit testing the algorithm, not the ORM.
+
+The gap: no integration test with a real SQLite Prisma instance. For Phase 0 completion, I'll add that for `setFeatureFlag`.
+
+---
+
+## 2026-03-31 — Feature Flag Admin UX patterns
+
+**Tags:** [ux], [arch], [react]
+
+**Context:** Building Phase 0 feature flag admin UI for the client portal.
+
+### What I researched
+
+**Feature flag admin UI patterns** — in B2B SaaS, the feature flag admin page typically shows:
+1. Flag name + description
+2. Beta badge on experimental features  
+3. Toggle switch (enabled/disabled)
+4. A "Coming Soon" section for disabled flags the tenant doesn't have access to
+
+Key UX lessons:
+- **Optimistic UI with pending state**: When a user toggles a switch, show a spinner inline while the server action runs. Don't navigate away or show a modal.
+- **Upsert not delete + create**: When disabling a flag, remove the override entirely (return to default=false). When enabling, create the override. The `setFeatureFlag` function in `lib/features.ts` already handles this correctly.
+- **Cache invalidation**: The in-memory cache in `lib/features.ts` uses a 60s TTL. After a flag toggle, we call `cache.delete(tenantId)` to force the next `getEnabledFeatures` call to re-fetch from the DB. This is correct.
+
+**React `useActionState` vs `useTransition`**: 
+- `useActionState` (React 19) takes `(action, initialState)` and returns `[state, dispatch, isPending]`. Call `dispatch(formData)` to trigger the action. This is what I used.
+- The old approach (`useTransition`) is equivalent for simple cases. Both work in Next.js 15 / React 19.
+
+### Key architectural decision
+
+The `FeatureFlagToggle` component uses a `formRef` to programmatically update the hidden `enabled` input before calling `action(fd)`. This is necessary because the `Switch` component fires `onCheckedChange(newValue)` on click, but we need to submit a form with the *new* value (not the old one in the DOM).
+
+The pattern:
+```typescript
+const handleToggle = (newEnabled: boolean) => {
+  const form = formRef.current
+  const enabledInput = form.querySelector<HTMLInputElement>('input[name="enabled"]')
+  enabledInput.value = String(newEnabled)  // Update to NEW value
+  action(new FormData(form))  // Submit
+}
+```
+
+This avoids the anti-pattern of reading `flag.enabled` (which is the stale server state) and instead submits the desired new state.
+
+### For next time
+- The middleware doesn't yet enforce feature flags per route (it only checks auth + role). Per SPEC §3.2.1, the middleware should redirect if a user tries to access `/studio` when the `studio` flag is disabled for their tenant. This is still todo.
+- The seed script (`prisma/seed.ts`) seeds the flag registry but `package.json` doesn't have the `prisma.seed` config wired up — need to add `"prisma": { "seed": "tsx prisma/seed.ts" }` to package.json.
+
+---
+
+## 2026-04-01 — React 19 `use()` Hook: Async Server → Client Data Passing [react], [arch]
+
+### What I Learned
+
+React 19's `use()` hook lets Server Components pass **unresolved Promises** directly to Client Components, which then use `use()` to unwrap them. This enables **parallel streaming** — the server can render the layout shell immediately and stream in data as promises resolve.
+
+**The classic pattern (current portal — awaiting in SC):**
+```tsx
+// Server Component (layout.tsx)
+export default async function PortalLayout({ children })

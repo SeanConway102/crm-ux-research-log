@@ -11,18 +11,56 @@ import {
   Settings,
   LogOut,
   Eye,
+  Menu,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { createContext, useContext, useState, type ReactNode, type CSSProperties } from "react"
+
+// ─── Shared mobile nav sheet context ────────────────────────────────────────
+
+type MobileNavContextValue = {
+  open: boolean
+  setOpen: (open: boolean) => void
+}
+
+const MobileNavContext = createContext<MobileNavContextValue | null>(null)
+
+export function MobileNavProvider({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <MobileNavContext.Provider value={{ open, setOpen }}>
+      {children}
+    </MobileNavContext.Provider>
+  )
+}
+
+export function useMobileNav() {
+  const ctx = useContext(MobileNavContext)
+  if (!ctx) throw new Error("useMobileNav must be used inside MobileNavProvider")
+  return ctx
+}
+
+// ─── Default brand accent (CT Website Co. indigo) ────────────────────────────
+const DEFAULT_ACCENT = "#6366F1"
+
+// ─── Nav items definition (shared between sidebar and mobile nav) ─────────────
 
 type NavItem = {
   href: string
   label: string
   icon: React.ComponentType<{ className?: string }>
-  featureKey?: string // feature flag key — if set, item is hidden when flag is disabled
+  featureKey?: string
 }
 
-const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/studio", label: "Site Editor", icon: Monitor, featureKey: "studio" },
   { href: "/content", label: "Content", icon: FileText, featureKey: "content_hub" },
@@ -30,24 +68,32 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/billing", label: "Billing", icon: CreditCard, featureKey: "billing" },
 ]
 
+// ─── Desktop sidebar ────────────────────────────────────────────────────────
+
 type PortalSidebarProps = {
-  /**
-   * Map of feature flag key → enabled (from lib/features.ts getEnabledFeatures).
-   * Items with a `featureKey` are hidden when their flag is false.
-   */
   enabledFeatures?: Record<string, boolean>
+  /** Tenant's accent color from DB (e.g. "#E11D48"). Defaults to CT Website Co. indigo. */
+  accentColor?: string
 }
 
-export function PortalSidebar({ enabledFeatures = {} }: PortalSidebarProps) {
+export function PortalSidebar({ enabledFeatures = {}, accentColor }: PortalSidebarProps) {
   const pathname = usePathname()
+  const accent = accentColor ?? DEFAULT_ACCENT
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (!item.featureKey) return true
     return enabledFeatures[item.featureKey] === true
   })
 
+  const hiddenItems = NAV_ITEMS.filter(
+    (item) => item.featureKey && enabledFeatures[item.featureKey] !== true
+  )
+
   return (
-    <aside className="flex w-60 flex-col border-r bg-surface">
+    <aside
+      className="hidden md:flex w-60 flex-col border-r bg-surface"
+      style={{ "--accent": accent } as CSSProperties}
+    >
       {/* Logo / Tenant name */}
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -69,7 +115,7 @@ export function PortalSidebar({ enabledFeatures = {} }: PortalSidebarProps) {
               className={cn(
                 "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-[var(--accent)]/10 text-[var(--accent)]"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -80,18 +126,13 @@ export function PortalSidebar({ enabledFeatures = {} }: PortalSidebarProps) {
         })}
       </nav>
 
-      {/* Coming-soon features (disabled, shown as locked) */}
-      {NAV_ITEMS.filter(
-        (item) => item.featureKey && enabledFeatures[item.featureKey] !== true
-      ).length > 0 && (
+      {/* Coming-soon features */}
+      {hiddenItems.length > 0 && (
         <div className="border-t px-2 py-3">
           <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Coming Soon
           </p>
-          {NAV_ITEMS.filter(
-            (item) =>
-              item.featureKey && enabledFeatures[item.featureKey] !== true
-          ).map(({ href, label, icon: Icon }) => (
+          {hiddenItems.map(({ href, label, icon: Icon }) => (
             <div
               key={href}
               className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
@@ -123,5 +164,101 @@ export function PortalSidebar({ enabledFeatures = {} }: PortalSidebarProps) {
         </button>
       </div>
     </aside>
+  )
+}
+
+// ─── Mobile drawer content (called from layout, inside MobileNavProvider) ─────
+
+type MobileDrawerContentProps = {
+  enabledFeatures?: Record<string, boolean>
+  /** Tenant's accent color from DB — applied as CSS var for active states */
+  accentColor?: string
+}
+
+export function MobileDrawerContent({ enabledFeatures = {}, accentColor }: MobileDrawerContentProps) {
+  const pathname = usePathname()
+  const { open, setOpen } = useMobileNav()
+  const accent = accentColor ?? DEFAULT_ACCENT
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (!item.featureKey) return true
+    return enabledFeatures[item.featureKey] === true
+  })
+
+  const hiddenItems = NAV_ITEMS.filter(
+    (item) => item.featureKey && enabledFeatures[item.featureKey] !== true
+  )
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent side="left" className="w-72 p-0 flex flex-col">
+        <SheetHeader className="px-4 py-4 border-b shrink-0">
+          <SheetTitle className="flex items-center gap-2 text-base">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+              CT
+            </div>
+            Client Portal
+          </SheetTitle>
+        </SheetHeader>
+
+        <nav className="flex-1 space-y-1 px-2 py-3 overflow-y-auto">
+          {visibleItems.map(({ href, label, icon: Icon }) => {
+            const active = pathname.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-[var(--accent)]/10 text-[var(--accent)]"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {hiddenItems.length > 0 && (
+          <div className="border-t px-2 py-3 shrink-0">
+            <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Coming Soon
+            </p>
+            {hiddenItems.map(({ href, label, icon: Icon }) => (
+              <div
+                key={href}
+                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+                <Eye className="ml-auto h-3 w-3 shrink-0 opacity-50" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="border-t px-2 py-3 shrink-0">
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            Settings
+          </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }

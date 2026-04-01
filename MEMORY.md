@@ -17,7 +17,8 @@
 - **CRM Frontend:** https://v0-crm-frontend-build-peach.vercel.app
 - **CRM API:** https://crm-api-1016182607730.us-east1.run.app/mcp
 - **Credentials:** sully@ctwebsiteco.com / SullyAgent2026
-- **API Key:** `crm_9c69fddd3b6c57f3ef938c5acc42c52d1fa894ac00879b7de281ba214d97a1ec`
+- **API Key:** `crm_73c6c876ef61204de0776e30c8f76afd9a157d22a3209a2bd991ef60af6abb53`
+- **CRM API Auth:** Use `X-API-Key` header (NOT `Authorization: Bearer`) — MCP endpoint at `https://crm-api-1016182607730.us-east1.run.app/mcp`
 
 ### GitHub
 - **crm-frontend:** https://github.com/SeanConway102/crm-frontend

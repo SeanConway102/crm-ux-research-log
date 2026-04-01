@@ -1,8 +1,14 @@
 import { ReactNode } from "react"
 import { auth } from "@/lib/auth"
 import { getEnabledFeatures } from "@/lib/features"
-import { PortalSidebar } from "@/components/portal/sidebar"
+import { prisma } from "@/lib/prisma"
+import {
+  PortalSidebar,
+  MobileNavProvider,
+  MobileDrawerContent,
+} from "@/components/portal/sidebar"
 import { PortalHeader } from "@/components/portal/header"
+import { PortalMobileNav } from "@/components/portal/mobile-nav"
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -13,15 +19,40 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     ? await getEnabledFeatures(tenantId)
     : {}
 
+  // Fetch tenant's accent color for white-label branding (Phase 6)
+  // Falls back to CT Website Co. indigo if no tenant or no accent set
+  let accentColor: string | null = null
+  if (tenantId) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { accentColor: true },
+    })
+    accentColor = tenant?.accentColor ?? null
+  }
+
   return (
-    <div className="flex h-screen bg-bg">
-      <PortalSidebar enabledFeatures={enabledFeatures} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <PortalHeader />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
+    <MobileNavProvider>
+      <div className="flex h-screen bg-bg">
+        {/* Desktop sidebar — hidden on mobile */}
+        <PortalSidebar enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
+
+        {/* Main content area */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Mobile drawer (Sheet with nav links) — rendered here for DOM order */}
+          <MobileDrawerContent enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
+
+          {/* Top header — contains hamburger SheetTrigger on mobile */}
+          <PortalHeader accentColor={accentColor ?? undefined} />
+
+          {/* Page content — extra bottom padding on mobile to clear the bottom nav */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+            {children}
+          </main>
+        </div>
+
+        {/* Mobile bottom navigation bar — visible only on mobile */}
+        <PortalMobileNav enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
       </div>
-    </div>
+    </MobileNavProvider>
   )
 }

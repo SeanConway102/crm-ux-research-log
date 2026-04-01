@@ -1,22 +1,33 @@
-"use server"
+'use server';
 
-import { revalidatePath } from "next/cache"
-import { setFeatureFlag } from "@/lib/features"
+import { setFeatureFlag } from '@/lib/features';
+import { revalidatePath } from 'next/cache';
 
-export async function updateFeatureFlagAction(
-  tenantId: string,
-  flagKey: string,
-  enabled: boolean
-): Promise<{ success: boolean; error?: string }> {
+export type FeatureFlagToggleState = {
+  tenantId: string;
+  flagKey: string;
+  error?: string;
+  success?: boolean;
+};
+
+export async function toggleFeatureFlagAction(
+  prevState: FeatureFlagToggleState,
+  formData: FormData
+): Promise<FeatureFlagToggleState> {
+  const tenantId = formData.get('tenantId') as string;
+  const flagKey = formData.get('flagKey') as string;
+  const enabled = formData.get('enabled') === 'true';
+
+  if (!tenantId || !flagKey) {
+    return { tenantId, flagKey, error: 'Missing tenantId or flagKey', success: false };
+  }
+
   try {
-    await setFeatureFlag(tenantId, flagKey, enabled)
-    revalidatePath(`/admin/clients/${tenantId}`)
-    return { success: true }
+    await setFeatureFlag(tenantId, flagKey, enabled);
+    revalidatePath(`/admin/clients/${tenantId}`);
+    return { tenantId, flagKey, success: true };
   } catch (err) {
-    console.error("[updateFeatureFlag]", err)
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : "Failed to update feature flag",
-    }
+    const message = err instanceof Error ? err.message : 'Failed to update feature flag';
+    return { tenantId, flagKey, error: message, success: false };
   }
 }

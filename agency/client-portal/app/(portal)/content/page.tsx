@@ -10,6 +10,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getTenantBySlug } from "@/lib/tenant"
+import { isFeatureEnabled } from "@/lib/features"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,6 +52,11 @@ export const dynamic = "force-dynamic"
 export default async function ContentPage() {
   const session = await auth()
   if (!session?.user?.tenantId) redirect("/login")
+
+  // Phase 0 feature flag enforcement
+  if (!(await isFeatureEnabled(session.user.tenantId, "content_hub"))) {
+    redirect("/dashboard")
+  }
 
   const tenant = await getTenantBySlug(session.user.tenantId)
 

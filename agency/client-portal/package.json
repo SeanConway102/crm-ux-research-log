@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
     "lint": "next lint"
   },
   "dependencies": {
@@ -61,6 +62,9 @@
     "zod": "^4.3.6"
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@prisma/engines",

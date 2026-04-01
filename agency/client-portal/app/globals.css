@@ -53,6 +53,8 @@
   --popover-foreground: oklch(0.141 0.005 285.823);
   --primary: #6366F1;
   --primary-foreground: oklch(0.985 0 0);
+  /* --accent: tenant's brand color; set dynamically per-tenant via CSS var on portal layout root */
+  --accent: #6366F1;
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);

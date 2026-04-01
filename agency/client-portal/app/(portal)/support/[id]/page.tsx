@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { getCrmTicket, getCrmTicketComments, type CrmComment } from "@/lib/crm-api"
+import { isFeatureEnabled } from "@/lib/features"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,6 +55,11 @@ export default async function TicketDetailPage({
   const session = await auth()
   if (!session?.user?.tenantId) {
     redirect("/login")
+  }
+
+  // Phase 0 feature flag enforcement
+  if (!(await isFeatureEnabled(session.user.tenantId, "support"))) {
+    redirect("/dashboard")
   }
 
   const { id } = await params
