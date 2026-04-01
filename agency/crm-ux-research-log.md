@@ -456,7 +456,7 @@
 ---
 
 ## Session 44 — 2026-04-01 12:39 UTC
-**Topic:** Dark/Light Mode, Visual Themes & Color System Architecture for Ticketing CRMs
+**Topic:** Performance & Speed UX for Ticketing CRMs
 
 ### Key Insights
 
@@ -493,6 +493,52 @@
 - Audit brand accent color for dark mode legibility. Adjust accent saturation/brightness per theme — don't just carry over the light-mode brand color. Test accent against all semantic surface colors in both themes.
 - Support a "match workspace theme" option that syncs the CRM's theme to the user's OS/browser preference automatically. Many agents use multiple Google Workspace apps alongside the CRM — visual consistency reduces cognitive context-switching.
 - Track theme usage analytics per agent: what % of time each theme is active. Use this to inform the default theme for new agents and identify agents who might benefit from scheduled theme switching.
+
+---
+
+## Session 45 — 2026-04-01 13:30 UTC
+**Topic:** Performance & Speed UX for Ticketing CRMs
+
+### Key Insights
+
+1. **The 100ms / 300ms / 1s thresholds apply directly to CRM agent workflows — not just consumer apps.** Nielsen's latency limits translate exactly to ticketing CRMs: <100ms for direct manipulation feel (clicking a ticket row, toggling a checkbox), <300ms for maintaining agent flow (opening a ticket, applying a filter), <1s for operations that require a loading state (search results, queue refresh). If every filter application takes 500ms, agents will stop filtering — they'll just scan the entire queue. The goal is not just "fast enough" — it's "fast enough that the agent never thinks about the software."
+
+2. **Optimistic UI updates eliminate perceived latency for common actions — implement them aggressively.** When an agent marks a ticket resolved, changes a status, or adds a tag, the UI should update immediately (<100ms) and sync to the server in the background. If the server sync fails, roll back quietly with a toast ("Status update failed — retrying"). This makes the CRM feel instant. The alternative — wait for server confirmation before updating the UI — creates a sluggish, "waiting for the computer" feel that accumulates across hundreds of daily actions. Optimistic updates are the single highest-impact pattern for agent-facing performance perception.
+
+3. **Queue loading must use virtual scrolling — rendering 200+ ticket rows destroys render budgets.** A ticket queue with 500 visible rows will drop to <30fps on mid-range hardware during scroll. Virtual scrolling (render only visible rows + buffer) is non-negotiable for high-volume queues. The technical floor: render 20-30 rows in a scrollable container, recycle DOM nodes, and maintain scroll position on filter changes. Tools like TanStack Virtual or similar make this straightforward. A CRM that stutters when scrolling through 100 tickets has a fundamental architecture problem, not a styling problem.
+
+4. **P95/P99 latency matters more than average latency for agent-facing CRMs.** An agent's experience is defined by the worst interactions — the occasional 2-second ticket open, the intermittent slow search. Averages hide outliers. Track P95 (slow but not catastrophic) and P99 (catastrophic) for every agent-facing API: ticket open, queue load, search, status change. Set explicit SLAs: ticket open P95 < 500ms, queue render < 300ms, search < 400ms. If P99 exceeds 1s, that 1% of interactions is destroying agent trust in the system — especially if it correlates with SLA-breaching tickets.
+
+5. **Skeleton screens beat spinners for any async load over 200ms — always.** If a ticket thread takes 400ms to load, showing a skeleton (gray placeholder shapes matching the thread layout) feels faster than a spinner, even at identical latency. Skeletons maintain spatial context — the agent knows where the customer message, agent replies, and composer will appear. When content loads, it fades in at the skeleton position. Spinners break spatial orientation and feel like a full stop. Combine skeletons with optimistic UI: show stale data (last known thread state) immediately, then patch with new data as it arrives.
+
+6. **Page load and ticket open are the two highest-stakes latency moments — optimize them with full priority.** The moment an agent logs in and the moment they open a ticket are when the CRM is most in focus. These two interactions should be aggressively optimized: target <1s full page load, <300ms ticket detail render. Use resource hinting (`<link rel="preload">`) for critical fonts and above-fold assets. For ticket open, pre-fetch the most likely next ticket's data while the agent is reading the current one. Linear's instant channel switching is the reference implementation — their P95 channel open is under 100ms because they pre-load adjacent data.
+
+7. **WebSocket-based real-time updates must coexist with optimistic UI — never block the agent on a server push.** New ticket arrivals, status changes from other agents, and SLA timer updates should arrive via WebSocket and patch the UI without a page refresh or reload. If a WebSocket update requires a full queue re-render (causing a visible "flash"), the real-time update is net-negative — it interrupts more than it informs. WebSocket patches should be surgical: inject one new row, update one cell, shift one counter. Batch WebSocket updates within a 200ms window — if 10 tickets update simultaneously, render one batched update, not 10 individual updates.
+
+8. **Network request waterfall is a CRM performance killer — reduce round trips with GraphQL or batched REST.** The classic CRM page load pattern: load queue (200ms) → load agent profile (150ms) → load SLA config (100ms) → load queue filters (100ms) → load saved views (80ms) = 630ms of sequential latency. The fix: batch all critical-path requests into one (GraphQL) or parallelize them (REST with `Promise.all`). The total wall-clock time should equal the slowest single request, not the sum. Audit every page load's network waterfall and set a budget: initial page load should complete all critical requests within 500ms on a median connection.
+
+9. **Lazy loading for secondary panels (customer history, activity log, knowledge base) prevents ticket open latency bloat.** An agent opening a ticket doesn't need their full customer history, all 47 prior tickets, and the knowledge base article suggestions on the first render. Load the ticket thread and context strip immediately (<300ms), then lazy-load secondary data in parallel panels. If secondary panels take 800ms to load, they should show their own skeletons and stream in — not delay the ticket thread opening. Use route-based code splitting: ticket open loads ticket module; customer profile loads separately when the agent clicks to expand.
+
+10. **Performance regression testing must be in CI — a 100ms slowdown on a common action is a bug, not a chore.** Every PR that touches the queue, ticket detail, or composer should run a Lighthouse CI check against a performance budget (e.g., LCP < 1.5s, TBT < 200ms). Track key metric P95 from real-user monitoring (RUM) in production: ticket open P95, queue render P95, search P95. Alert when any metric degrades by >20% vs. the 30-day baseline. Performance that slowly degrades across sprints is invisible until agents start complaining — proactive monitoring catches it before users notice. New Relic, Datadog, or CloudWatch RUM are standard tooling for this.
+
+### How It Applies to Our CRM
+
+- Implement optimistic UI for all agent actions: status change, assign, tag add/remove, ticket open. Update UI instantly (<100ms), sync to server in background. Roll back silently with retry toast on failure.
+- Implement virtual scrolling on ticket queue (render 30 rows + buffer). Target <30fps scroll on 500+ ticket queues. This is a prerequisite for the high-volume agent workflow.
+- Track P95 and P99 latency for all agent-facing operations: ticket open, queue load, search, filter apply, status change. Set explicit SLAs and alert on >20% regression vs. 30-day baseline.
+- Use skeleton screens for all async loads >200ms. Never show spinners in primary content areas (queue, thread, customer profile). Combine with optimistic UI for the fastest perceived speed.
+- Aggressively optimize initial page load and ticket open: preload critical assets, pre-fetch adjacent ticket data, target <1s initial load and <300ms ticket detail first contentful paint.
+- Pre-render WebSocket updates surgically — never full re-render. Batch simultaneous updates within 200ms. Ensure real-time updates don't cause visible flash/flicker on the queue.
+- Audit network waterfalls on every page load. Batch or parallelize sequential requests. Initial page critical path should complete in <500ms on median connection.
+- Lazy load secondary panels: customer history, activity log, knowledge base suggestions. Never delay ticket thread render to wait for secondary data.
+- Add Lighthouse CI to the build pipeline with performance budgets per PR. Track RUM metrics in production: P50/P95/P99 for ticket open, queue load, search latency.
+- Add a "performance mode" developer toggle in CRM settings: shows current page's network waterfall and render timeline. Agents can share a HAR file when reporting slowness.
+- Monitor ticket open P95 specifically on SLA-breaching tickets — slow load on an already-at-risk ticket compounds the problem. SLA tickets get priority rendering budget.
+- Target per-action latency budgets: checkbox toggle <50ms, queue filter apply <300ms, ticket open first paint <200ms, search results <400ms, full ticket thread <800ms. Publish these budgets and track weekly.
+- Use service worker caching for static assets (JS, CSS, fonts) to speed up repeat visits. Cache ticket metadata for instant queue display on return visits within the same session.
+- Avoid chat-style polling (periodic fetch every N seconds) for real-time updates. Use WebSocket or Server-Sent Events. Polling adds baseline network overhead that compounds with agent count.
+
+---
 
 ## Session 43 — 2026-04-01 11:38 UTC
 **Topic:** Agent Collaboration, Handoffs & Shared Ticket Ownership UX for Ticketing CRMs
