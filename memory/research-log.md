@@ -97,3 +97,40 @@ The portal's sidebar nav correctly hides feature-gated items via `enabledFeature
 
 **Flag audit cadence:** 50-100 active flags is the practical ceiling before technical debt. Quarterly audits recommended.
 
+
+---
+
+## 2026-04-01 AM — NextAuth JWT Staleness + Feature Flags [arch], [dx]
+
+### What I Found
+
+The middleware embeds `enabledFeatures` in the JWT via `callbacks.jwt`. This means:
+
+1. **How it works:** On every `auth()` call, `callbacks.jwt` fires and calls `getEnabledFeatures(tenantId)` (Prisma, 60s cache). Flags are embedded in JWT and available to middleware via `session.user.enabledFeatures`.
+
+2. **The staleness gap:** If an admin toggles a flag while a user is already logged in, the user's JWT still has the old flags until natural session refresh. For a portal where flags change rarely, this is **acceptable in practice**.
+
+3. **Key insight:** In NextAuth v5 (Auth.js), `callbacks.jwt` fires on every `getSession()` call (every server request), NOT just on sign-in. So the 60s TTL cache means DB is hit at most once per 60s per tenant. Under serverless cold starts, each instance has its own cache — first request after cold start always hits DB.
+
+**Verdict:** Current architecture is correct for a SaaS portal. Flag changes are rare and 60s propagation delay is acceptable. Alternative (removing flags from JWT, always reading DB in middleware) requires DB in Edge Runtime — complex and unnecessary.
+
+---
+
+## 2026-04-01 AM — Phase 0 Feature Flags Audit + Sonner Toasts [arch] [ux]
+
+### What I Found
+
+Phase 0 (Feature Flags) is **essentially complete** after this session's audit:
+
+- ✅ `FeatureFlag` + `TenantFeatureFlag` Prisma schema
+- ✅ Seed script in `prisma/seed.ts` (6 flags: studio, support, billing, content_hub, tv_feed, media_library)
+- ✅ `lib/features.ts` — `isFeatureEnabled`, `getEnabledFeatures`, `getTenantFeatureFlags`, `setFeatureFlag`, `invalidateCache`, `isValidFlagKey`, `getFlagRoute`
+- ✅ Middleware enforcement per route via `ROUTE_FEATURE_MAP`
+- ✅ Sidebar: hides gated nav items + shows "Coming Soon" list
+- ✅ Dashboard: quick actions filtered by `enabledFeatures`, subscription + site data from CRM
+- ✅ Admin UI: `/admin/clients/[tenantId]` page with per-flag toggles (sonner toasts added this session)
+- ✅ 171 tests passing (12 added this session)
+
+**UX bug fixed:** `FeatureFlagToggle` showed no feedback when a toggle succeeded or failed — server action updated DB, but UI was silent. Fixed with Sonner toasts using `prevStateRef` pattern to avoid double-firing on React re-renders.
+
+**Sonner setup:** `Toaster` component added to `app/layout.tsx`. Sonner was already in `package.json` as `^2.0.7` but `Toaster` was never rendered anywhere in the app tree.
