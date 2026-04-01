@@ -4,7 +4,7 @@ import path from "path"
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["__tests__/unit/**/*.test.ts"],
+    include: ["__tests__/unit/**/*.test.ts", "__tests__/unit/**/*.test.tsx"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

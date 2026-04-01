@@ -12,6 +12,7 @@ import {
   LogOut,
   Eye,
   Menu,
+  Radio,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -66,19 +67,37 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/content", label: "Content", icon: FileText, featureKey: "content_hub" },
   { href: "/support", label: "Support", icon: LifeBuoy, featureKey: "support" },
   { href: "/billing", label: "Billing", icon: CreditCard, featureKey: "billing" },
+  // tv_feed is nested under Content — only shown in sidebar when flag is enabled
+  { href: "/content/tv-feed", label: "TV Feed", icon: Radio, featureKey: "tv_feed" },
 ]
 
 // ─── Desktop sidebar ────────────────────────────────────────────────────────
 
-type PortalSidebarProps = {
+export type PortalSidebarProps = {
   enabledFeatures?: Record<string, boolean>
   /** Tenant's accent color from DB (e.g. "#E11D48"). Defaults to CT Website Co. indigo. */
   accentColor?: string
+  /** Tenant's logo URL — rendered in the sidebar header. Falls back to CT Website Co. default. */
+  logoUrl?: string | null
+  /** Tenant's display name — rendered in the sidebar header. Falls back to "Client Portal". */
+  tenantName?: string | null
 }
 
-export function PortalSidebar({ enabledFeatures = {}, accentColor }: PortalSidebarProps) {
+export type MobileDrawerContentProps = {
+  enabledFeatures?: Record<string, boolean>
+  /** Tenant's accent color from DB — applied as CSS var for active states */
+  accentColor?: string
+  /** Tenant's logo URL — rendered in the mobile drawer header. Falls back to default. */
+  logoUrl?: string | null
+  /** Tenant's display name — rendered in the mobile drawer header. Falls back to "Client Portal". */
+  tenantName?: string | null
+}
+
+export function PortalSidebar({ enabledFeatures = {}, accentColor, logoUrl, tenantName }: PortalSidebarProps) {
   const pathname = usePathname()
   const accent = accentColor ?? DEFAULT_ACCENT
+  const useCustomLogo = Boolean(logoUrl)
+  const displayName = tenantName ?? "Client Portal"
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (!item.featureKey) return true
@@ -96,11 +115,21 @@ export function PortalSidebar({ enabledFeatures = {}, accentColor }: PortalSideb
     >
       {/* Logo / Tenant name */}
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
-            CT
-          </div>
-          <span className="text-sm font-semibold">Client Portal</span>
+        <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
+          {useCustomLogo ? (
+            // Tenant-branded: show their logo + name
+            <img
+              src={logoUrl!}
+              alt={displayName}
+              className="h-7 w-7 shrink-0 rounded-md object-contain"
+            />
+          ) : (
+            // Default: CT Website Co. logo
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+              CT
+            </div>
+          )}
+          <span className="text-sm font-semibold truncate">{displayName}</span>
         </Link>
       </div>
 
@@ -169,16 +198,12 @@ export function PortalSidebar({ enabledFeatures = {}, accentColor }: PortalSideb
 
 // ─── Mobile drawer content (called from layout, inside MobileNavProvider) ─────
 
-type MobileDrawerContentProps = {
-  enabledFeatures?: Record<string, boolean>
-  /** Tenant's accent color from DB — applied as CSS var for active states */
-  accentColor?: string
-}
-
-export function MobileDrawerContent({ enabledFeatures = {}, accentColor }: MobileDrawerContentProps) {
+export function MobileDrawerContent({ enabledFeatures = {}, accentColor, logoUrl, tenantName }: MobileDrawerContentProps) {
   const pathname = usePathname()
   const { open, setOpen } = useMobileNav()
   const accent = accentColor ?? DEFAULT_ACCENT
+  const useCustomLogo = Boolean(logoUrl)
+  const displayName = tenantName ?? "Client Portal"
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (!item.featureKey) return true
@@ -193,11 +218,19 @@ export function MobileDrawerContent({ enabledFeatures = {}, accentColor }: Mobil
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="w-72 p-0 flex flex-col">
         <SheetHeader className="px-4 py-4 border-b shrink-0">
-          <SheetTitle className="flex items-center gap-2 text-base">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
-              CT
-            </div>
-            Client Portal
+          <SheetTitle className="flex items-center gap-2 text-base min-w-0">
+            {useCustomLogo ? (
+              <img
+                src={logoUrl!}
+                alt={displayName}
+                className="h-7 w-7 shrink-0 rounded-md object-contain"
+              />
+            ) : (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+                CT
+              </div>
+            )}
+            <span className="text-sm font-semibold truncate">{displayName}</span>
           </SheetTitle>
         </SheetHeader>
 

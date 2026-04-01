@@ -22,24 +22,28 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   // Fetch tenant's accent color for white-label branding (Phase 6)
   // Falls back to CT Website Co. indigo if no tenant or no accent set
   let accentColor: string | null = null
+  let logoUrl: string | null = null
+  let tenantName: string | null = null
   if (tenantId) {
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
-      select: { accentColor: true },
+      select: { accentColor: true, logoUrl: true, name: true },
     })
     accentColor = tenant?.accentColor ?? null
+    logoUrl = tenant?.logoUrl ?? null
+    tenantName = tenant?.name ?? null
   }
 
   return (
     <MobileNavProvider>
       <div className="flex h-screen bg-bg">
         {/* Desktop sidebar — hidden on mobile */}
-        <PortalSidebar enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
+        <PortalSidebar enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} logoUrl={logoUrl} tenantName={tenantName} />
 
         {/* Main content area */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Mobile drawer (Sheet with nav links) — rendered here for DOM order */}
-          <MobileDrawerContent enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
+          <MobileDrawerContent enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} logoUrl={logoUrl} tenantName={tenantName} />
 
           {/* Top header — contains hamburger SheetTrigger on mobile */}
           <PortalHeader accentColor={accentColor ?? undefined} />

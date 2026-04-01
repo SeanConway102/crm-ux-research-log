@@ -4,6 +4,31 @@ Tags: [ux], [react], [dx], [arch]
 
 ---
 
+## 2026-04-01 AM — Phase 0 Feature Flag Audit [arch], [dx]
+
+### What I Learned (Audit Result)
+
+Phase 0 (Feature Flags) is **essentially complete**. Here's what exists:
+
+1. ✅ **Prisma schema** — `FeatureFlag` + `TenantFeatureFlag` models with composite PK
+2. ✅ **lib/features.ts** — `isFeatureEnabled`, `getEnabledFeatures`, `setFeatureFlag`, `getTenantFeatureFlags`, `invalidateCache`
+3. ✅ **Admin UI** — `/admin/clients/[tenantId]` with `FeatureFlagToggle` using `useActionState`, optimistic pending state
+4. ✅ **Sidebar nav hiding** — `PortalSidebar` + `MobileDrawerContent` filter NAV_ITEMS by `enabledFeatures`
+5. ✅ **Page-level enforcement** — studio, support, billing, content_hub pages all check `isFeatureEnabled()` and redirect if disabled
+6. ✅ **Seed script** — `prisma/seed.ts` with all flag definitions, wired to `package.json` via `"prisma": { "seed": "tsx prisma/seed.ts" }`
+
+**Middleware enforcement is intentionally skipped** — Prisma (SQLite) can't run on Edge Runtime where Next.js middleware executes. The agreed workaround: page-level redirects are sufficient (sidebar hides nav items; direct URL access redirects to dashboard).
+
+**Architecture note:** The sidebar NAV_ITEMS must include ALL feature-gated routes so they can be hidden when disabled. Added `tv_feed: { href: "/content/tv-feed", label: "TV Feed", icon: Radio, featureKey: "tv_feed" }` to NAV_ITEMS.
+
+### Open questions
+- Should we add a "Coming Soon" section to the sidebar (below the nav items) showing disabled features? Already done — `hiddenItems` are shown under "Coming Soon" with 👁️ icon.
+- Does the mobile bottom nav need tv_feed? No — it's under Content in the hamburger drawer (mobile nav has its own `MOBILE_NAV_ITEMS` hardcoded to 5 items, matching SPEC §10.2).
+
+---
+
+---
+
 ## 2026-04-01 AM — Tenant White-Label Theming with CSS Variables in Tailwind v4 [ux], [arch]
 
 ### What I Learned
