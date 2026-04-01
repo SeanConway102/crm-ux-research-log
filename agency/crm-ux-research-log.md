@@ -157,3 +157,44 @@
 - Filter apply behavior: direct-apply if <200ms response; "Apply" button + pending chips if slower. Always show active filter chips + "Clear all."
 - Add density toggle (compact/comfortable/expanded) to queue toolbar. Implement virtual scrolling to handle 200+ row queues without DOM bloat.
 - Add a "snooze queue" or "defer" quick action on hover: push a ticket to the bottom of current view or to a specific future time. This is a top-requested agent feature for managing interruptions.
+
+---
+
+## Session 36 — 2026-04-01 04:49 UTC
+**Topic:** Command Palettes, Global Search & Quick Actions UX for Ticketing CRMs
+
+### Key Insights
+
+1. **A global command palette (Ctrl+K / Cmd+K) is the highest-leverage power feature for high-volume CRM agents.** An agent handling 80+ tickets per shift should be able to: open any ticket by typing a customer name or ticket ID, create a new ticket, assign a ticket, change status, add a tag, search the knowledge base, or jump to a saved view — all without touching the mouse. VS Code's command palette is the reference implementation: type to filter, arrow keys to navigate, Enter to execute, Esc to dismiss. For a ticketing CRM, the command palette should fuse search + actions: typing a customer name searches tickets *and* shows quick actions (open ticket, add note, change assignee) for each result.
+
+2. **Command palettes must show keyboard shortcuts inline — this is how agents learn the system.** Every command in the palette should display its keyboard shortcut on the right side of the row. This transforms the command palette from a pure efficiency tool into a discovery mechanism: agents who use it frequently will memorize shortcuts for actions they repeat often. VS Code demonstrates this perfectly. Without inline shortcuts, the command palette helps only users who already know what they're looking for. With them, it teaches power users the keyboard-driven alternative to every mouse action.
+
+3. **Fuzzy search is non-negotiable — exact-match-only command palettes frustrate agents who can't recall exact terminology.** An agent typing "asign" should still find "Assign ticket." An agent typing "cust" should find "Customer: Acme Corp." Fuzzy matching (substring, prefix, Levenshtein distance) dramatically reduces the cognitive load of recall. Superhuman's command palette is the gold standard here — it learns from the agent's behavior over time, surfacing "assign to Sarah" higher after the agent has done it twice. This personalization layer turns a generic command palette into an adaptive tool that gets faster with use.
+
+4. **Search and commands must be unified in a single input — not separate tabs or dialogs.** Separate "Search" and "Commands" UX fragments the agent's mental model: "Do I use search for this or the command palette?" The better pattern: one input field that detects intent from context. Type a ticket number → show ticket result. Type a customer name → show customer + ticket results. Type `/assign` or a verb → show matching commands. Figma's unified palette (delete `>` to switch from commands to file search) is the same principle. One input, all outcomes.
+
+5. **Recent/frequent commands must appear before any typing — zero friction to the most common actions.** When an agent opens the command palette with an empty query, the first results should be: their last 3-5 opened tickets, recently used actions (compose reply, add tag, change status), and recently visited views. This means the command palette is immediately useful without any typing. Showing an empty list on open trains agents to close the palette without using it. The zero-query state is prime real estate — use it for recency signals, not empty states.
+
+6. **Slash commands (`/assign`, `/status`, `/priority`) inside the ticket composer are a separate but complementary pattern.** The command palette handles *navigation and global actions*; slash commands handle *inline content actions within a ticket or composer*. Notion pioneered `/` commands for block creation. For a CRM composer, `/priority:urgent`, `/assign:@sarah`, `/sla:2h`, `/close` typed in the composer body should parse into structured actions without the agent touching the mouse. These two patterns (global palette + inline slash commands) serve different but complementary needs and should coexist.
+
+7. **Global search must surface contextual results across all object types — tickets, customers, knowledge base, and team members.** An agent searching "Acme" should see: tickets with Acme in the subject, customers named Acme Corp, knowledge base articles mentioning Acme, and team members with Acme in a note. Grouped by type with clear section headers. This is the single-pane-of-glass search that eliminates the "where do I search for this?" question. Zendesk's global search and Linear's unified command bar are reference implementations.
+
+8. **Search results must show enough context to let agents decide without opening the ticket.** A ticket result should show: ticket ID, customer name, subject, status badge, SLA urgency, and last action time. A customer result should show: name, company, total ticket count, open ticket count, and last contact time. A knowledge base article result should show: title, section, and relevance snippet with the matched term highlighted. Without this context, agents open results to confirm they're relevant — doubling the interaction count for every search.
+
+9. **Typo tolerance and "did you mean" suggestions turn frustrated agents into satisfied ones.** Agents searching under cognitive load — half-typed customer names, misspelled subjects — will hit zero results frequently in a high-volume shift. Fuzzy matching with a "Did you mean X?" suggestion (when the top result has a low confidence match) prevents search abandonment. Track common misspellings per customer/account and surface corrections proactively. This is a trust feature: the CRM that handles agents' bad typing gracefully earns loyalty over one that just says "No results found."
+
+10. **Quick actions on hover (ticket row, customer card) are the mouse-equivalent of the command palette for casual users.** Not every agent is a power user who will memorize keyboard shortcuts. Quick action buttons on hover (assign, change status, add tag, open) give mouse users the same speed without requiring keyboard mastery. The key: these must be discoverable without being visually noisy — icon-only buttons that reveal labels on hover, positioned consistently in the same spot on every row. The combination of keyboard-first command palette + discoverable hover actions covers all user proficiency levels.
+
+### How It Applies to Our CRM
+
+- Implement a global command palette triggered by Ctrl+K (Windows) / Cmd+K (Mac) from anywhere in the CRM. Fuse search and commands: one input, unified results grouped by type.
+- Show keyboard shortcuts inline on every command palette result. Track recently used commands per agent and surface them in the zero-query state.
+- Implement fuzzy search across all object types: tickets, customers, knowledge base articles, team members. Never require exact-match terminology.
+- Group search results by type with section headers and sufficient context to decide without opening (ticket: ID, customer, status, SLA; customer: name, company, open tickets).
+- Implement slash commands in the reply composer: `/priority:urgent`, `/assign:@name`, `/sla:2h`, `/close`. Parse inline and execute structured actions without mouse interaction.
+- Show recency signals in the zero-query palette: last 5 opened tickets, recently used actions, last visited views. Never show an empty state on palette open.
+- Add fuzzy matching with "Did you mean X?" suggestions when top result confidence is low. Track per-agent common misspellings.
+- Add discoverable hover quick-actions on ticket rows and customer cards (assign, status, tag, open) for non-keyboard-power users.
+- Expose command palette from a visible search bar in the header (not just a hidden shortcut) for discoverability — the icon invites exploration.
+- Support chained actions in the palette: "Acme Corp > assign to Sarah > set priority urgent" as a serial command pattern for power users.
+- Track command palette usage analytics per agent: which commands are used most, which searches go unresolved. Use this to prioritize feature development and improve result ranking.
