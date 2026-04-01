@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { deleteSubdomainAction } from '@/app/actions';
 import { rootDomain, protocol } from '@/lib/utils';
@@ -25,13 +25,19 @@ function DashboardHeader() {
 
   return (
     <div className="flex justify-between items-center mb-8">
-      <h1 className="text-3xl font-bold">Subdomain Management</h1>
+      <h1 className="text-3xl font-bold">Client Management</h1>
       <div className="flex items-center gap-4">
         <Link
           href={`${protocol}://${rootDomain}`}
           className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           {rootDomain}
+        </Link>
+        <Link href="/admin/clients/new">
+          <Button size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Create Client
+          </Button>
         </Link>
       </div>
     </div>

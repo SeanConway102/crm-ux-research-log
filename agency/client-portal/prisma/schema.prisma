@@ -19,7 +19,7 @@ model Tenant {
   type String @default("CLIENT")
 
   // Primary domain — their website
-  domain String @unique // "acme-corp.com"
+  domain String? @unique // "acme-corp.com" — optional if not yet known
 
   // Admin subdomain (optional — set when DNS is configured by client)
   subdomain String? @unique // "admin.acme-corp.com"

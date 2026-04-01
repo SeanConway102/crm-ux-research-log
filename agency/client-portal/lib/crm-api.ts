@@ -239,7 +239,7 @@ export async function getCrmTickets(
   status?: string
 ): Promise<CrmTicket[]> {
   try {
-    const filters: Record<string, string> = {}
+    const filters: Record<string, string> = { tenant_id: tenantId }
     const crmStatus = translateStatusFilter(status)
     if (crmStatus) filters.status = crmStatus
 

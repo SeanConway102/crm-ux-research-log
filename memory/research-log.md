@@ -243,3 +243,46 @@ _(add new entries above, keep most recent first)_
 
 **Reference:** NextAuth v5 `useSession().update()` — https://next-auth.js.org/getting-started/client#updatesession
 
+
+---
+
+## 2026-04-01 — Auth.js v5 JWT Refresh Bug + Tenant Provisioning Patterns
+
+**Domain:** [auth], [arch]
+
+### Auth.js v5 JWT Refresh Issue
+Source: Medium article (elham1378basir, Aug 2025)
+
+**The bug:** When using Auth.js v5 with Credentials provider + JWT strategy + token rotation, calling `getServerSession` (or `auth()`) after a token refresh STILL returns the OLD token, not the newly refreshed one. This creates a loop where the refresh keeps happening because the session never acknowledges the new tokens.
+
+**Root cause:** Auth.js caches the JWT at the Next.js server-side session level. When the JWT callback returns new tokens, the in-memory cache at the Next.js server level is not updated — only the cookie is updated. Subsequent calls to `auth()` hit the cached session before the cookie is re-read.
+
+**Relevance to our portal:** Our portal uses JWT strategy with `useSession().update()` for feature flag propagation. The same pattern could exhibit this bug. However, our use case is simpler — we don't do token rotation (we embed read-only claims in the JWT and refresh the session). The `FeatureFlagRefreshProvider` calls `update()` every 5 minutes, which is a forced refresh, and it seems to work based on testing.
+
+**Key insight:** When using `useSession().update()` to force a refresh, it triggers the JWT callback, which re-runs `getEnabledFeatures()`. The result is stored in a new JWT and the cookie is updated. On the NEXT client-side render, the updated cookie is read. So there IS a brief window where the session is stale (~0-5 minutes).
+
+**Mitigation:** The 5-minute refresh interval in `FeatureFlagRefreshProvider` is a good balance. The 1-hour JWT expiry is the hard ceiling.
+
+### Multi-Tenant SaaS Provisioning Patterns
+Source: KodekX Medium article (Sep 2025)
+
+**Typical provisioning workflow:**
+1. Tenant record creation (unique identifier, metadata)
+2. Resource provisioning (shared DB vs. isolated schema vs. separate DB — based on tier)
+3. Initial configuration (seeded data, RBAC permissions, custom subdomain)
+4. Infrastructure (Kubernetes namespace, VPC, serverless — for enterprise tiers)
+5. Onboarding (first admin account, welcome email, guided tour)
+
+**For our portal (CLIENT tier):** We create:
+- Prisma `Tenant` record (slug, name, domain, logo, accentColor)
+- Redis subdomain entry (emoji, timestamp)
+- `TenantFeatureFlag` records for all seeded flags (disabled)
+
+**What we DON'T automate (manual steps per SPEC.md):**
+- Sanity project creation (done manually in Sanity dashboard)
+- Stripe customer linking (done manually)
+- DNS configuration (done manually)
+
+This is fine for an agency serving a small number of clients. Full automation would require Sanity API + Stripe API integrations.
+
+**Idea:** A "Sanity Project Setup" flow that uses the Sanity CLI to create a project and auto-populate the dataset would dramatically reduce onboarding friction. Low priority for now but worth noting.

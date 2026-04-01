@@ -118,3 +118,44 @@
 - Add "Agent X is viewing" presence indicators on team queues. Implement soft locking after 60s of inactivity on a ticket.
 - Track queue context: how often do agents open the same ticket twice in a session? High repeat-open rates indicate context loss. Target < 10% repeat-open rate.
 - The inbox should feel like a professional power tool. Agents should feel in control, not overwhelmed. Reduce visual clutter ruthlessly — if it doesn't help triage, it doesn't belong in the queue view.
+
+---
+
+## Session 52 — 2026-04-01 20:41 UTC
+**Topic:** SLA & Urgency Visual Design for Ticketing CRMs
+
+### Key Insights
+
+1. **SLA urgency is the primary triage signal — it must be instantly readable at every interaction point.** Every surface the agent touches (queue row, ticket header, reply composer, dashboard widget) must display SLA urgency using a consistent color + text code. Red/amber/green is the universal standard: red = breached or <15min remaining, amber = 15-60min remaining, green = healthy. Inconsistency between surfaces (e.g., green in the queue but red in the ticket header) destroys trust in the indicator — agents stop relying on it.
+
+2. **Countdown timers belong in ticket headers — not in the queue.** Queue rows show color badges (red/amber/green) for fast scanning across 20+ tickets. The ticket header shows the actual countdown timer ("Breaches in 47m", "Breached 12m ago") because the agent has already committed to working that ticket. Sprinklr's pattern: a countdown timer appears in the ticket header once the breach-start threshold is reached (e.g., 75% of SLA time consumed), not from ticket creation. This prevents countdown noise on tickets that are well within SLA.
+
+3. **Progressive urgency escalation uses color + motion, not just color.** A ticket at 99% of SLA time is visually identical to one at 80% if both use the same amber. Progressive escalation patterns: at breach-start threshold (e.g., 75%), change from green to amber; at 90%, pulse the badge or add a subtle row highlight; at 100% (breach), turn red with a steady pulse or left-border stripe. Motion should communicate "this is getting worse" — not just "this is urgent." Intercom uses a pulsing red indicator for breached tickets.
+
+4. **SLA pause states must be visually explicit — agents need to know when the clock stops.** When a ticket is pending customer response, the SLA timer is paused but most UIs hide this. The correct pattern: show a "SLA paused" label with a pause icon next to the countdown timer, and keep the elapsed time visible so agents know the total wait time. Never let agents discover a pause state by accident — it should be announced the moment it activates. Without pause visibility, agents panic about breaches that aren't actually counting down.
+
+5. **Breach-start vs. breach threshold is a two-stage alert system, not one.** Stage 1 (breach-start, e.g., 75% of SLA time): amber badge appears, agent should prioritize but isn't in crisis. Stage 2 (100% / breach): red badge, countdown timer visible, escalation path triggered. Most CRMs conflate these into one alert, which causes either alert fatigue (if both trigger at 100%) or late awareness (if no early warning exists). Two clear stages give agents time to act before a breach rather than just after.
+
+6. **Different SLA policies must show their own urgency thresholds — don't normalize across all tickets.** A 1-hour enterprise SLA ticket and a 24-hour standard ticket both at 50 minutes look very different in urgency. The CRM should display: the specific SLA policy name (e.g., "Enterprise — 1hr Response"), the time remaining against that specific policy, and a visual indicator of where that ticket sits within its own SLA window. Agents triaging across mixed SLA tiers need this context to make correct prioritization decisions — a 22-minute-old enterprise ticket is more urgent than a 22-hour-old standard ticket.
+
+7. **Personal urgency thresholds let agents self-configure their alert sensitivity.** One agent may want a warning at 50% of SLA time; another wants it at 80%. Per-agent SLA alert customization (in settings: "warn me at X% of SLA") reduces alert fatigue and lets agents tune the system to their workflow. Manager-level alerts should use stricter thresholds (e.g., 60% warning, 80% escalation) because managers oversee more tickets. This two-tier threshold system — personal and managerial — is more actionable than a one-size system.
+
+8. **Overdue (breached) tickets need a distinct display format from time-remaining tickets.** A ticket breached 3 hours ago should show "+3h 12m overdue" (the plus sign signals overdue state) rather than a negative countdown. Never show "-3h 12m" — negative numbers in an urgency context are confusing and require cognitive parsing. The overdue label should also persist the original SLA target: "+3h 12m overdue (was: 1hr response)". This gives agents historical context without requiring them to look up the original SLA policy.
+
+9. **SLA indicators must be embedded in the reply composer — agents should never lose urgency context while typing.** When an agent opens a reply, the SLA countdown should remain visible at the top of the composer. This is where agents spend the most time per-ticket. If the SLA indicator disappears during composition, agents lose their sense of urgency and may draft a slow, thorough reply when a quick acknowledgment was all the customer needed. Sprinklr's SLA indicator persists in the composer toolbar — this is the correct pattern.
+
+10. **Escalation path indicators show the chain of custody when SLAs breach.** When a ticket breaches, which manager gets notified? Has it been escalated? An escalation badge on the queue row ("Escalated to Sarah") tells the current agent that someone else is now managing this ticket — reducing duplicate work and anxiety about unowned breaches. Without this, breached tickets create confusion about accountability: is this mine to fix, or did someone else pick it up?
+
+### How It Applies to Our CRM
+
+- Standardize the color system everywhere SLA appears: queue rows, ticket header, composer toolbar, dashboard widgets. Red = breached or <15min, Amber = 15-60min, Green = healthy. Document it and enforce it — inconsistency is worse than any single imperfect choice.
+- Implement two-stage SLA alerts: breach-start at ~75% of SLA window (amber, warning) and breach at 100% (red, countdown timer visible). Don't conflate them.
+- Show countdown timers in ticket headers only (not queue rows). Queue rows get color badges. Composer gets a persistent SLA badge in the toolbar.
+- Add explicit "SLA paused" state with a pause icon and visible elapsed time whenever the SLA clock isn't running. Never hide pause states.
+- Display per-ticket SLA policy name alongside the countdown. Agents working mixed queues need to know which SLA tier applies to each ticket.
+- Add per-agent SLA warning threshold settings ("warn me at X% of SLA"). Manager settings use stricter defaults (60%/80%).
+- Use "+3h overdue" format (not "-3h") for breached tickets. Always show the original SLA target alongside the overdue duration.
+- Implement escalation chain indicators on breached tickets: "Escalated to [Manager Name]" badge on queue rows. Eliminates confusion about ticket ownership after breach.
+- Track SLA-related metrics: what % of tickets breach at each stage (warning vs. breach)? This tells you whether your warning threshold is too early (noise) or too late (missed breaches).
+- Test the SLA urgency system with agents under simulated time pressure. If agents can't instantly tell which of their 5 open tickets to work first, the urgency system needs refinement.
+- Consider SLA trend indicators: "Improving" (ticket going toward resolution with time to spare) vs. "At Risk" (ticket consuming SLA faster than expected) — helps agents anticipate problems before they breach.
