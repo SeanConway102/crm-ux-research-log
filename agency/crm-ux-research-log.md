@@ -116,3 +116,44 @@
 - Document known assistive technology compatibility (JAWS, NVDA, Dragon, ZoomText). Provide an "accessibility mode" toggle that simplifies UI and avoids conflicting keyboard shortcuts.
 - Add automated accessibility testing to CI/CD pipeline using axe-core or similar. Gate commits on contrast and semantic HTML checks at minimum.
 - Schedule quarterly accessibility user testing sessions with agents who use assistive technology — not just automated scans.
+
+---
+
+## Session 34 — 2026-04-01 03:30 UTC
+**Topic:** Ticket Queue List View UX — Filtering, Sorting, and Bulk Operations for High-Volume Agent Workflows
+
+### Key Insights
+
+1. **The ticket queue is a data table, not a design canvas — every pixel serves a function.** Agents handling 80+ tickets daily need to scan, compare, and act on rows in milliseconds. The queue must answer: "Which ticket do I pick up next?" instantly. Every decoration, every misaligned column, every ambiguous status badge costs cognitive load. Left-align text columns, right-align numeric/date columns, and match column header alignment to the data it contains. Center-alignment on any ticket data is a scanability killer — it makes the eye jump unnecessarily. The queue is an action interface, not a report.
+
+2. **Filters are a discoverability system — they teach agents what data exists.** When an agent opens a filter panel and sees "Channel," "SLA Status," "Team," "Priority," and "Tags," they're learning the CRM's data model without reading documentation. All data visible in the queue row must be filterable — if a ticket shows "Source: Email," agents expect to filter by source. Status filters should be ordered by urgency (New → Open → Pending → Resolved), not alphabetically. Date filters need presets ("Today," "Last 7 days," "SLA breach in 24h") as well as custom range. Filters that only sort alphabetically miss the point of a ticketing CRM.
+
+3. **Saved views are non-negotiable for power agents — they are the queue's killer feature.** An agent handling 5 topic areas needs 5 saved views, not one overloaded queue. Saved views must include: filter state, sort order, column visibility/order, and density (compact/comfortable/expanded). Agents should be able to switch views with a single click or a number key (1-5). View switching should preserve scroll position when returning to a view. A "My Tickets" view, an "Unassigned" view, and an "SLA Breach" view cover 80% of agent workflows. Named views also serve as team communication — "check the Billing queue" means something concrete.
+
+4. **Bulk selection needs clear eligibility communication — never silently skip items.** The #1 bulk action UX failure: agent selects 20 tickets, clicks "Assign to Team," and only 14 update with no explanation for the 6 failures. When an action can't apply to a ticket (wrong status, already assigned, locked), gray the row, add a tooltip ("Already resolved — skipped"), and show in the result summary: "14 assigned, 6 skipped (reason shown)." Disable bulk action buttons with tooltip explanation rather than letting users click and get silent failures. This is trust infrastructure.
+
+5. **Selection state must survive pagination — range select across pages is expected.** If an agent selects 3 tickets on page 1, navigates to page 2, and Shift+clicks a fourth ticket, the CRM must understand this as a range selection across pages. Selecting 50 tickets that span 3 pages should not require 3 separate bulk operations. Always show a persistent selection count ("47 selected") in a sticky banner. Checkboxes must be always visible (not hover-reveal) with 24×24px minimum target size. Hover-reveal checkboxes train agents to hover before selecting — a 200ms tax on every row.
+
+6. **Hover-reveal actions on rows are valuable but must complement, not replace, always-visible actions.** Quick actions on hover (assign, change status, add tag) are useful for mouse users — but the bulk action toolbar, sort controls, and primary actions must always be visible without interaction. For keyboard-heavy agents, expose shortcuts: `J/K` to navigate rows, `X` to toggle select, `Enter` to open ticket, `U` for "unread" toggle, `A` for assign, `S` for status. Gmail and Linear are the reference implementations. When shortcuts exist, expose them in a shortcut legend (`?` key) — discoverability matters for power features.
+
+7. **SLA urgency must be visible before agents open any ticket — don't make them click to find a ticking clock.** The queue row should communicate SLA urgency at a glance: color-coded left border (green/amber/red based on time remaining), an explicit "SLA in 23m" or "SLA breach" badge, and sort by SLA urgency by default. Agents scanning 50 rows should know which tickets carry SLA risk without opening a single one. A row highlighted in red because it's 5 minutes from breach that's buried at the bottom of the queue is a UX failure that directly causes SLA penalties.
+
+8. **The row must communicate "what I need to know right now" — subject line alone is insufficient.** A ticket row should show, in priority order: SLA urgency (visual + text), unread indicator (bold), customer name (especially for repeat customers), subject (truncated at 2 lines with ellipsis and tooltip), last action timestamp, and assignee avatar. A preview of the most recent message (first 80 chars) is the highest-value addition for ticket queues — it answers "is this a new issue or a back-and-forth?" without opening the ticket. Subject-only rows force every ticket open just to assess urgency.
+
+9. **Filters should apply immediately for small queues; "Apply" buttons are acceptable for complex enterprise filters.** If the queue reloads in under 200ms, apply filters on change (direct feedback feels responsive and snappy). If filter changes require slow API calls, use a "Apply" button and show pending filter state as chips. In both cases, show active filter chips above the queue so agents always know what filtering is in effect. A queue that silently applies filters with no visual indicator of current filter state creates the "where did my tickets go?" panic. Clear filter state + "Clear all" button is always required.
+
+10. **Density control (compact/comfortable/expanded) directly affects agent throughput — make it a first-class control.** Some agents prefer compact rows (see 40 tickets at once for rapid triage); others prefer expanded rows (see customer name + subject + preview + SLA in one row without expanding). This is not a accessibility checkbox toggle — it's a legitimate workflow preference. Put the density toggle in the queue toolbar, always visible, with clear labels. Virtual scrolling (render only visible rows + buffer) is the technical enabler for showing 200+ tickets without performance degradation — implement it before building a "load 500 tickets" queue.
+
+### How It Applies to Our CRM
+
+- Audit queue column alignment: text left, numbers/dates right. No center-aligned columns anywhere in the ticket queue.
+- Implement saved views: at minimum "My Tickets," "Unassigned," and "SLA Breach." Add number-key shortcuts (1-3) for fast view switching. Persist view state per agent.
+- Add always-visible checkbox column (24×24px targets). Implement Shift+click range selection that survives pagination. Show persistent "X selected" banner.
+- For bulk actions: gray ineligible rows with tooltip explaining why. On execution, show explicit result: "X succeeded, Y skipped (reason)."
+- Implement SLA urgency column: color-coded left border + time remaining text. Default sort = SLA urgency descending. Never hide SLA status behind a ticket open.
+- Add keyboard navigation: J/K navigate, X select, Enter open, A assign, S status, ? shortcut legend. These are power-user multipliers.
+- Queue row must show (in priority): SLA urgency → unread bold → customer name → subject (2-line truncate + tooltip) → last action time → assignee.
+- Add optional message preview column (first 80 chars of latest message) — toggleable in saved views, off by default.
+- Filter apply behavior: direct-apply if <200ms response; "Apply" button + pending chips if slower. Always show active filter chips + "Clear all."
+- Add density toggle (compact/comfortable/expanded) to queue toolbar. Implement virtual scrolling to handle 200+ row queues without DOM bloat.
+- Add a "snooze queue" or "defer" quick action on hover: push a ticket to the bottom of current view or to a specific future time. This is a top-requested agent feature for managing interruptions.
