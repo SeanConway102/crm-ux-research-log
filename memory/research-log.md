@@ -1,5 +1,79 @@
 # Research Log
 
+## 2026-04-01 — Ticket Queue UX: Undo for Stage Moves
+
+**Domain:** [ux]
+
+**Finding:** CRM tickets queue has excellent keyboard navigation (j/k), drag-and-drop, bulk actions, and optimistic updates — but **no undo for stage moves**. Agents performing fast triage (drag 5 tickets to "Done") have no recovery path if they move the wrong batch. The research is unambiguous: "Undo is the single most empowering feature for high-volume agent workflows" (UX Research, Session 32).
+
+**Why optimistic updates without undo create anxiety:** The current `handleDragEnd` already does optimistic updates — the UI moves the ticket instantly while the API call fires. This is great for perceived speed, but creates a window where the agent believes the move is done when the server hasn't confirmed it yet. If the API call fails silently (network timeout with no error shown), the ticket is in an inconsistent state between server and client. Undo resolves this by giving the agent a recovery path AND by providing clear feedback about what happened.
+
+**Implementation approach:**
+- Track `previousStageId` for each ticket before an optimistic move
+- On drag end, show a toast with "Ticket moved to [Stage] — [Undo]" (5-second window)
+- If user clicks Undo within 5s, call `ticketsApi.moveStage(ticketId, previousStageId)` and revert UI
+- Clear the undo timer if the ticket is moved again before the window expires
+- For bulk moves, skip per-ticket undo (too complex for v1) — require confirmation instead
+
+**Reference patterns:** Slack "Undo send", Gmail "Undo", Linear "Undo history"
+
+---
+
+## 2026-04-01 — Next.js App Router `global-error.tsx` Gap
+
+**Domain:** [arch] [dx]
+
+**Finding:** The portal has per-segment `error.tsx` files (portal error, admin error, billing error, support error, etc.) but is **missing `app/global-error.tsx`**.
+
+**Why this matters:** In Next.js App Router, `error.tsx` is a React error boundary scoped to a route segment (layout or page). Errors that escape all segment boundaries — or occur in the **root layout** itself — need `global-error.tsx`.
+
+The `app/layout.tsx` is a Server Component. If an error is thrown during its rendering (e.g., a failing `auth()` call, a DB error in `getEnabledFeatures()`, or a thrown redirect), and there is no `global-error.tsx`, Next.js will render a **blank page** with no error UI.
+
+**The specific risk in the portal:** The portal layout (`app/(portal)/layout.tsx`) calls `auth()` and `getEnabledFeatures()` directly. If these throw (network failure, DB timeout), the error propagates up to `app/layout.tsx`, and without `global-error.tsx` the user gets a white screen.
+
+**Next.js docs pattern for `global-error.tsx`:**
+```tsx
+'use client' // Must be a client component
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </body>
+    </html>
+  )
+}
+```
+
+Note: `global-error.tsx` replaces the root HTML document (`<html>`, `<body>`) — so it must include those tags.
+
+**Decision:** Will add `app/global-error.tsx` + `app/(portal)/global-error.tsx` as a Phase 6 polish item. Also need `app/api/global-error.tsx` for API route errors.
+
+---
+
+## 2026-04-01 — Partial Prerendering (PPR) in Next.js 15
+
+**Domain:** [perf]
+
+**Finding:** PPR is still **experimental** in Next.js 15 and explicitly marked "not recommended for production." It requires `experimental.ppr: 'incremental'` in next.config.ts and opt-in per route via `export const experimental_ppr = true`.
+
+**How it works:** Next.js prerenders a static "shell" at build time and leaves Suspense-wrapped "holes" for dynamic content (auth, cookies, searchParams, uncached fetch). At request time, the static shell streams down immediately while dynamic holes are resolved in parallel — all in one HTTP request.
+
+**Relevance to portal:** Our portal is heavily auth-dependent and per-tenant. Most routes are already dynamic (require auth check via `auth()`). PPR would mainly help the public-facing `/` or `/s/[subdomain]` pages — but those don't exist yet and may not need PPR for a while.
+
+**Decision:** Not worth investing in PPR right now (experimental, adds complexity, minimal benefit for authenticated per-tenant portal). Revisit when it stabilizes in a future Next.js release.
+
+---
+
+## Previous Entries
+
 ## 2026-04-01 — Feature Flag Stale JWT Problem
 
 **Domain:** [auth] [arch]
