@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getTenantBySlug } from "@/lib/tenant"
-import { getCrmTickets } from "@/lib/crm-api"
+import { getCrmTickets, getCrmSubscription, getCrmSite } from "@/lib/crm-api"
+import { getEnabledFeatures } from "@/lib/features"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Monitor, LifeBuoy, CreditCard, ArrowRight } from "lucide-react"
+import type { Metadata } from "next"
 
 function PriorityBadge({ priority }: { priority: string }) {
   const colors: Record<string, string> = {
@@ -21,22 +23,97 @@ function PriorityBadge({ priority }: { priority: string }) {
   )
 }
 
+function PlanBadge({ planName, status }: { planName: string; status: string }) {
+  const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
+    active: { label: "Active", bg: "bg-green-100", text: "text-green-700" },
+    trialing: { label: "Trial", bg: "bg-blue-100", text: "text-blue-700" },
+    past_due: { label: "Past Due", bg: "bg-orange-100", text: "text-orange-700" },
+    canceled: { label: "Canceled", bg: "bg-red-100", text: "text-red-700" },
+    incomplete: { label: "Setup Required", bg: "bg-yellow-100", text: "text-yellow-700" },
+    unpaid: { label: "Unpaid", bg: "bg-red-100", text: "text-red-700" },
+  }
+  const config = statusConfig[status] ?? { label: status, bg: "bg-gray-100", text: "text-gray-700" }
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-2xl font-bold">{planName}</span>
+      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${config.bg} ${config.text}`}>
+        {config.label}
+      </span>
+    </div>
+  )
+}
+
+function SiteStatusIndicator({ status }: { status: string | null }) {
+  const configs: Record<string, { label: string; dot: string; text: string }> = {
+    active: { label: "Active", dot: "bg-green-500", text: "text-green-600" },
+    inactive: { label: "Inactive", dot: "bg-yellow-500", text: "text-yellow-600" },
+    suspended: { label: "Suspended", dot: "bg-red-500", text: "text-red-600" },
+    pending: { label: "Pending", dot: "bg-orange-500", text: "text-orange-600" },
+  }
+  const config = status ? configs[status] : null
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-2xl font-bold">{config?.label ?? "Unknown"}</span>
+      <span className={`h-2 w-2 rounded-full ${config?.dot ?? "bg-gray-400"}`} />
+    </div>
+  )
+}
+
+// ─── Feature-gated quick actions ─────────────────────────────────────────────
+
+type QuickAction = {
+  key: string
+  label: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  featureKey?: string
+}
+
+const ALL_QUICK_ACTIONS: QuickAction[] = [
+  { key: "studio", label: "Edit website content", href: "/studio", icon: Monitor, featureKey: "studio" },
+  { key: "support", label: "File a support ticket", href: "/support/new", icon: LifeBuoy, featureKey: "support" },
+  { key: "billing", label: "View billing & invoices", href: "/billing", icon: CreditCard, featureKey: "billing" },
+]
+
 export default async function DashboardPage() {
   const session = await auth()
   if (!session?.user?.tenantId) {
     redirect("/login")
   }
 
-  const tenant = await getTenantBySlug(session.user.tenantId)
-  const tickets = await getCrmTickets(session.user.tenantId, "open")
+  const tenantId = session.user.tenantId
+  const enabledFeatures = await getEnabledFeatures(tenantId)
+
+  const tenant = await getTenantBySlug(tenantId)
+  const tickets = await getCrmTickets(tenantId, "open")
+
+  // Fetch subscription and site status from CRM (gracefully degrade if unavailable)
+  const [subscription, site] = await Promise.all([
+    getCrmSubscription(tenantId),
+    tenant?.crmSiteId ? getCrmSite(tenant.crmSiteId) : null,
+  ])
+
+  // Time-based greeting
+  const hourUtc = new Date().getUTCHours()
+  const greeting =
+    hourUtc >= 5 && hourUtc < 12 ? "Good morning" :
+    hourUtc >= 12 && hourUtc < 17 ? "Good afternoon" :
+    hourUtc >= 17 && hourUtc < 21 ? "Good evening" :
+    "Good night"
 
   const firstName = session.user.name?.split(" ")[0] ?? "there"
 
+  // Feature-gated quick actions
+  const visibleQuickActions = ALL_QUICK_ACTIONS.filter((action) => {
+    if (!action.featureKey) return true
+    return enabledFeatures[action.featureKey] === true
+  })
+
   return (
     <div className="space-y-6">
-      {/* Welcome */}
+      {/* Welcome with time-based greeting */}
       <div>
-        <h1 className="text-2xl font-semibold">Good morning, {firstName}</h1>
+        <h1 className="text-2xl font-semibold">{greeting}, {firstName}</h1>
         <p className="text-muted-foreground mt-1">
           Here&apos;s what&apos;s happening with {tenant?.name ?? "your portal"} today.
         </p>
@@ -63,11 +140,10 @@ export default async function DashboardPage() {
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">Active</span>
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">All systems operational</p>
+            <SiteStatusIndicator status={site?.status ?? null} />
+            <p className="text-xs text-muted-foreground mt-1">
+              {site?.url ?? "No site linked"}
+            </p>
           </CardContent>
         </Card>
 
@@ -76,9 +152,22 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Plan</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Pro</div>
-            <p className="text-xs text-muted-foreground mt-1">Next billing: Apr 15, 2026</p>
+          <CardContent className="space-y-1">
+            {subscription ? (
+              <>
+                <PlanBadge planName={subscription.plan_name} status={subscription.status} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {subscription.status === "canceled"
+                    ? "Canceled"
+                    : `Next billing: ${new Date(subscription.current_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-bold text-muted-foreground">No plan</span>
+                <p className="text-xs text-muted-foreground mt-1">Contact sales to get started</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -89,15 +178,21 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Recent Tickets</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/support">
-                  View all <ArrowRight className="ml-1 h-3 w-3" />
-                </a>
-              </Button>
+              {enabledFeatures.support && (
+                <Button variant="ghost" size="sm" asChild>
+                  <a href="/support">
+                    View all <ArrowRight className="ml-1 h-3 w-3" />
+                  </a>
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            {tickets.length === 0 ? (
+            {!enabledFeatures.support ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                Support tickets are not available on your current plan.
+              </p>
+            ) : tickets.length === 0 ? (
               <p className="text-sm text-muted-foreground py-6 text-center">
                 No open tickets.{" "}
                 <a href="/support/new" className="text-primary underline">
@@ -123,27 +218,29 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick actions */}
+        {/* Quick actions — feature-flag gated */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/studio">
-                <Monitor className="mr-2 h-4 w-4" /> Edit website content
-              </a>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/support/new">
-                <LifeBuoy className="mr-2 h-4 w-4" /> File a support ticket
-              </a>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <a href="/billing">
-                <CreditCard className="mr-2 h-4 w-4" /> View billing & invoices
-              </a>
-            </Button>
+            {visibleQuickActions.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No actions available on your current plan.
+              </p>
+            ) : (
+              visibleQuickActions.map((action) => {
+                const Icon = action.icon
+                return (
+                  <Button key={action.key} variant="outline" className="w-full justify-start" asChild>
+                    <a href={action.href}>
+                      <Icon className="mr-2 h-4 w-4" />
+                      {action.label}
+                    </a>
+                  </Button>
+                )
+              })
+            )}
           </CardContent>
         </Card>
       </div>
