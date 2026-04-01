@@ -198,3 +198,46 @@
 - Expose command palette from a visible search bar in the header (not just a hidden shortcut) for discoverability — the icon invites exploration.
 - Support chained actions in the palette: "Acme Corp > assign to Sarah > set priority urgent" as a serial command pattern for power users.
 - Track command palette usage analytics per agent: which commands are used most, which searches go unresolved. Use this to prioritize feature development and improve result ranking.
+
+---
+
+## Session 37 — 2026-04-01 05:39 UTC
+**Topic:** Ticket Detail View & Reply Composer UX for Ticketing CRMs
+
+### Key Insights
+
+1. **The reply composer must be docked at the bottom of the thread — not a modal or a slide-over.** Agents need simultaneous access to the full conversation history and the composer. A modal composer that hides the thread forces constant context-switching: open ticket → read thread → close modal → write reply → open modal to send. The correct pattern is a persistent split-pane: thread scrolls in the upper area, composer is always visible docked at the bottom. Intercom and Zendesk both use this pattern. Slide-over composers that partially obscure the thread are a close second but lose real estate on both panes.
+
+2. **Thread ordering must be visually clear: customer vs. agent messages need instant differentiation.** Each message row should show: sender label (Agent John / Customer), timestamp, delivery status (sent, delivered, read), and channel indicator (Email, Chat, Phone note). Agent and customer messages should use different background colors or alignment (agent right / customer left, like a chat UI) or clearly separated blocks in email-style threads. Ambiguity about who said what is a trust-breaking bug — agents have accidentally sent internal notes to customers because thread styling was confusing.
+
+3. **Internal notes vs. customer replies require zero visual ambiguity — color coding alone is insufficient.** Internal notes are a high-risk surface: an agent writes a note thinking it's private, it renders like a customer message, and the customer sees it. Internal notes must: use a distinct background color (amber/yellow), have an explicit "Internal Note" label, appear in a visually separate section (above/below or in a separate tab), and never share bubble styling with customer-facing messages. Tabbed interfaces (Customer View / Internal View) are the safest approach for teams with strict note-vs-reply workflows.
+
+4. **Canned responses must be searchable and inline-insertable, not buried in a folder hierarchy.** Agents handling 80 tickets a day cannot navigate nested folders for a billing dispute template. Canned responses must be: searchable by keyword as the agent types (autocomplete), flat-categorized (Billing, Technical, Shipping, General), show a live preview on highlight, and insert at cursor without replacing what the agent already typed. Gmail's canned responses and Intercom's template system are the references. Search must match on both title and content.
+
+5. **Draft auto-save is non-negotiable — every keystroke preserved without agent action.** An agent whose browser crashes mid-composed reply must find an intact draft on return. Auto-save every 3-5 seconds to the backend (not just localStorage, which clears on device change). Show a subtle "Draft saved" indicator — never a spinner. Drafts must sync across devices for agents who switch desktop and laptop. Never lose a half-written reply — it is a data integrity failure.
+
+6. **Reply / Reply All / Forward / Internal Note modes must be explicit and hard to confuse.** These four modes have different audiences and consequences. Mixing them up — forwarding a thread with internal notes to a customer, or Reply All when BCC was intended — causes real embarrassment. Each mode should be a clearly labeled, distinct button or tab above the composer, with a confirmation step if switching mid-composer with content ("You have an internal note drafted — switching to Reply will discard it").
+
+7. **Ctrl+Enter / Cmd+Enter must send the reply, not just scroll or be ignored.** The primary power-user flow: open ticket → read → type reply → Ctrl+Enter to send → next ticket. If the shortcut does not work from anywhere in the composer (including when toolbar buttons have focus), the agent's muscle memory breaks. Ctrl+S should save draft. Shortcut hints should be visible in the composer toolbar. This is table stakes for any agent who handles 20+ tickets per day.
+
+8. **SLA and customer context must be visible above the thread — no separate panel or tab click required.** When an agent opens a ticket to reply, they need at a glance: SLA time remaining, customer name and tier, prior ticket count for this customer, assigned team, and priority. This belongs in a compact 2-3 line header strip above the thread — not behind a side panel click, not on a separate tab. Agents should have critical context before they start typing, not after they realize they need it.
+
+9. **Quote/cite selection lets agents reference specific customer text without retyping.** An agent should be able to select text in a customer's message and click "Quote" to insert it with a `>` prefix at the cursor in the composer. This is essential for phone-based ticket summaries ("You mentioned you tried resetting your password but did not receive the email...") and valuable in email/chat for confirming understanding. Without it, agents either re-type customer language manually (slow) or send replies that do not reference the customer's specific concern.
+
+10. **Attachments must be drag-and-drop with inline previews — not a focus-stealing file picker.** Agents handling technical support tickets regularly receive screenshots, log files, and PDFs. The composer should accept: drag-and-drop anywhere in the composer area, paste from clipboard (Ctrl+V with an image), a fallback "+ attachment" button, and inline thumbnail previews before sending. For non-image files, show file type icon and size. Navigating a file picker that steals focus breaks the compose flow — this is a common complaint in legacy CRM ticket composers.
+
+### How It Applies to Our CRM
+
+- Dock the reply composer at the bottom of the ticket thread as a fixed split-pane. Never use a modal or full-screen composer that hides the thread. Agents scroll the thread while composing without losing either context.
+- Distinguish agent vs. customer messages visually: chat-style alignment (agent right / customer left) or clearly separated blocks with different background colors. Show sender label, timestamp, and delivery status on every message. Never allow ambiguity about message ownership.
+- Isolate internal notes from customer-visible thread: use a tabbed interface (Customer / Internal) or a visually distinct amber section with explicit "Internal Note" label. Never use the same bubble style as customer messages.
+- Implement searchable canned responses: type-to-search across title and content, flat category list, inline preview on hover/select, insert at cursor. Add Ctrl+Shift+C shortcut to open the canned response picker from anywhere in the composer.
+- Auto-save drafts every 3-5 seconds to the server. Show "Draft saved" status (not a spinner). Drafts must survive browser close, crash, and device switch per agent. Track draft abandonment rate per agent as a composer UX health metric.
+- Expose four distinct action modes as labeled tabs/buttons: Reply, Reply All, Forward, Internal Note. Add a guard dialog when switching from Internal Note to Reply with unsaved note content.
+- Make Ctrl+Enter / Cmd+Enter send from anywhere in the composer (including toolbar). Ctrl+S saves draft. Show shortcut hints inline in the composer toolbar.
+- Add a compact context strip above the ticket thread: SLA time remaining (color-coded), customer name + tier + prior ticket count, assigned team, priority. Always visible — no click required.
+- Implement text selection + "Quote" action on customer messages: selected text inserts as `> quoted text` at cursor in the composer. Supports efficient acknowledgment of specific customer language.
+- Support drag-and-drop file attachment and clipboard image paste directly into the composer. Show inline thumbnails before sending. Include file type icon and size for non-image attachments.
+- Add "Agent is composing..." presence indicator visible to other agents viewing the same ticket — prevents duplicate work on the same issue.
+- Add Ctrl+Shift+E shortcut to toggle between Reply and Internal Note mode without losing draft content.
+- Implement a "reply in channel" toggle for multichannel tickets: show the channel context (Email subject line, Chat session ID) inline above the composer so agents know what channel they are responding in.
