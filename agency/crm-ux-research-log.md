@@ -201,3 +201,46 @@
 - Implement soft message editing (5-min window, "(edited)" label) and soft delete ("[Message deleted]" placeholder visible in thread, true delete in audit log only).
 - Track "accidental note sent to customer" incidents — this is a data breach indicator. Target zero. Any occurrence means the composer UX needs hardening.
 - Track average thread length and ticket close rate correlation. Do shorter threads correlate with faster resolution? This informs whether thread collapsing is helping or if agents need more context tools.
+
+---
+
+## Session 54 — 2026-04-01 22:34 UTC
+**Topic:** Agent Performance Dashboards & Metrics UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Agent dashboards must answer one question at a glance: "Do I need to act right now?"** The primary purpose of an agent-facing performance dashboard is not motivation or reflection — it's triage. Agents checking their dashboard between tickets need to know immediately: how many tickets are in my queue, how many are at SLA risk, and is my personal CSAT trend healthy. Everything else (weekly trends, distribution charts) belongs in a manager report, not an agent's in-workflow dashboard. Intercom and Zendesk both reserve the agent dashboard's top section for exception indicators (SLA breaches, pending queues) with secondary section for personal stats.
+
+2. **Real-time metrics belong in the queue, not on a separate dashboard tab.** Agents shouldn't have to navigate away from their ticket queue to see their performance state. Key real-time metrics (open ticket count, SLA at-risk count, CSAT this week) should live as persistent widgets or status bars within the queue view itself. A separate "My Dashboard" tab fractures attention — agents lose their queue context to check a number, then return disoriented. Dashboard information should surface in the agent's workflow, not demand the agent go to it.
+
+3. **Manager dashboards must separate team-level metrics from individual agent metrics — and never expose individual agent scores to the team.** A manager overseeing 8 agents needs: team SLA compliance (%), total queue depth, CSAT trend, and avg resolution time. Individual agent performance belongs in a drill-down view, not the team-level overview. Critically: leaderboard-style comparisons between agents ("Sarah: 94% | John: 61%") create unhealthy competition and penalize agents handling difficult customers. If individual scores are visible, they should be visible only to the manager and that agent — not to peers.
+
+4. **Velocity metrics must be presented as context, not judgment — frame around improvement, not ranking.** Showing an agent "Your avg resolution time: 18 min" is neutral data. Showing "You resolved 23 tickets today vs. team avg of 19" is comparative framing that can feel like surveillance. The right pattern: show personal trend over time ("Your avg resolution: 22 min this week, down from 28 min last week — improving") and let managers see peer context in a private manager view only. Metrics that acknowledge context (ticket complexity, channel type) avoid apples-to-oranges comparisons that demotivate agents handling harder cases.
+
+5. **Workload balance visualizations help managers redistribute tickets before queues back up.** A heatmap or bar chart showing ticket distribution across agents lets managers spot imbalances at a glance: "Sarah has 12 open tickets, everyone else has 4-6." Color-coded agent workload in the team queue view (overdue badge on Sarah's avatar) signals who needs relief. The goal is proactive redistribution — managers should be able to reassign 3-4 tickets from an overloaded agent to an underloaded one in under 30 seconds without opening individual tickets.
+
+6. **Gamification mechanics must be opt-in and non-comparative — coercive leaderboards backfire.** Points, badges, and streaks can motivate routine agents but create anxiety for high performers who feel pressured to maintain rankings. The correct gamification UX: personal goals and streaks ("Close 5 tickets today to complete your streak") rather than public leaderboards; achievement badges for milestones (first CSAT 5-star, 100 tickets resolved) that don't rank agents against each other; and team-level goals ("Team resolved 500 tickets this week — 50 to go!") that foster collaboration, not competition. Any gamification that makes an agent feel surveilled or judged will drive avoidance behaviors.
+
+7. **Historical trend lines belong in reports, not real-time dashboards — keep real-time dashboards exception-focused.** A line chart showing "your resolution time over the past 30 days" belongs in a weekly report a manager sends, not in the agent's active workspace. Real-time dashboard cards should show: today's count (open, resolved, at-risk), this week's trend direction (↑↓), and comparison to personal baseline. If an agent wants to see historical trends, provide a "Reports" section — don't pollute the operational dashboard with trending data that requires interpretation rather than action.
+
+8. **CSAT (Customer Satisfaction) display must be attributed correctly — don't credit the team for an individual agent's work.** When a customer rates a ticket 5 stars, the CSAT credit should go to the primary assignee, not the team. If agents see "Team CSAT: 4.2" but know they personally earned 5-star ratings on their tickets, the team metric feels meaningless and unfair. Per-agent CSAT with the ability to drill into which tickets earned which rating gives agents actionable feedback: "My last 3 tickets rated 3 stars — what went wrong?" Without per-ticket CSAT visibility, agents can't learn from ratings.
+
+9. **The "ticket backlog" metric is the single most important team-level indicator for managers.** Queue depth (total open tickets) + backlog age (how long the oldest unassigned ticket has been waiting) tells a manager more about team health than any other single metric. A queue of 40 tickets that's actively being worked is healthier than a queue of 25 where 8 have been sitting unassigned for 3 days. Display both: "Queue: 38 tickets | Oldest unassigned: 2h 14m." This metric should appear at the top of every manager dashboard view, not buried in a report.
+
+10. **Accessibility in dashboard charts: colorblind-safe palettes and pattern alternatives are non-negotiable.** Red/green color coding is the most common chart convention and the most common accessibility failure. Use red/amber/green with secondary shape or pattern cues (e.g., dashed border for amber, solid for red) so colorblind managers and agents can still read urgency. Chart labels should always appear directly on the data (not rely solely on legend colors). This is an ADA compliance consideration for internal tools used by diverse teams.
+
+### How It Applies to Our CRM
+
+- Keep agent-facing dashboards to 3-4 exception-focused metrics: open count, SLA at-risk count, CSAT trend, today's resolved count. Put these widgets in the queue view header, not a separate tab.
+- Build manager dashboards with clear hierarchy: team overview (SLA %, queue depth, oldest unassigned) at top, individual agent drill-down below. Never show individual agent scores to other agents.
+- Present velocity and CSAT metrics as personal trends ("up from last week") not peer comparisons. Private per-agent view of their own stats with trend direction.
+- Add workload visualization to team queue: color-coded agent avatars showing overdue ticket count. Allow managers to select and bulk-reassign tickets from overloaded agents in one view.
+- Make gamification opt-in: personal streaks and milestones only. Team goals acceptable. Never implement public agent-vs-agent leaderboards.
+- Implement backlog age metric: "Queue: N tickets | Oldest unassigned: Xh Ym" — show this prominently on every manager view.
+- Credit CSAT to the primary assignee, not the team. Allow agents to see per-ticket ratings (or at minimum, which recent tickets received low scores).
+- Use colorblind-safe palette for all SLA/status indicators: secondary shape cues (icons, borders, patterns) alongside color.
+- All dashboard charts must have direct data labels — never rely on legend colors alone. This is both an accessibility and a usability best practice.
+- Provide a separate "Reports" section for historical trends and deep analytics. Real-time operational dashboard stays focused on exceptions and today's state.
+- Track dashboard usage: which metrics do agents and managers actually click? If CSAT trend is never clicked, it's clutter — remove it from the primary view.
+- Add "My improvement" summary card on agent dashboards: shows week-over-week trend for resolution time, CSAT, and tickets resolved. Makes individual progress visible and motivating without peer comparison.
+
