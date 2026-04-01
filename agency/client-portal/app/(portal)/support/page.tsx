@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getCrmTickets } from "@/lib/crm-api"
 import { isFeatureEnabled } from "@/lib/features"
+import { truncatePlainText } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -142,7 +143,7 @@ export default async function SupportPage({
                     <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                     {ticket.description && (
                       <span className="truncate max-w-xs">
-                        {ticket.description.slice(0, 60)}
+                        {truncatePlainText(ticket.description, 60)}
                       </span>
                     )}
                   </div>

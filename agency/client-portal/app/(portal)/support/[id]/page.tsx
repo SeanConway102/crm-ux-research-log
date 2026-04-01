@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { getCrmTicket, getCrmTicketComments, type CrmComment } from "@/lib/crm-api"
 import { isFeatureEnabled } from "@/lib/features"
+import { stripHtml } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -116,7 +117,7 @@ export default async function TicketDetailPage({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-            {ticket.description ?? "No description provided."}
+            {ticket.description ? stripHtml(ticket.description) : "No description provided."}
           </p>
           {ticket.assignee_id && (
             <div className="flex items-center gap-2 mt-4 pt-4 border-t text-xs text-muted-foreground">

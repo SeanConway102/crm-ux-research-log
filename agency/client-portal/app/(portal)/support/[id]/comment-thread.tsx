@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { Send, RefreshCw } from "lucide-react"
+import { stripHtml } from "@/lib/utils"
 import type { CrmComment } from "@/lib/crm-api"
 
 function formatCommentDate(dateStr: string) {
@@ -210,7 +211,7 @@ export function CommentThread({
                   </span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap leading-relaxed text-muted-foreground">
-                  {comment.body}
+                  {stripHtml(comment.body)}
                 </p>
 
                 {/* Failed comment actions */}
