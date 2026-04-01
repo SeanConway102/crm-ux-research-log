@@ -409,3 +409,46 @@
 - Support per-agent SLA targets (not just team averages): show individual agent's SLA compliance vs. their own historical trend. Prevents veteran/rookie comparison distortions.
 - Allow agents to "claim" an SLA at-risk ticket — voluntarily assign it to themselves and trigger a "personal SLA" timer that overrides the queue SLA. This lets high-performing agents self-select into difficult tickets.
 
+
+---
+
+## Session 42 — 2026-04-01 10:30 UTC
+**Topic:** Customer Satisfaction (CSAT) Survey & Feedback Collection UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Survey trigger timing is a UX decision, not just a configuration — and immediate is not always better.** Sending a CSAT survey the moment a ticket is marked "Resolved" seems logical, but customers often need a few minutes to confirm the issue is actually solved before they're ready to rate it. The optimal CRM pattern: agent-triggered surveys via a "Close & Send Survey" button, which adds 10-60 minutes of buffer before delivery. This lets the agent pick the right moment (customer confirmed resolution, not just ticket closed) and reduces frustrated "too soon" responses. Auto-trigger on status change is acceptable as a fallback, but agent-controlled triggering significantly improves response quality.
+
+2. **One question is the ceiling for ticket-level CSAT — anything more is survey overload.** The research is consistent: a single "How did we do?" or "Was your issue resolved?" with a 5-point scale produces the highest completion rates for transactional support surveys. If the CRM sends a 4-question survey after every ticket, customers stop responding. The one-question constraint is not a limitation — it's a discipline. Optional follow-up "Tell us more" text fields should only appear after a rating is submitted, never before.
+
+3. **The survey embed location matters — in-thread surveys outperform separate email links by 2-3x.** A CSAT survey rendered inline at the bottom of the ticket resolution email (with clickable star/emoji rating buttons) gets dramatically higher response rates than a "Click here to rate your experience" text link. The gap is even larger on mobile. The CRM should support rendering the survey as an inline interactive block in the outbound email, not just a URL link. Customers respond most when the survey feels like part of the conversation, not a separate feedback chore.
+
+4. **Contextual CSAT attribution for agents is the primary UX use case — make it actionable, not just visible.** A CSAT score of 3.2 with no context tells the agent nothing. The CRM should surface per-ticket CSAT context: which agent handled it, ticket category, channel, resolution time, and whether it was a first-contact resolution. This lets agents self-correct: "My Billing tickets get 4.1 CSAT but Technical tickets get 2.8 — I need to improve my technical explanations." Group-level CSAT trends (weekly, monthly) with category breakdown give agents actionable signal without exposing individual customer comments to peers.
+
+5. **Low-score alerts (1-2 stars) must route to the agent and their manager — not sit in a report.** A customer who rates 1-2 stars and gets no response feels ignored. The CRM should trigger: immediate in-app alert to the handling agent ("Low CSAT: 2/5 on ticket #4821"), a manager notification if unacknowledged within 2 hours, and a suggested recovery action ("Send a recovery reply"). The recovery reply composer should be pre-populated with the customer's feedback quoted, so the agent doesn't re-read the thread. Proactive recovery on low CSAT can recover the customer relationship before they churn.
+
+6. **Channel affects response rate dramatically — email surveys underperform in-app/chat by 3-5x.** Email CSAT surveys in ticketing CRMs typically achieve 5-15% response rates. In-app surveys (rendered in a chat widget after a live chat session) achieve 20-40%. The survey channel should match the ticket channel: in-chat tickets → inline chat widget survey; email tickets → email survey; phone tickets → post-call IVR survey. Routing all surveys to email regardless of source depresses overall response rates and skews results toward email-preferring customers.
+
+7. **CSAT and CES (Customer Effort Score) measure different things — CRMs should offer both at different times.** CSAT measures satisfaction with the outcome (was I happy with the result?). CES measures effort required (was it easy to get my problem solved?). A ticket can have high CSAT but high CES (resolved happily after 10 calls) — or low CSAT but low CES (easy/fast, but the customer wanted something the company couldn't provide). The CRM should offer CES as a quarterly team-level metric and CSAT as the standard per-ticket transactional metric.
+
+8. **Anonymity controls affect feedback honesty — individual ticket CSAT should be anonymous at the agent level.** Customers give more honest ratings when they know the agent won't see their individual response. The CRM should: show the agent "CSAT received" with no rating detail until aggregate reports, let the manager see individual ratings for coaching, and never surface a CSAT comment in the customer's profile to other agents. Team/queue-level aggregates are visible to all; individual ticket detail is restricted to manager + the customer.
+
+9. **Survey fatigue is a real abandonment driver — enforce a 24-hour suppression and one-survey-per-ticket rule.** If a customer has 3 tickets resolved within 24 hours and receives 3 survey requests, they resent all of them. The CRM must: suppress surveys if the customer received one within 24 hours (queue and send later), send only one survey per resolved ticket, never re-survey on the same ticket, and respect per-brand opt-out (not global). A customer who opts out of billing surveys should still receive technical support surveys.
+
+10. **AI-assisted reply attribution in CSAT analysis is the honest way to measure AI impact.** If the CRM tracks whether a ticket was handled with AI draft assistance, it can compare CSAT between AI-assisted and agent-only tickets over time. This resolves the internal debate about whether AI helps or hurts customer experience — not just agent productivity. A CSAT drop on AI-assisted tickets after deploying a new AI feature is a direct signal to recalibrate.
+
+### How It Applies to Our CRM
+
+- Implement agent-controlled survey trigger: "Close & Send Survey" button that sends 15-60 minutes after close. Fall back to auto-trigger if agent doesn't trigger within a configurable window (default: 2 hours).
+- Keep ticket-level surveys to one question: "How did we do?" with a 5-point emoji/scale. Show optional "Tell us more" text field only after a rating is submitted — never before.
+- Render CSAT as an inline interactive survey block in the resolution email, not a text link. Fallback to well-formatted HTML email link if inline rendering fails.
+- Surface per-agent CSAT context on dashboard: weekly/monthly trend, per-category breakdown, per-channel breakdown. Individual ticket CSAT visible to manager only — not to peers.
+- Route low-score alerts (1-2 stars) immediately to handling agent with a suggested recovery action. Escalate to manager if unacknowledged within 2 hours. Pre-populate recovery reply with the customer's comment quoted.
+- Match survey channel to ticket channel: in-chat → chat widget survey; email → email survey; phone → post-call IVR survey. Don't route all surveys to email regardless of source.
+- Offer CES as a quarterly team-level pulse ("How easy was it to resolve your issue?") separate from per-ticket CSAT. CES identifies systemic effort problems; CSAT handles per-ticket and per-agent performance.
+- Implement anonymity controls: agent sees only "CSAT received" badge on tickets until manager review. Individual comments visible to manager only. Never surface a customer's prior CSAT in their profile to other agents.
+- Enforce survey suppression: no survey within 24h of prior survey to same contact, one survey per ticket, no re-surveys, per-brand opt-out support.
+- Tag tickets with AI-assistance flags for CSAT analysis. Compare CSAT trends between AI-assisted and agent-only tickets per category to measure real AI impact on customer satisfaction.
+- Track survey response rate per channel as a key operational metric. Target: >15% email response rate, >25% in-chat. Investigate if rates fall below 10%.
+- Add per-agent CSAT goal on dashboard: current weekly CSAT vs. target. Trigger manager coaching review (not punishment) if an agent drops below goal for 5+ tickets in a week.
+- Build a "CSAT recovery log": tickets where low-score feedback was followed by a recovery action and subsequent customer response. Track recovery rate as a team health metric alongside raw CSAT.
