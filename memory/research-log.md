@@ -551,3 +551,299 @@ React 19's `use()` hook lets Server Components pass **unresolved Promises** dire
 ```tsx
 // Server Component (layout.tsx)
 export default async function PortalLayout({ children })
+---
+
+## 2026-04-01 AM — Bcryptjs + NextAuth v5 Password Update Pattern [arch], [dx]
+
+### What I Learned
+
+**How to properly update a user's password with bcryptjs + NextAuth v5:**
+
+The pattern for updating a user's password in a NextAuth v5 + Prisma setup:
+1. `bcrypt.compare(currentPassword, storedHash)` — verify old password before allowing change
+2. `bcrypt.hash(newPassword, 12)` — hash new password with cost factor 12 (recommended 2025)
+3. `prisma.portalUser.update({ where: { id }, data: { password: hashed } })` — persist
+
+**NextAuth v5 session.user.id is not automatic:** By default, NextAuth v5 does NOT include `user.id` in the session. You must explicitly propagate it from the JWT callback to the session callback:
+
+```typescript
+// jwt callback — set id from user object (credentials or magic link)
+if (user) { token.id = user.id }
+
+// session callback — transfer id to session user
+if (token) { session.user.id = token.id as string }
+```
+
+Without this, `session.user.id` is `undefined` in all server components, which breaks `auth().user.id` lookups needed for settings pages.
+
+**Type declaration must match:** The `declare module "next-auth"` type extension must include `id: string` on the session user object, and the `id` must be set in the jwt callback first.
+
+**Password update is separate from CRM:** Portal users have their own `PortalUser` record with their own password field, separate from the CRM user record. Updating the portal password does NOT update the CRM. This is intentional per SPEC §3.3.
+
+### How It Applies to This Project
+
+The settings page (`/settings`) now correctly:
+1. Reads `session.user.id` (fixed auth.ts to propagate it)
+2. Fetches user from Prisma `PortalUser` table (not CRM)
+3. Verifies current password with `bcrypt.compare` before allowing change
+4. Hashes new password with `bcrypt.hash(password, 12)` before storing
+5. Uses Zod v4 for validation (different error structure from Zod v3 — issue paths are arrays, not dot-strings)
+
+---
+
+## 2026-04-01 AM — Zod v4 Error Structure vs v3 [dx]
+
+### What I Learned
+
+Zod v4 changed the error structure significantly from Zod v3:
+
+**Zod v3 error.issues:**
+```typescript
+{ path: ["email"], message: "Invalid email", code: "invalid_string" }
+// path is a string array, e.g. ["email"]
+```
+
+**Zod v4 error.issues:**
+```typescript
+{ path: ["email"], message: "Invalid email", code: "too_small", origin: "string" }
+// path is still an array, code is different
+// refine() errors have code: "custom" not code: "custom"
+```
+
+The key difference for my code: `issue.path.join(".")` still works (gives `"email"`), but `refine()` error paths are at the field level, not root level. The path resolution is: `issue.path[issue.path.length - 1]` gives the last path segment (the field name).
+
+**Important:** In Zod v4, `z.string().max(100)` with `.refine()` can cause path conflicts. Best to use `.superRefine()` for complex cross-field validations, or just use separate field-level `refine` calls.
+
+### For Next Time
+
+If using `z.object().refine()` for cross-field validation (e.g., password confirm), the error path points to the field being refined. Don't try to use `path: []` for root errors — use `.superRefine()` instead.
+
+---
+
+## 2026-04-01 AM — NextAuth v5 Credentials Provider + Magic Link Coexistence [arch]
+
+### What I Learned
+
+The portal uses BOTH email magic link and credentials (password) providers. Key insight about how NextAuth v5 handles these:
+
+1. **Magic link** — triggers `signIn("email", { email })`. NextAuth calls the Email provider which sends the magic link. On click, the session is established via the token flow. The `jwt` callback receives `user` from the database (via PrismaAdapter). The user's `id` IS available.
+
+2. **Credentials (password)** — triggers `signIn("credentials", credentials)`. The `authorize()` function is called, which returns a user object. That object MUST include `id` for `token.id = user.id` to work in the jwt callback.
+
+**The coexistence pattern works correctly** because both paths eventually call the jwt callback with a user object that has `id`. The magic link path uses `PrismaAdapter.createUser()` to create the user in the DB, then NextAuth fetches it back.
+
+**Key architectural note:** The `jwt` callback calls `getCrmUserByEmail(email)` for BOTH provider types (when `user` is present). This means:
+- Magic link first login → CRM user created/linked, role synced
+- Credentials login → same flow
+
+Both paths eventually store `tenantId` in the JWT, which propagates to the session.
+
+---
+
+## 2026-04-01 AM — `useActionState` vs `useFormState` in React 19 [react], [dx]
+
+### What I Learned
+
+React 19 renamed `useFormState` (from React 18 canary/Next.js 14) to `useActionState`. Both have the same signature:
+
+```typescript
+const [state, action, isPending] = useActionState(
+  myServerAction,    // async function (prevState, formData) => newState
+  initialState,       // passed as prevState on first call
+  // extraArgs?         // passed to action when called
+)
+```
+
+**Important for our usage:** `useActionState` receives the form's `FormData` as the second argument to the server action. The server action signature is `(prevState, formData) => newState`. The `formData` is passed automatically when the form's `action` attribute points to the server action.
+
+In the settings form:
+```typescript
+<form action={action}>  // action = updateProfileAction
+  <input name="name" />
+</form>
+
+// Server action receives (prevState, formData)
+async function updateProfileAction(prevState, formData: FormData) {
+  const name = formData.get("name") as string
+  // ...
+  return { success: "..." }
+}
+```
+
+This is cleaner than `useFormState` + manual `FormData` construction because there's no need for refs or event handlers on submit buttons.
+
+---
+
+## 2026-04-01 AM — CSS Custom Property Cascade + Per-Tenant Theming in Tailwind v4 [dx], [arch]
+
+### What I Learned
+
+**The CSS cascade and custom properties:**
+
+When you declare a CSS custom property (variable) in a parent element and reference it in a child, the child reads the parent's value. But if you declare the *same* custom property multiple times in the same scope (`:root`), the *last* declaration wins.
+
+**The globals.css bug found:**
+
+The portal's `globals.css` had this in `:root`:
+```css
+--accent: #6366F1;       /* line 57 — CT Website Co. indigo (CORRECT) */
+--secondary: oklch(...); /* line 62 */
+--accent: oklch(gray);   /* line 63 — BUG: should be --accent-foreground */
+```
+
+Because line 63 redeclares `--accent` as grayish, the *effective* value of `--accent` in `:root` was gray, NOT indigo. This was a subtle bug that happened to NOT break the portal because all portal components (`PortalSidebar`, `PortalMobileNav`) apply `--accent` via inline `style="--accent: #HEX"`, which overrides the cascade.
+
+**Why inline style > CSS class for dynamic per-tenant values:**
+
+When you do `style={{ "--accent": accentColor }}` on a React component, you're setting the CSS custom property directly on that DOM element. CSS custom properties inherit — so all descendants that use `var(--accent)` will read the value from the nearest ancestor that defines it. This means:
+
+```tsx
+// Setting on the sidebar element — active nav items inside see this value
+<aside style={{ "--accent": accent } as CSSProperties}>
+  <NavLink className={cn(active && "bg-[var(--accent)]/10 text-[var(--accent)]")} />
+</aside>
+
+// Mobile nav — sets it on the nav element
+<nav style={{ "--accent": accent } as CSSProperties}>
+  <BottomTab className={cn(isActive && "text-[var(--accent)]")} />
+</nav>
+```
+
+Both work correctly because each component sets `--accent` on itself (not on a common parent). Sibling components can't share a CSS var from a common parent unless that parent wraps both in the DOM tree.
+
+**The Tailwind `bg-[var(--name)]` syntax:**
+
+`bg-[var(--accent)]` is a Tailwind arbitrary value. It generates a CSS class:
+```css
+.bg-\[var\(--accent\)\] { background-color: var(--accent); }
+```
+
+This class is generated at build time; the value is resolved at runtime by the browser reading `var(--accent)` from the cascade. ✅ Works with inline style overrides.
+
+### How It Applies to This Project
+
+Fixed `globals.css` to have a single `--accent: #6366F1` declaration in `:root` with a comment explaining that portal components override it inline. This prevents future confusion if someone adds a component that uses `var(--accent)` without an inline override.
+
+Architecture: per-tenant `--accent` works because sidebar and mobile-nav set it inline on their own root elements. No shared parent needed. The header uses `style={{ backgroundColor: accent }}` directly (doesn't use `--accent` variable) — this is equivalent and also correct.
+
+---
+
+## 2026-04-01 AM — Feature Flag Architecture: JWT Embedding for Edge Runtime [arch]
+
+### What I Learned
+
+**The core problem:** Feature flags are stored in Prisma (SQLite). Middleware runs on Next.js Edge Runtime which CANNOT use Prisma (no Node.js APIs, no filesystem). So middleware can't check flags directly.
+
+**The JWT embedding solution (already implemented):**
+
+In `lib/auth.ts`, the `jwt` callback fetches enabled features and embeds them in the JWT token:
+```typescript
+async jwt({ token, user }) {
+  if (user) {
+    token.tenantId = crmUser?.tenant_id ?? null
+    // ...
+  }
+  if (token.tenantId) {
+    const features = await getEnabledFeatures(token.tenantId as string)
+    token.enabledFeatures = features  // Embed in JWT
+  }
+  return token
+}
+
+async session({ session, token }) {
+  session.user.enabledFeatures = token.enabledFeatures as Record<string, boolean>
+  return session
+}
+```
+
+In middleware:
+```typescript
+const enabledFeatures = session.user?.enabledFeatures
+if (!isFlagEnabled(enabledFeatures, requiredFlag)) {
+  return NextResponse.redirect(dashboardUrl)
+}
+```
+
+**Why this is the right architecture:**
+- ✅ Works on Edge Runtime (JWT is just JSON, readable without Prisma)
+- ✅ Flag values are cached in the JWT (expires with the session, typically 24h)
+- ✅ Flag changes propagate when the JWT refreshes (next login or session refresh)
+- ⚠️ Flag changes take up to the JWT lifetime to propagate (not instant, but ≤ 24h)
+
+**The cache TTL trade-off:**
+
+The Prisma-backed `getEnabledFeatures()` has a 60s in-memory cache. The JWT has a 24h lifetime. So worst case:
+- Toggle flag in admin → propagates within 60s to new serverless invocations
+- But users with an existing JWT keep the old flags until their JWT expires (≤ 24h)
+
+For a Phase 0 feature flag system, this is acceptable. For production, you'd want shorter JWT lifetimes or a webhook-based JWT invalidation on flag change.
+
+**Route → flag mapping in middleware:**
+```typescript
+const ROUTE_FEATURE_MAP: Partial<Record<string, FeatureKey>> = {
+  "/studio": "studio",
+  "/support": "support",
+  "/billing": "billing",
+  "/content/tv-feed": "tv_feed",
+  "/content/media": "media_library",
+  "/content": "content_hub",
+}
+```
+
+Uses longest-prefix matching so `/content/tv-feed` matches `tv_feed` (not `content_hub`).
+
+---
+
+## 2026-04-01 AM — Next.js App Router Route Groups + Route Layout Isolation [arch]
+
+### What I Learned
+
+**Route groups (folder names in parentheses) don't create URL paths.**
+
+The portal has:
+- `app/(auth)/` — auth routes (login, verify, onboarding) — uses auth layout
+- `app/(portal)/` — portal routes (dashboard, billing, support) — uses portal layout (sidebar + header)
+- `app/studio/` — Studio (outside portal layout — full screen Sanity chrome)
+
+**Why studio is outside `(portal)`:**
+If studio were inside `(portal)`, it would be wrapped by `PortalLayout` (sidebar + header), and the Sanity Studio chrome would be nested inside the portal chrome. This is wrong — Sanity Studio provides its own navigation.
+
+**Route matching priority:**
+Next.js matches routes by specificity, not by folder group. `/studio` matches `app/studio/[[...tool]]/page.tsx` regardless of where it is in the folder hierarchy.
+
+**Layout nesting:**
+When a route is inside a route group, it uses the group's layout. When outside any group, it uses the root `app/layout.tsx`. The `PortalLayout` is NOT applied to `app/studio/` — correct.
+
+**The layout chain for `/studio`:**
+`app/layout.tsx` (root) → `app/studio/[[...tool]]/page.tsx` (no intermediate layout)
+
+**The layout chain for `/dashboard`:**
+`app/layout.tsx` → `app/(portal)/layout.tsx` (sidebar + header) → `app/(portal)/dashboard/page.tsx`
+
+---
+
+## 2026-04-01 AM — Multi-Tenant SaaS: Subdomain vs. Path-Based Routing [arch]
+
+### What I Learned
+
+**The portal supports both:**
+
+1. **Subdomain routing** (`demo.ctwebsiteco.com`) — extracted by `extractSubdomain()` in `lib/tenant.ts`, used by `middleware.ts` to resolve tenant before auth.
+
+2. **Path-based fallback** (`ctwebsiteco.com/s/demo`) — `app/s/[subdomain]/page.tsx` renders the portal for a given subdomain via URL path. Used when DNS subdomain isn't configured yet.
+
+**How the middleware resolves the tenant:**
+```typescript
+const subdomain = extractSubdomain(hostname)  // e.g. "demo" from "demo.ctwebsiteco.com"
+const { tenant, type } = await getTenantBySubdomain(subdomain)
+```
+
+The `getTenantBySubdomain` function first checks Redis for a cached subdomain→tenant mapping (the authoritative CRM source), then falls back to Prisma if not in Redis.
+
+**Why two sources (Redis + Prisma)?**
+Redis is the fast path (subdomain config cached there by the CRM when a client configures DNS). Prisma is the persistent store (source of truth for the portal's tenant DB). If Redis is empty, the portal still works by querying Prisma directly.
+
+**Path-based fallback (`/s/[subdomain]`):**
+The `s` stands for "static" or "site". This route exists so that even without DNS configuration, a client can access their portal via `domain.com/s/client-slug`. The admin assigns the subdomain in the CRM, but if DNS isn't set up yet, this path-based URL provides access.
+
+This is a common pattern in multi-tenant SaaS: subdomain-first, path-based fallback.

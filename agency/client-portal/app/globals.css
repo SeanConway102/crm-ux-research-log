@@ -53,13 +53,17 @@
   --popover-foreground: oklch(0.141 0.005 285.823);
   --primary: #6366F1;
   --primary-foreground: oklch(0.985 0 0);
-  /* --accent: tenant's brand color; set dynamically per-tenant via CSS var on portal layout root */
-  --accent: #6366F1;
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
+  /*
+   * --accent: CT Website Co. brand indigo (default). In the client portal,
+   * per-tenant accent colors are applied via inline style="--accent: #HEX"
+   * on sidebar/mobile-nav components. The globals.css default is the fallback
+   * for non-portal routes or before JS hydrates the tenant's custom color.
+   */
+  --accent: #6366F1;
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.92 0.004 286.32);

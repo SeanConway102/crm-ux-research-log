@@ -11,17 +11,17 @@
  * Stripe docs: https://docs.stripe.com/customer-management/integrate-customer-portal
  */
 
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { getStripe } from "@/lib/stripe"
 import { getCrmSubscription } from "@/lib/crm-api"
 
-export async function GET() {
+export async function GET(_request: NextRequest) {
   return createPortalSession()
 }
 
-export async function POST() {
+export async function POST(_request: NextRequest) {
   return createPortalSession()
 }
 

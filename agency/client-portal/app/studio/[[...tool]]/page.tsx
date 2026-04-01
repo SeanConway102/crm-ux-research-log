@@ -40,7 +40,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const session = await auth()
   if (!session?.user?.tenantId) return {}
 
-  const config = await buildSanityConfig(session.user.tenantId)
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
+  })
+  if (!tenant) return { title: "Content Editor" }
+
+  const config = await buildSanityConfig(tenant.slug)
   const title = config?.title ?? "Content Editor"
 
   return {
@@ -73,9 +79,18 @@ export default async function StudioPage() {
     redirect(`/${tenant?.slug ?? ""}/dashboard`)
   }
 
+  // Look up the tenant slug for the config factory (expects slug, not tenantId)
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.user.tenantId },
+    select: { slug: true },
+  })
+  if (!tenant) {
+    redirect("/login")
+  }
+
   // Build the per-tenant config — returns null if Sanity is not configured
   // (e.g. tenant hasn't been provisioned with a CRM site yet).
-  const config = await buildSanityConfig(session.user.tenantId)
+  const config = await buildSanityConfig(tenant.slug)
 
   if (!config) {
     notFound()
