@@ -8,6 +8,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 
+// Compact relative date formatter — no external deps required
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffSec = Math.floor(diffMs / 1000)
+  const diffMin = Math.floor(diffSec / 60)
+  const diffHr = Math.floor(diffMin / 60)
+  const diffDay = Math.floor(diffHr / 24)
+  if (diffSec < 60) return "just now"
+  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffHr < 24) return `${diffHr}h ago`
+  if (diffDay < 7) return `${diffDay}d ago`
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     open: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
@@ -20,6 +36,14 @@ function StatusBadge({ status }: { status: string }) {
       {status.replace("_", " ")}
     </Badge>
   )
+}
+
+// Priority dot colors — matching the internal dashboard style
+const priorityDots: Record<string, { fill: string; label: string }> = {
+  urgent: { fill: "#ef4444", label: "Urgent" },
+  high: { fill: "#f97316", label: "High" },
+  medium: { fill: "#eab308", label: "Medium" },
+  low: { fill: "#d1d5db", label: "Low" },
 }
 
 function PriorityBadge({ priority }: { priority: string }) {
@@ -128,32 +152,69 @@ export default async function SupportPage({
         </Card>
       ) : (
         <div className="space-y-2">
-          {filtered.map((ticket) => (
+          {filtered.map((ticket) => {
+          const dot = priorityDots[ticket.priority]
+          const initials = ticket.assignee
+            ? `${ticket.assignee.first_name?.[0] ?? ""}${ticket.assignee.last_name?.[0] ?? ""}`.toUpperCase()
+            : null
+
+          return (
             <Card key={ticket.id} className="hover:bg-muted/40 transition-colors">
               <CardContent className="flex items-center justify-between gap-4 p-4">
+                {/* Left: priority dot + subject + meta */}
                 <div className="min-w-0 flex-1">
-                  <a
-                    href={`/support/${ticket.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {ticket.subject}
-                  </a>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                    <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
-                    {ticket.description && (
-                      <span className="truncate max-w-xs">
-                        {ticket.description.slice(0, 60)}
+                  <div className="flex items-center gap-2">
+                    {/* Priority dot — scannable at a glance */}
+                    {dot && (
+                      <span
+                        title={`Priority: ${dot.label}`}
+                        className="shrink-0"
+                      >
+                        <svg width="8" height="8" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="4" fill={dot.fill} />
+                        </svg>
                       </span>
+                    )}
+                    <a
+                      href={`/support/${ticket.id}`}
+                      className="font-medium hover:underline truncate"
+                    >
+                      {ticket.subject}
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1 ml-2.5 text-xs text-muted-foreground">
+                    <span>Opened {new Date(ticket.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                    <span>·</span>
+                    <span>Updated {formatRelativeDate(ticket.updated_at)}</span>
+                    {ticket.description && (
+                      <>
+                        <span>·</span>
+                        <span className="truncate max-w-xs">
+                          {ticket.description.slice(0, 60)}
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Right: assignee + badges */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {ticket.assignee && (
+                    <div className="flex items-center gap-1.5" title={`Assigned to ${ticket.assignee.first_name} ${ticket.assignee.last_name}`}>
+                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">
+                        {initials}
+                      </div>
+                      <span className="text-xs text-muted-foreground hidden sm:inline">
+                        {ticket.assignee.first_name}
+                      </span>
+                    </div>
+                  )}
                   <StatusBadge status={ticket.status} />
                   <PriorityBadge priority={ticket.priority} />
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )
+        })}
         </div>
       )}
     </div>
