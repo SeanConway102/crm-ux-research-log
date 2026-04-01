@@ -40,3 +40,38 @@
 - Test mobile CRM on real field conditions: slow 3G, interrupted connectivity, one-handed operation, outdoor brightness. Lab testing misses the actual failure modes.
 - Consider a "field mode" toggle that simplifies the mobile UI further: larger text, bigger touch targets, minimal features, optimized for outdoor and one-handed use.
 - Track mobile vs. desktop ticket resolution rates and times. If mobile agents are taking significantly longer to resolve tickets, the mobile UX is the bottleneck — investigate and fix.
+
+---
+
+## Session 50 — 2026-04-01 18:43 UTC
+**Topic:** Omnichannel Inbox UX for Ticketing CRMs — Agent Workspace Design
+
+### Key Insights
+
+1. **The inbox is the agent's primary workspace — every pixel must earn its place.** Agents spend 80%+ of their time in the inbox view. A ticket queue row should show, in order of scan priority: SLA urgency badge (color-coded), ticket subject (1-line truncated), customer name, channel icon (email/chat/phone/social), time since last update, and assignee avatar (for team queues). Every additional column is noise that slows triage. The queue must be scannable at a glance — agents should be able to process 20 rows in 10 seconds without reading full text.
+
+2. **Channel switching must not break ticket context — unify the thread, not the layout.** Agents move between email, chat, phone, and social channels constantly. The correct UX pattern: channel source is metadata on a unified conversation thread, not a separate workspace or tab. Opening "email tickets" vs "chat tickets" in separate views forces context loss and reorientation. Intercom and Zendesk both keep the conversation central — channel is one field, not a workspace switch. Agents should be able to handle all channels from one inbox without clicking through tabs.
+
+3. **Keyboard shortcuts are non-negotiable for agent velocity — implement Gmail/Superhuman-level coverage.** Power agents using shortcuts resolve tickets 3-4x faster than mouse-only users. Essential shortcut set: J/K to navigate queue rows, O or Enter to open a ticket, R to open reply, U to open status/assignee update, Cmd+Enter to send, Tab to advance to next field, Esc to collapse back. Shortcuts must be: discoverable (shown in tooltips and as greyed-out labels on buttons), rebindable (agents have preferences), and documented in a floating shortcut reference panel. Shortcuts that aren't discoverable are shortcuts that go unused.
+
+4. **The split-pane inbox (queue list + thread) is the proven dominant layout — don't reinvent it.** The three-column or tabbed inbox pattern (queues | tickets | preview) slows agents down because preview panes require constant head movement. The correct layout: collapsible left sidebar (queues, filters, folders), center column (ticket queue list), right column (active ticket thread). Agents need to see the queue while reading a ticket simultaneously. Adding a preview pane between queue and thread adds a navigation step without benefit. Zendesk Agent Workspace, Intercom, and Superhuman all converged on this layout independently.
+
+5. **Preserve agent context across ticket navigation — never lose their place.** When an agent opens ticket A, reads it, clicks to ticket B, then navigates back — they must return to exactly where they were. This means: restore scroll position in the queue, restore the last-selected ticket, restore thread scroll position in the conversation. Context loss on back-navigation is the single most-frequent agent complaint in ticketing systems. Each "back" navigation should feel instantaneous and stateful. Test this with agents daily — if they hesitate before acting, they've lost context.
+
+6. **Smart queue sorting with visual urgency signals reduces SLA breaches more than any other feature.** Color-coded SLA countdown badges ("Breaches in 12m", "SLA OK") let agents make instant prioritization decisions without opening a ticket. The queue should auto-sort by SLA urgency descending by default. Visual warnings (row background tint, pulsing badge) for tickets approaching breach are more actionable than a number in a stats panel. Red/amber/green urgency coding should be consistent everywhere: queue rows, ticket header, and dashboard widgets.
+
+7. **Bulk actions with multi-select enable efficient queue management at scale.** When managing a queue of 50-200 tickets, agents need to assign, tag, change status, or merge tickets without opening each one. The Gmail pattern works: checkbox on each row, floating action bar appears on selection ("3 selected — Assign, Tag, Close"), and actions apply to all checked items atomically. Without bulk actions, queue management becomes a 10-click-per-ticket chore that agents avoid, leading to queue buildup.
+
+8. **Real-time presence and ticket locking prevent duplicate work on team queues.** Agents need to see: who's online, which queue they're active in, and whether another agent is currently viewing the same ticket ("Sarah is viewing" indicator). Without ticket locking, two agents can independently work the same ticket — resulting in conflicting replies, duplicate work, and customer confusion. Locking should be soft (advisory) with a visible indicator, not hard exclusive locks (which frustrate agents who need to take over). The pattern: "Agent X is viewing" → auto-lock after 60s of inactivity → lock releases when agent navigates away.
+
+### How It Applies to Our CRM
+
+- Implement the split-pane layout: left sidebar (queues/filters), center (ticket list), right (thread). Do not add a preview pane between list and thread. This is the single highest-impact layout change.
+- Build a comprehensive keyboard shortcut system: J/K navigation, R for reply, U for update, Cmd+Enter to send, Esc to collapse. Show shortcuts in tooltips. Add a "?" shortcut panel showing all shortcuts. Make them rebindable via settings.
+- Preserve scroll position and selection state across every navigation action. This is a quality-of-life fix that agents notice immediately — test it weekly.
+- Auto-sort queue by SLA urgency (most urgent first). Add color-coded SLA badges to every queue row. Show "Breaches in X min" countdown for at-risk tickets.
+- Implement channel icons on queue rows and unify channel handling into one inbox view — not separate tabs for email vs. chat.
+- Add multi-select checkboxes with floating bulk action bar: assign, tag, change status. This reduces queue management time dramatically.
+- Add "Agent X is viewing" presence indicators on team queues. Implement soft locking after 60s of inactivity on a ticket.
+- Track queue context: how often do agents open the same ticket twice in a session? High repeat-open rates indicate context loss. Target < 10% repeat-open rate.
+- The inbox should feel like a professional power tool. Agents should feel in control, not overwhelmed. Reduce visual clutter ruthlessly — if it doesn't help triage, it doesn't belong in the queue view.
