@@ -67,3 +67,34 @@ export async function deleteSubdomainAction(
   revalidatePath('/admin');
   return { success: 'Domain deleted successfully' };
 }
+
+// ─── Feature Flag management ───────────────────────────────────────────────────
+
+export type ToggleFeatureFlagState = {
+  tenantId: string
+  flagKey: string
+  success?: boolean
+  error?: string
+}
+
+export async function toggleFeatureFlagAction(
+  prevState: ToggleFeatureFlagState,
+  formData: FormData
+): Promise<ToggleFeatureFlagState> {
+  const tenantId = formData.get('tenantId') as string
+  const flagKey = formData.get('flagKey') as string
+  const enabled = formData.get('enabled') === 'true'
+
+  if (!tenantId || !flagKey) {
+    return { tenantId, flagKey, error: 'Missing tenantId or flagKey' }
+  }
+
+  try {
+    const { setFeatureFlag } = await import('@/lib/features')
+    await setFeatureFlag(tenantId, flagKey, enabled)
+    return { tenantId, flagKey, success: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update feature flag'
+    return { tenantId, flagKey, error: message }
+  }
+}

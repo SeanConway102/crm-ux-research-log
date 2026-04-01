@@ -160,3 +160,26 @@ const CACHE_TTL_MS = 60_000 // 60 seconds
 ## Previous Entries
 
 _(add new entries above, keep most recent first)_
+
+## 2026-04-01 — Feature Flag Propagation Delay in NextAuth v5 JWT Strategy
+
+**Domain:** [arch], [dx]
+
+**Context:** Built Phase 0 feature flag admin UI today for the client portal. Feature flags are embedded in the JWT payload via the `jwt()` callback, so middleware (Edge Runtime) can check them without a Prisma round-trip. This raises a propagation question: when an admin toggles a flag in `/admin/clients/[tenantId]`, how long until existing logged-in users see the change?
+
+**The latency problem:** NextAuth v5 JWT strategy does NOT re-call the `jwt()` callback on every request — it only re-calls it when the JWT is expired or when `useSession().update()` is explicitly called client-side. With `maxAge: 3600` (1 hour), a user's JWT could be up to 59 minutes stale after an admin toggles a flag.
+
+**Options to fix:**
+
+1. **Call `update()` client-side after toggling** — After the `toggleFeatureFlagAction` succeeds, call `useSession().update()` to refresh the JWT. This forces NextAuth to re-call the `jwt()` callback and embed the new `enabledFeatures`. The client-side approach is viable because the admin is already in a client component. For non-admin users, they'd naturally get the new flags on their next session start (login refresh, tab close/open).
+
+2. **Separate cookie for flag state** — Store `enabledFeatures` in a separate HTTP-only cookie read by middleware, and update that cookie via a server action. More complex but enables real-time propagation without JWT expiry dependency.
+
+3. **Prisma read on every middleware request (swap to database session)** — Switch from JWT to database session strategy. Middleware can call Prisma directly (though Prisma on Edge is problematic). This is the heaviest option.
+
+4. **Accept the 1-hour lag** — For a portal where feature flags don't change constantly, "changes propagate within 1 hour" may be acceptable. Document it as a known limitation.
+
+**What I'll implement next:** Call `update()` from the `FeatureFlagToggle` component after the action succeeds, so admin users see instant feedback. This is the simplest correct fix.
+
+**Reference:** NextAuth v5 `useSession().update()` — https://next-auth.js.org/getting-started/client#updatesession
+
