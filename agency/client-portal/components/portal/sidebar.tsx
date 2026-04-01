@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { createContext, useContext, useState, type ReactNode, type CSSProperties } from "react"
+import { RequestFeatureAccess } from "./RequestFeatureAccess"
 
 // ─── Shared mobile nav sheet context ────────────────────────────────────────
 
@@ -161,16 +162,21 @@ export function PortalSidebar({ enabledFeatures = {}, accentColor, logoUrl, tena
           <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Coming Soon
           </p>
-          {hiddenItems.map(({ href, label, icon: Icon }) => (
-            <div
+          {hiddenItems.map(({ href, label, icon: Icon, featureKey }) => (
+            <RequestFeatureAccess
               key={href}
-              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
-              title={`${label} — not enabled for your plan`}
+              featureKey={featureKey!}
+              featureLabel={label}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-              <Eye className="ml-auto h-3 w-3 shrink-0 opacity-50" />
-            </div>
+              <div
+                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/60 hover:bg-muted/60 hover:text-muted-foreground cursor-pointer transition-colors"
+                title={`Request access to ${label}`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+                <Eye className="ml-auto h-3 w-3 shrink-0 opacity-50" />
+              </div>
+            </RequestFeatureAccess>
           ))}
         </div>
       )}
@@ -261,15 +267,21 @@ export function MobileDrawerContent({ enabledFeatures = {}, accentColor, logoUrl
             <p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Coming Soon
             </p>
-            {hiddenItems.map(({ href, label, icon: Icon }) => (
-              <div
+            {hiddenItems.map(({ href, label, icon: Icon, featureKey }) => (
+              <RequestFeatureAccess
                 key={href}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+                featureKey={featureKey!}
+                featureLabel={label}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                {label}
-                <Eye className="ml-auto h-3 w-3 shrink-0 opacity-50" />
-              </div>
+                <div
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/60 hover:bg-muted/60 hover:text-muted-foreground cursor-pointer transition-colors"
+                  title={`Request access to ${label}`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                  <Eye className="ml-auto h-3 w-3 shrink-0 opacity-50" />
+                </div>
+              </RequestFeatureAccess>
             ))}
           </div>
         )}

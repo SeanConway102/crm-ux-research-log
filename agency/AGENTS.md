@@ -244,3 +244,13 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+
+## Development Standards (Non-Negotiable)
+- **Git:** Always use feature branches. Never commit to main directly. Use conventional commit messages.
+- **TDD:** Write failing tests FIRST. Then implement. Then refactor. No untested code ships.
+- **Pre-commit:** Run lint + tests before every commit. If tests fail, fix before committing.
+- **Agile:** Work in sprints. Pick tickets, estimate, break into tasks. Track velocity.
+- **Definition of Done:** Tests pass + PR created + reviewed + deployed to preview.
+- **IMPORTANT:** Do NOT push to main. Create PR and wait for human approval.
+

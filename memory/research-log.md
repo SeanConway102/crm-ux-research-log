@@ -1,5 +1,44 @@
 # Research Log
 
+## 2026-04-01 — Error Boundaries in Next.js 15 App Router for Multi-Tenant SaaS
+
+**Domain:** [ux], [arch]
+
+**Context:** The client portal has `error.tsx` files at the root and `(portal)` route group level — but individual portal routes (`/settings`, `/content`, `/studio`) were missing their own error boundaries. This means an error on the settings page would fall back to the generic portal error state, losing the user's in-progress form data and providing a poor recovery experience.
+
+**How Next.js 15 error.tsx works (from official docs):**
+
+Next.js App Router `error.tsx` files are React error boundaries scoped to a route segment. They catch uncaught exceptions from:
+- Server Components in that segment
+- Client Components in that segment (via React's error propagation)
+- Child segment page.tsx files
+
+The key architectural distinction from React class error boundaries:
+1. `error.tsx` is a **file-based convention**, not a reusable component — you can't pass it as `<ErrorBoundary />` to wrap specific sub-sections
+2. Errors in a parent `error.tsx`'s layout (not page) are **not** caught by the child's `error.tsx` — they're caught by the nearest parent error boundary
+3. `global-error.tsx` (in `app/`) is special — it replaces the root `layout.tsx` entirely when active, so it must render a full HTML document
+
+**Pattern for the client portal:**
+
+Each feature-route needs its own `error.tsx` because:
+- The portal's layout-level `error.tsx` doesn't preserve the user's scroll position or form state
+- Route-level errors can show a more contextual recovery action (e.g., "Try again" for settings vs. "Go to dashboard" for content)
+- The studio page (`/studio`) has unique failure modes (Sanity misconfiguration) that need a custom error state
+
+**What was added today:**
+- `app/(portal)/settings/error.tsx` + `loading.tsx` — profile + security card skeleton
+- `app/(portal)/content/error.tsx` + `loading.tsx` — content hub grid skeleton
+- `app/studio/error.tsx` + `loading.tsx` — standalone studio chrome skeleton (outside portal route group)
+
+**Key lesson:** In Next.js App Router, every significant feature route should have its own `error.tsx` and `loading.tsx`. The parent `error.tsx` serves as a safety net, but route-specific boundaries give better UX because:
+1. They preserve sibling route context (sidebar nav stays visible, only the page body shows the error)
+2. Recovery actions are context-appropriate
+3. Loading skeletons match the actual page content, reducing layout shift
+
+**Limitations discovered:** There is no way to create a reusable `ErrorBoundary` component that can be placed inside a page to catch errors in a specific sub-section (e.g., only the sidebar rather than the whole page). This is a fundamental limitation of the React error boundary model combined with Next.js file conventions. Workaround: use React `ErrorBoundary` class components inside client components for fine-grained error isolation.
+
+---
+
 ## 2026-04-01 — Ticket Queue UX: Undo for Stage Moves
 
 **Domain:** [ux]

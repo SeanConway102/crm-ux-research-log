@@ -23,6 +23,9 @@ export async function GET(
     getCrmTicketComments(id),
   ])
 
+  // Strip internal notes — clients must never see agent internal comments
+  const publicComments = comments.filter((c) => !c.is_internal)
+
   if (!ticket) {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
   }
@@ -32,7 +35,7 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  return NextResponse.json({ ticket, comments })
+  return NextResponse.json({ ticket, comments: publicComments })
 }
 
 export async function POST(

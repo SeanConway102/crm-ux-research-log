@@ -158,21 +158,27 @@ export function CommentThread({
       <CardContent className="pt-6">
         {/* Comment list */}
         <div className="space-y-5 mb-6">
-          {optimisticComments.map((comment) => (
+          {optimisticComments.map((comment) => {
+            // Client comments have author_name "You" — agent comments have their real name
+            const isClient = comment.author_name === "You"
+            const isPending = !!comment._pending
+            const isFailed = !!comment._failed
+
+            let avatarClass = "bg-primary/10 text-primary"
+            if (isPending) avatarClass = "bg-muted text-muted-foreground"
+            else if (isFailed) avatarClass = "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
+            else if (isClient) avatarClass = "bg-primary/10 text-primary"
+            else avatarClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+
+            return (
             <div key={comment.id} className="flex gap-3">
               {/* Avatar */}
               <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                  comment._pending
-                    ? "bg-muted text-muted-foreground"
-                    : comment._failed
-                    ? "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
-                    : "bg-primary/10 text-primary"
-                }`}
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarClass}`}
               >
-                {comment._pending ? (
+                {isPending ? (
                   <div className="h-3 w-3 rounded-full bg-muted-foreground/30 animate-pulse" />
-                ) : comment._failed ? (
+                ) : isFailed ? (
                   "!"
                 ) : (
                   initials(comment.author_name)
@@ -182,11 +188,23 @@ export function CommentThread({
               {/* Body */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-sm font-medium">{comment.author_name}</span>
+                  <span className="text-sm font-medium flex items-center gap-1.5">
+                    {comment.author_name}
+                    {!isPending && !isFailed && !isClient && (
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                        Agent
+                      </span>
+                    )}
+                    {!isPending && !isFailed && isClient && (
+                      <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary dark:bg-primary/20 dark:text-primary-300">
+                        You
+                      </span>
+                    )}
+                  </span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    {comment._pending
+                    {isPending
                       ? "Sending..."
-                      : comment._failed
+                      : isFailed
                       ? "Failed to send"
                       : formatCommentDate(comment.created_at)}
                   </span>
@@ -196,7 +214,7 @@ export function CommentThread({
                 </p>
 
                 {/* Failed comment actions */}
-                {comment._failed && (
+                {isFailed && (
                   <div className="flex items-center gap-2 mt-2">
                     <Button
                       variant="outline"
@@ -219,7 +237,7 @@ export function CommentThread({
                 )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         {/* Reply form */}
