@@ -93,7 +93,7 @@
 ### Phase 3: Advanced Features (Higher Effort)
 - [ ] Issue slugs (tkt-123 format)
 - [ ] Cycles/sprints
-- [ ] Agent workload view
+- [x] Agent workload view ✅ (commit e33085c)
 - [ ] First response SLA tracking
 - [ ] Ticket templates (common issue types)
 - [ ] Linked issues hierarchy
