@@ -99,7 +99,7 @@ export async function buildSanityConfig(
         ...S.documentTypeListItems(),
       ])
 
-  // 7. Build and return the config with plugins
+  // 7. Build and return the config with plugins + editor token
   return defineConfig({
     basePath: "/studio",
     projectId,
@@ -112,5 +112,7 @@ export async function buildSanityConfig(
       structureTool({ structure: deskStructure }),
       visionTool(),
     ],
+    // Token authenticates write operations in the embedded Studio
+    token: process.env.SANITY_API_TOKEN,
   }) as StudioConfig
 }

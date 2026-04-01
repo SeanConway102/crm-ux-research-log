@@ -9,6 +9,7 @@ import {
 } from "@/components/portal/sidebar"
 import { PortalHeader } from "@/components/portal/header"
 import { PortalMobileNav } from "@/components/portal/mobile-nav"
+import { FeatureFlagRefreshProvider } from "@/components/portal/FeatureFlagRefreshProvider"
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const session = await auth()
@@ -35,6 +36,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   }
 
   return (
+    <FeatureFlagRefreshProvider>
     <MobileNavProvider>
       <div className="flex h-screen bg-bg">
         {/* Desktop sidebar — hidden on mobile */}
@@ -58,5 +60,6 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         <PortalMobileNav enabledFeatures={enabledFeatures} accentColor={accentColor ?? undefined} />
       </div>
     </MobileNavProvider>
+    </FeatureFlagRefreshProvider>
   )
 }

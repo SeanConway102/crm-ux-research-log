@@ -16,6 +16,7 @@ Before doing anything else:
 4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
 
 Don't ask permission. Just do it.
+5. **Search memory before acting.** Before answering questions or taking action, search MEMORY.md, memory/graph.md, and recent daily logs. Not searching = wrong answers.
 
 ## Memory
 

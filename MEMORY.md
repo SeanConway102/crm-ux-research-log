@@ -3,68 +3,50 @@
 ## Important Rules
 **Do NOT push code to git.** Keep knowledge local only. Do not run `git push` or any git push operations.
 
-## Who I'm Helping
+## Who I Am Helping
 - **Name:** Sean Conway
 - **Contact:** +1 879-430-6096 (Telegram)
 - **GitHub:** SeanConway102
 - **Timezone:** Eastern
 
 ## Active Projects
-
-### Client Portal (ctwebsiteco/client-portal)
-- **Local path:** `~/clawd/agency/client-portal/`
-- **Spec:** `agency/client-portal/SPEC.md`
-- **Status:** Phase 0 ✅, Phase 1 WIP, Phase 6 nearly complete
-- **Auth:** NextAuth v5 (magic link + password on first login); portal users are NOT CRM users
-- **Multi-tenancy:** Path-based (`/[tenant]/dashboard`, etc.); subdomain per client (`admin.{clientdomain}.com`) confirmed
-- **Domain:** `portal.ctwebsiteco.com` (agency) — subdomain per client
-- **Template:** Vercel Platforms (`vercel/platforms`)
-- **Tests:** 138 passing; always run `pnpm test` before pushing
-- **DATABASE_URL:** Use `DATABASE_URL="file:./prisma/dev.db"` prefix for local Prisma commands
-- **Vercel:** deployed at `v0-client-portal-*.vercel.app`
-- **Phase 1 remaining:** `/studio` embedded Sanity Studio, `/support` list page, `/support/[id]` detail page
-
-### CRM System (ctwebsiteco)
-- **Frontend:** https://v0-crm-frontend-build-peach.vercel.app | GitHub: SeanConway102/crm-frontend
-- **API:** https://crm-api-1016182607730.us-east1.run.app/mcp
-- **Auth:** `X-API-Key` header (NOT `Authorization: Bearer`); key: `crm_73c6c876ef61204de0776e30c8f76afd9a157d22a3209a2bd991ef60af6abb53`
-- **CRM backend:** SeanConway102/crm
-- **Bug — Dashboard all 0s:** known issue, not yet fixed
-- **Bug — Duplicate fairwayirrigationandlawn.com:** two rows (scores 74 and 95), not yet fixed
-
-### Lighthouse Audit (2026-03-31)
-19 sites audited. Critical (<60): DMarie's Pizza (27), Townsend Agency (25), Manhattan Southington (43), Refillpen (42), Chai for Congress (51), Brimatco (56), Middlebury Contracting (57), Southington Gardens (59), A&B Entertainment (60). Reports in `memory/lh-audit/`.
+- **Client Portal** — `~/clawd/agency/client-portal/` | Spec: `agency/client-portal/SPEC.md` | Phase 0 done, Phase 1 WIP, Phase 6 near-complete | Auth: NextAuth v5 | Multi-tenancy: path-based + subdomain per client | Vercel: `v0-client-portal-*.vercel.app`
+- **CRM System** — See `agency/skills/crm-api/SKILL.md` for full API reference | Frontend: `v0-crm-frontend-build-peach.vercel.app` | Backend repo: SeanConway102/crm | Frontend repo: SeanConway102/crm-frontend
+- **Credentials** — CRM key: `~/.openclaw/workspace-agency/.crm-key` | Other env vars in `~/.bashrc` | Do NOT hardcode keys
 
 ## Architecture Decisions
-- Feature flags: page-level enforcement (middleware CANNOT use Prisma on Edge Runtime — needs Edge Config for middleware-level)
-- Billing: CRM owns subscriptions + invoices; portal embeds Stripe Elements when `past_due`/`incomplete`
+- Feature flags: page-level enforcement (middleware CANNOT use Prisma on Edge Runtime)
+- Billing: CRM owns subscriptions + invoices; portal embeds Stripe Elements
 - TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E)
 - No trials — pay upfront; manual one-by-one onboarding
-- Session user ID: must propagate via `token.id → session.user.id` in NextAuth callbacks
-
-## Feature Flag System (client-portal)
-6 flags: `studio`, `support`, `billing`, `content_hub`, `tv_feed`, `media_library`
-- Prisma models: `FeatureFlag` + `TenantFeatureFlag`
-- `lib/features.ts` — `isFeatureEnabled`, `setFeatureFlag`, `getEnabledFeatures`, etc.
-- Middleware reads JWT-embedded `enabledFeatures` (set at sign-in in `lib/auth.ts`)
-- Admin UI: `/admin/clients/[tenantId]` with toggle switches
+- Session user ID: propagate via `token.id -> session.user.id` in NextAuth callbacks
 
 ## Key Bugs Caught
-- `globals.css` duplicate `--accent` var: removed (kept indigo `#6366F1`)
+- `globals.css` duplicate `--accent` var: removed (kept indigo #6366F1)
 - `session.user.id` not propagated in JWT callback: fixed
 - `@next/third-parties` incompatible with Next.js v16: replaced with vanilla gtag.js
 - Switch import path: `./actions` not `../actions`
 - DB key format: `tenantId:flagId` not `tenantId:flagKey`
+- CRM Dashboard all-0s: known, not yet fixed
+- Duplicate fairwayirrigationandlawn.com rows: known, not yet fixed
+
+## Lighthouse Audit (2026-03-31)
+19 sites audited. Critical (<60): DMarie Pizza (27), Townsend Agency (25), Manhattan Southington (43), Refillpen (42), Chai for Congress (51), Brimatco (56), Middlebury Contracting (57), Southington Gardens (59), A&B Entertainment (60). Reports: `memory/lh-audit/`
+
+## Pointers
+- Client sites & graph: `agency/memory/graph.md`
+- CRM API reference: `agency/skills/crm-api/SKILL.md`
+- Research log: `memory/research-log.md` (~48KB)
+- Daily logs: `memory/YYYY-MM-DD.md`
+- Open tickets: see `agency/memory/graph.md` (Open Tickets section)
+
+## CRM Credentials
+- **URL:** https://v0-crm-frontend-build-peach.vercel.app (or `crm-frontend-2evvh0r7i-*.vercel.app` after deploy)
+- **Email:** sully@ctwebsiteco.com
+- **Password:** SullyAgent2026
+- **API:** crm-api-1016182607730.us-east1.run.app (MCP endpoint at `/mcp`, auth via `X-API-Key`)
+- CRM API key: `~/.openclaw/workspace-agency/.crm-key`
 
 ## GitHub / Auth
 - Global git identity: `Sean Conway <srconway0@gmail.com>`
-- PAT (git operations): stored in `~/.git-credentials`; last rotated 2026-03-31
-- Email authorship fix applied to crm-frontend, client-portal, v0-apizza-grande-website, v0-southington-gardens-clone
-
-## OpenClaw
-- Running on `agency-claw` server (Linux 6.8.0-106-generic x64)
-- Chrome at `/usr/bin/google-chrome-stable`
-- Config at `~/.openclaw/openclaw.json`
-
-## Research Log
-`memory/research-log.md` is large (~48KB); key topics preserved in daily files.
+- PAT in `~/.git-credentials`; last rotated 2026-03-31

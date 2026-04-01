@@ -1,0 +1,72 @@
+# MEMORY.md — Long-Term Memory
+
+## Important Rules
+**Do NOT push code to git.** Keep knowledge local only. Do not run `git push` or any git push operations.
+
+## Who I'm Helping
+- **Name:** Sean Conway
+- **Contact:** +1 879-430-6096 (Telegram)
+- **GitHub:** SeanConway102
+- **Timezone:** Eastern
+
+## Active Projects
+
+### Client Portal (ctwebsiteco/client-portal)
+- **Local path:** `~/clawd/agency/client-portal/`
+- **Spec:** `agency/client-portal/SPEC.md`
+- **Status:** Phase 0 ✅, Phase 1 WIP, Phase 6 nearly complete
+- **Auth:** NextAuth v5 (magic link + password on first login); portal users are NOT CRM users
+- **Multi-tenancy:** Path-based (`/[tenant]/dashboard`, etc.); subdomain per client (`admin.{clientdomain}.com`) confirmed
+- **Domain:** `portal.ctwebsiteco.com` (agency) — subdomain per client
+- **Template:** Vercel Platforms (`vercel/platforms`)
+- **Tests:** 138 passing; always run `pnpm test` before pushing
+- **DATABASE_URL:** Use `DATABASE_URL="file:./prisma/dev.db"` prefix for local Prisma commands
+- **Vercel:** deployed at `v0-client-portal-*.vercel.app`
+- **Phase 1 remaining:** `/studio` embedded Sanity Studio, `/support` list page, `/support/[id]` detail page
+
+### CRM System (ctwebsiteco)
+- **Frontend:** https://v0-crm-frontend-build-peach.vercel.app | GitHub: SeanConway102/crm-frontend
+- **API:** https://crm-api-1016182607730.us-east1.run.app/mcp
+- **Auth:** `X-API-Key` header (NOT `Authorization: Bearer`); key: `crm_73c6c876ef61204de0776e30c8f76afd9a157d22a3209a2bd991ef60af6abb53`
+- **Portal API key:** `crm_8254f35a62d70809b5108566315ddf880f0f5eaa0ea4f5436714a93bc4024aad` (env: `CRM_API_KEY`, set on Vercel portal project)
+- **Sanity API token:** `skFGi0r5L8melwz6TqReFBZhn00vKQuzYMsK51xPPmD1D5g5PbhuBu5ZEhJw0Y13XsLak0ApM2fed7vr3OErZrJhIRasxITrJLOOoXmF67Snze0CJ3znjK0yG7pjSkubMVrfTJ3pvMB8Ik8jHxv5ribfsncbppBfeRvOUeEfqDgw7yZ2e3E` (env: `SANITY_API_TOKEN`, Editor role; stored in portal .env.local + ~/.bashrc)
+- **CRM backend:** SeanConway102/crm
+- **Bug — Dashboard all 0s:** known issue, not yet fixed
+- **Bug — Duplicate fairwayirrigationandlawn.com:** two rows (scores 74 and 95), not yet fixed
+
+### Lighthouse Audit (2026-03-31)
+19 sites audited. Critical (<60): DMarie's Pizza (27), Townsend Agency (25), Manhattan Southington (43), Refillpen (42), Chai for Congress (51), Brimatco (56), Middlebury Contracting (57), Southington Gardens (59), A&B Entertainment (60). Reports in `memory/lh-audit/`.
+
+## Architecture Decisions
+- Feature flags: page-level enforcement (middleware CANNOT use Prisma on Edge Runtime — needs Edge Config for middleware-level)
+- Billing: CRM owns subscriptions + invoices; portal embeds Stripe Elements when `past_due`/`incomplete`
+- TDD: Vitest (unit/integration) + Cucumber + Playwright (BDD E2E)
+- No trials — pay upfront; manual one-by-one onboarding
+- Session user ID: must propagate via `token.id → session.user.id` in NextAuth callbacks
+
+## Feature Flag System (client-portal)
+6 flags: `studio`, `support`, `billing`, `content_hub`, `tv_feed`, `media_library`
+- Prisma models: `FeatureFlag` + `TenantFeatureFlag`
+- `lib/features.ts` — `isFeatureEnabled`, `setFeatureFlag`, `getEnabledFeatures`, etc.
+- Middleware reads JWT-embedded `enabledFeatures` (set at sign-in in `lib/auth.ts`)
+- Admin UI: `/admin/clients/[tenantId]` with toggle switches
+
+## Key Bugs Caught
+- `globals.css` duplicate `--accent` var: removed (kept indigo `#6366F1`)
+- `session.user.id` not propagated in JWT callback: fixed
+- `@next/third-parties` incompatible with Next.js v16: replaced with vanilla gtag.js
+- Switch import path: `./actions` not `../actions`
+- DB key format: `tenantId:flagId` not `tenantId:flagKey`
+
+## GitHub / Auth
+- Global git identity: `Sean Conway <srconway0@gmail.com>`
+- PAT (git operations): stored in `~/.git-credentials`; last rotated 2026-03-31
+- Email authorship fix applied to crm-frontend, client-portal, v0-apizza-grande-website, v0-southington-gardens-clone
+
+## OpenClaw
+- Running on `agency-claw` server (Linux 6.8.0-106-generic x64)
+- Chrome at `/usr/bin/google-chrome-stable`
+- Config at `~/.openclaw/openclaw.json`
+
+## Research Log
+`memory/research-log.md` is large (~48KB); key topics preserved in daily files.

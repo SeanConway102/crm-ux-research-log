@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 3600 }, // Refresh JWT every hour so feature flag changes propagate
 
   providers: [
     // Magic link via Resend

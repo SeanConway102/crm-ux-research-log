@@ -1,6 +1,9 @@
 {
   "browser": {
-    "enabled": true
+    "enabled": true,
+    "executablePath": "/usr/bin/google-chrome-stable",
+    "headless": true,
+    "noSandbox": true
   },
   "acp": {
     "enabled": true
@@ -17,8 +20,15 @@
             "id": "MiniMax-M2.7",
             "name": "MiniMax M2.7",
             "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0.3, "output": 1.2, "cacheRead": 0.03, "cacheWrite": 0.12 },
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0.3,
+              "output": 1.2,
+              "cacheRead": 0.03,
+              "cacheWrite": 0.12
+            },
             "contextWindow": 200000,
             "maxTokens": 8192
           },
@@ -26,8 +36,15 @@
             "id": "MiniMax-M2.7-highspeed",
             "name": "MiniMax M2.7 Highspeed",
             "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0.3, "output": 1.2, "cacheRead": 0.03, "cacheWrite": 0.12 },
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0.3,
+              "output": 1.2,
+              "cacheRead": 0.03,
+              "cacheWrite": 0.12
+            },
             "contextWindow": 200000,
             "maxTokens": 8192
           }
@@ -46,6 +63,10 @@
         "maxConcurrent": 8,
         "runTimeoutSeconds": 900,
         "model": "minimax/MiniMax-M2.7-highspeed"
+      },
+      "heartbeat": {
+        "every": "30m",
+        "target": "last"
       },
       "memorySearch": {
         "enabled": true,
@@ -66,7 +87,10 @@
         "experimental": {
           "sessionMemory": true
         },
-        "sources": ["memory", "sessions"]
+        "sources": [
+          "memory",
+          "sessions"
+        ]
       }
     }
   },
@@ -83,7 +107,9 @@
     "telegram": {
       "enabled": true,
       "dmPolicy": "allowlist",
-      "allowFrom": ["8794306096"],
+      "allowFrom": [
+        "8794306096"
+      ],
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "groupPolicy": "allowlist",
       "streaming": "partial",

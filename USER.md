@@ -1,17 +1,21 @@
 # USER.md - About Your Human
 
-_Learn about the person you're helping. Update this as you go._
+- **Name:** Sean Conway
+- **What to call them:** Sean
+- **Pronouns:** he/him
+- **Timezone:** Eastern (UTC-5)
+- **Notes:** Uses Telegram (+1 879-430-6096)
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+## CRM Access
+- **URL:** https://v0-crm-frontend-build-peach.vercel.app
+- **Email:** sully@ctwebsiteco.com
+- **Password:** SullyAgent2026
+- **API:** crm-api-1016182607730.us-east1.run.app
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+Sean runs a web agency. He manages client websites and a CRM system. He's working on:
+- **Client Portal** (`~/clawd/agency/client-portal/`) — Multi-tenant portal for agency clients
+- **CRM System** — Internal CRM at `crm-frontend` + `crm` backend
 
----
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+He prefers concise responses and wants me to be proactive. He gets frustrated when things break and appreciates fast fixes.

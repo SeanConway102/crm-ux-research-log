@@ -453,6 +453,47 @@
 - Add per-agent CSAT goal on dashboard: current weekly CSAT vs. target. Trigger manager coaching review (not punishment) if an agent drops below goal for 5+ tickets in a week.
 - Build a "CSAT recovery log": tickets where low-score feedback was followed by a recovery action and subsequent customer response. Track recovery rate as a team health metric alongside raw CSAT.
 
+---
+
+## Session 44 — 2026-04-01 12:39 UTC
+**Topic:** Dark/Light Mode, Visual Themes & Color System Architecture for Ticketing CRMs
+
+### Key Insights
+
+1. **Dark mode is not optional for professional SaaS tools — it is a basic accessibility and ergonomic requirement.** Agents handling tickets in the evening, in dim call centers, or with light-sensitive conditions need dark mode. The industry expectation is clear: system-level auto-detection (respect `prefers-color-scheme`) with a manual override in the agent's settings. Forcing one mode on all agents is a failure of ergonomic design. The CRM that ships without dark mode signals to agents that their comfort doesn't matter.
+
+2. **Never invert colors — build a semantic color token system that maps to both themes independently.** The #1 dark mode mistake: inverting white backgrounds to black and calling it done. This produces illegible status badges (a red badge on a red background), washed-out images, and broken brand colors. The correct architecture: semantic color tokens (e.g., `--color-surface-primary`, `--color-text-secondary`, `--color-status-success`) that resolve to different hex values in light vs. dark themes. Every UI element references tokens, never hard-coded hex values. This is the difference between "dark mode that works" and "dark mode that creates new problems."
+
+3. **Status and semantic colors must remain distinguishable in both themes — test them specifically.** Status badges (New, Open, Pending, Resolved, Escalated) use color as a fast-scan signal. In dark mode, a bright red (`#FF4444`) on a dark gray background may have insufficient contrast. A muted red (`#E57373`) may look identical to amber at a glance. Every status color must be tested in both themes for: contrast ratio (4.5:1 minimum), perceptual distinctness (no two statuses look alike), and color-blind safety (never convey meaning by color alone — always pair with a text label or icon). SLA urgency colors (green/amber/red) are particularly critical because agents rely on them under time pressure.
+
+4. **Elevated surfaces in dark mode should use dark gray, not pure black — and the layering hierarchy must be consistent.** Pure black (`#000000`) surfaces in dark mode eliminate depth cues — everything becomes flat and equally weighted. The correct dark mode palette uses `--color-bg-base` (darkest, e.g., `#0D0D0D` or `#121212`), `--color-surface-raised` (slightly lighter, e.g., `#1E1E1E`), and `--color-surface-overlay` (card/modal background, e.g., `#2A2A2A`). This mimics how light reflects off physical surfaces. Gmail, Linear, and Raycast's dark modes all use dark gray layers, not pure black. The contrast between layers tells agents "this card floats above this base" without needing drop shadows.
+
+5. **Automatic system theme detection must be the default — manual override should persist, not reset.** If an agent's OS is in dark mode and they open the CRM, it should open in dark mode by default. If they manually switch to light mode, that preference must persist across sessions and devices (per-agent preference stored in the backend, not localStorage). A theme that resets to the OS default every time the agent opens a new browser tab is an agent-annoying bug. The theme choice belongs in the agent's profile, not just a session cookie.
+
+6. **High-contrast / accessibility theme should be a third distinct option, not just dark mode with more contrast.** Agents with visual impairments may need both dark surfaces AND larger contrast ratios than either default theme provides. A dedicated "High Contrast" theme (pure white backgrounds, pure black text, maximally saturated status colors) serves this use case without compromising the aesthetic dark mode for agents who prefer it. Never conflate dark mode with accessibility mode — they address different needs. Support both separately.
+
+7. **Images and embedded screenshots in ticket threads need dark/light awareness or neutral presentation.** Customer-uploaded screenshots taken in dark mode, when displayed in a dark-theme CRM, may be nearly invisible (a dark screenshot on a dark background). Conversely, a light-mode screenshot on a dark CRM background causes a jarring flash of brightness. The CRM should: auto-detect image average luminance and apply a subtle border or vignette if needed, or present embedded images on neutral mid-gray card backgrounds that work in both modes. Thread composer previews should also render correctly in the theme the agent is currently using.
+
+8. **Dark mode reduces eye strain during after-hours and extended shifts — but light mode is ergonomically superior for detailed data entry.** Research confirms dark mode reduces eye strain in low-ambient-light environments, which is exactly the condition of a 6PM–midnight support shift. However, light mode with good contrast is actually superior for high-precision reading and form completion — which is what agents do all day. The practical implication for a CRM: agents who work mixed shifts should default to light mode during the day and dark mode at night. Auto-scheduling the theme based on time of day (`prefers-color-scheme` combined with a time-based override) is an advanced but high-value feature.
+
+9. **Theme switching must not cause layout reflow or flash — load the correct theme before first paint.** A CRM that briefly renders in light mode before switching to dark mode (or worse, flashes both) on load creates a jarring experience. The theme should be applied synchronously before the page renders: inject a `<script>` in `<head>` that reads the agent's stored preference and applies the correct `data-theme="dark"` attribute on `<html>` before any CSS loads. This eliminates the flash. It's a technical constraint with significant UX impact — a dark-mode CRM that flashes light on every page load is worse than no dark mode at all.
+
+10. **Brand accent colors must be tested for accessibility and aesthetic quality in both themes — don't assume they translate.** A brand's primary blue (`#1A56DB`) that looks premium in light mode may render as a flat, barely-visible mid-tone against a dark gray background. Accent colors need a light-mode version (vibrant, high-saturation) and a dark-mode version (brightened, possibly desaturated to avoid harshness against dark backgrounds). Linear does this well: their accent blue is vivid in light mode and a brighter, slightly lighter blue in dark mode. The CRM's brand identity must remain recognizable in both themes without forcing agents to squint.
+
+### How It Applies to Our CRM
+
+- Build a semantic color token system (CSS custom properties): every color in the CRM references a named token (`--surface-primary`, `--text-secondary`, `--status-new-bg`), never a hard-coded hex. Theme switching is a token remapping, not a color inversion.
+- Implement `prefers-color-scheme` detection as the default with a manual override toggle in agent settings. Persist the override in the agent's backend profile — not localStorage. Sync across devices and sessions.
+- Test every status color (New/Open/Pending/Resolved/Escalated) in both light and dark themes for: 4.5:1 contrast minimum, perceptual distinctness, and color-blind safety. Pair every status color with a text label or icon — never color alone.
+- Use dark gray layers (`#121212` base, `#1E1E1E` raised, `#2A2A2A` overlay) rather than pure black. Maintain consistent elevation hierarchy across both themes.
+- Provide a third "High Contrast" theme as a separate option — not conflated with dark mode. Pure white/black, maximally saturated status colors, larger default font sizes.
+- Handle embedded images in ticket threads: apply neutral card backgrounds and test image visibility across both themes. Consider auto-luminance detection for screenshot-heavy threads.
+- For agents on mixed shifts: offer a scheduled theme option ("Light from 6AM–6PM, dark after 6PM") as an advanced setting. Respect both time and system preference with a clear priority order.
+- Apply theme before first paint: use a blocking inline script in `<head>` that reads stored preference and sets `data-theme` on `<html>` before CSS evaluates. Eliminate all flash-of-wrong-theme on page load.
+- Audit brand accent color for dark mode legibility. Adjust accent saturation/brightness per theme — don't just carry over the light-mode brand color. Test accent against all semantic surface colors in both themes.
+- Support a "match workspace theme" option that syncs the CRM's theme to the user's OS/browser preference automatically. Many agents use multiple Google Workspace apps alongside the CRM — visual consistency reduces cognitive context-switching.
+- Track theme usage analytics per agent: what % of time each theme is active. Use this to inform the default theme for new agents and identify agents who might benefit from scheduled theme switching.
+
 ## Session 43 — 2026-04-01 11:38 UTC
 **Topic:** Agent Collaboration, Handoffs & Shared Ticket Ownership UX for Ticketing CRMs
 

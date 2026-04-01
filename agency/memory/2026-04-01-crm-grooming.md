@@ -1,48 +1,78 @@
-# CRM Grooming Session — 2026-04-01 00:21 UTC
+# CRM Grooming Session — 2026-04-01 12:03 UTC
 
-## Tickets Reviewed: ~65 total
+## Tickets Reviewed: ~101 total
 
-### Unresolved (not Resolved/Closed/Cancelled): ~22 tickets
-- 14 Lighthouse performance tickets (all assigned to Sully)
-- 2 vague tickets needing clarification (Amy Chai Pictures, Septic Ben Savage)
-- 1 mis-assigned ticket (Middlebury image → reassigned from Sean to Sully)
-- 5 other tickets (Push Live, Sales, Architecture)
+### Resolved/Closed/Cancelled: skipped
+- ~75 tickets in terminal states
 
-## Actions Taken
+### Unresolved (active queue): ~26 tickets
 
-### 1. Comments Posted (from prior session, already resolved)
-- Amy Chai Pictures (75d4a7d8): Asked for site, specific pictures, location on pages
-- Septic Ben Savage (cd61d1c1): Asked for target site, page location, change type
+## Step 2: Grooming Actions
 
-### 2. Reassignment
-- **Middlebury Contracting image update** (3bf13556): Reassigned Sean Conway → Sully
-  - Reason: Technical Sanity CMS work, not architecture. Note said "Mark can't do it because of the 'Insanity System' (Sanity CMS)" - this is Sully's domain.
+### Assignments Made
+1. **brimatco LH 51** (50a291dc) → assigned to Sully ✓
+2. **A&B Entertainment LH 48** (59b18078) → assigned to Sully ✓
+3. **EnergyBustersLTD LH 57** (04d4476d) → already assigned to Sully (from prior session)
 
-### 3. Work Done — Townsend Agency (5b7cdcbd) — Performance 25
-- **Root cause identified**: Hero image fetched at 800×1000px (severely undersized for desktop)
-- **Fix 1**: Increased hero image to 1920×2400px in `app/page.tsx`
-- **Fix 2**: Added `metadataBase: new URL(...)` to layout for canonical URL resolution
-- **Commit**: c7f8681 — pushed to GitHub (Vercel auto-deploy triggered)
-- **Still needed**: Accessibility audit (score 59), Best-Practices fix (score 57), SEO improvements (score 77)
+### Duplicate Check
+- **A&B Entertainment** tickets: c05930c5 (LH 60, In Progress) and 59b18078 (LH 48, just assigned) — these cover the same site (abentertainment.com). c05930c5 is more detailed (references bailout_to_client_side_rendering, specific branch). 59b18078 appears to be a fresh scan result. Recommendation: consolidate by keeping c05930c5 as primary, closing 59b18078. **NOT actioned** — requires deciding which ticket to keep.
 
-### 4. No Duplicates Found
-- AB Entertainment favicon (c6bb8b0d) is separate from AB Entertainment Lighthouse (c05930c5) — different issues
-- Southington Gardens old resolved ticket (62b5b5d4, Performance 69) vs new Backlog ticket (172831f8, Performance 59) — likely score drift, same site
+- **3Cs Tavern** tickets: 686496df (Backlog, LH 62) and eaf8268d (Backlog, LH 46→85+) — both for 3Cs Tavern. eaf8268d is the detailed original with root cause analysis. 686496df is a newer scan result. Recommendation: close 686496df as duplicate, keep eaf8268d. **NOT actioned.**
 
-## Key Findings
+- **Apizza Grande**: 19ec83a2 (Closed, LH 55) and 425a1b95 (In Progress, LH 45) and 686496df (Wait — Apizza Grande trailer has 3 tickets). All appear to be the same site. **NOT actioned.**
 
-### Vague Tickets (blocked, needs response)
-1. **AMY CHAI PICTURES** (75d4a7d8) — "WE NEED TO GET THESE DONE" — no site, no specifics
-2. **Septic Ben Savage pictures** (cd61d1c1) — Dropbox link present, but no site URL or page location
+### Vague Tickets (needs client response)
+1. **Amy Chai Pictures** (75d4a7d8) — posted 2 comments previously asking for clarification. Followed up with 3rd comment this session. **Still waiting.** ⚠️ Blocked since March 23rd.
+2. **Septic Ben Savage pictures** (cd61d1c1) — had grooming note but no formal comment posted. **Needs comment posted.**
+3. **AB ENTERTAINMENT favicon** (c6bb8b0d) — vague. Asked previously but no response. **Needs follow-up comment.**
 
-### High Priority Lighthouse Queue (Sully's)
-| Ticket | Site | Performance | LCP | Status |
-|--------|------|-------------|-----|--------|
-| Townsend Agency | thetownsendagencyhomecare.com | 25 | 21.2s | **In Progress** (fix deployed) |
-| DMarie's Pizza | dmariespizza.com | 27 | 40.7s | In Progress (WebsiteBuilder - scope issue) |
-| Apizza Grande | apizzagrandetrailer.com | 45 | 7.57s | In Progress |
-| A & B Entertainment | abentertainment.com | 60 | 5.6s | In Progress |
-| Li Zhai Art | lizhaiartschools.com | 69 | 4.8s | To Do |
+### Blocked Tickets (external dependency)
+- **Townsend Agency** (5b7cdcbd) — site still on UENI, not deployed to Next.js. BLOCKING: needs DNS change + Vercel deploy by Sean. Assigned to Sully but can't work it.
+- **DMarie's Pizza** (0b07b802) — WebsiteBuilder.com site, not Next.js. BLOCKING: needs client discussion about scope. Can't do code fixes.
 
-### Mis-assignments Found
-- Middlebury image update (3bf13556) — Sean → Sully ✓ (fixed)
+## Step 3: Work Done — Apizza Grande (v0-apizza-grande-website)
+
+### Problem
+- Hero images: pizza-1.jpg, pizza-2.jpg, pizza-3.jpg — PNG files named as .jpg, 651×511px, ~240KB each
+- Page images: pizza-truck.jpg (444KB), restaurant.jpg (444KB), event images (171-306KB)
+- All loaded as JPEG/PNG, no WebP optimization
+- TypeScript errors blocking clean build (GA lazyOnload prop, tailwind darkMode type)
+
+### Changes Made (committed to perf/lighthouse-90)
+1. **Converted all hero + page images to WebP** (50-68% size reduction):
+   - pizza-1,pizza-2,pizza-3: 240KB PNG → ~97KB WebP (52-59% reduction)
+   - pizza-truck.jpg: 444KB → 141KB WebP (68% reduction)
+   - restaurant.jpg: 444KB → 141KB WebP (68% reduction)
+   - event-brewery, event-festival: converted to WebP (28-46% reduction)
+
+2. **Fixed TypeScript errors**:
+   - Removed invalid `lazyOnload` prop from GoogleAnalytics component
+   - Fixed `darkMode: ["class"]` → `darkMode: "class"` in tailwind.config.ts
+
+### Expected Impact
+- LCP improvement: hero images now ~50% smaller
+- FCP improvement: page renders faster with smaller images
+- TypeScript now passes cleanly
+
+### BLOCKED: Push to GitHub Failed
+```
+fatal: could not read Password for 'https://github_pat_...@github.com': No such device or address
+```
+GitHub write access blocked — git trying to read from non-existent keyring device. Same issue as A&B Entertainment (c05930c5).
+
+## High Priority Queue (Sully's)
+| Ticket | Site | Perf | LCP | Status | Blocker |
+|--------|------|------|-----|--------|---------|
+| Townsend Agency | thetownsendagencyhomecare.com | 25 | 21.2s | Backlog | DNS/Deploy (Sean) |
+| DMarie's Pizza | dmariespizza.com | 27 | 37.0s | In Progress | Scope (WebsiteBuilder) |
+| A & B Entertainment | abentertainment.com | 60→48 | 5.7s | In Progress | GitHub push blocked |
+| Apizza Grande | apizzagrandetrailer.com | 55 | 7.9s | In Progress | GitHub push blocked |
+| Manhattan Southington | manhattansouthington.com | 43 | 25.0s | Backlog | None |
+| Chai for Congress | chaiforcongress.com | 51 | 11.4s | Backlog | None |
+| Refillpen | refillpen.com | 30 | 12.3s | Backlog | No codebase found |
+
+## Open Questions
+1. Abort DMarie's Pizza (WebsiteBuilder scope)?
+2. Close 3Cs Tavern duplicate (686496df)?
+3. Abort Apizza Grande push blocked — escalate?
+4. No codebase found for Refillpen — close or find repo?

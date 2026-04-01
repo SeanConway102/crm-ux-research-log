@@ -10,15 +10,31 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
+// ─── Shared types (mirror the CRM API response shapes) ────────────────────────
+
+type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "unpaid"
+
+type MockSubscription = {
+  id: string
+  tenant_id: string
+  status: SubscriptionStatus
+  plan_name: string
+  plan_amount: number
+  plan_interval: string
+  current_period_end: string
+  stripe_customer_id: string
+  stripe_subscription_id: string
+}
+
 // ─── Mock CRM API ─────────────────────────────────────────────────────────────
 
-const mockSubscription = {
+const mockSubscription: MockSubscription = {
   id: "sub_123",
   tenant_id: "tenant-a",
-  status: "active" as const,
+  status: "active",
   plan_name: "Business Pro",
   plan_amount: 9900,
-  plan_interval: "month" as const,
+  plan_interval: "month",
   current_period_end: "2026-04-30T00:00:00Z",
   stripe_customer_id: "cus_123",
   stripe_subscription_id: "sub_123",
@@ -38,9 +54,9 @@ const mockSite = {
 
 function createMockCrmApi() {
   return {
-    getCrmSubscription: vi.fn<[string], typeof mockSubscription | null>(),
-    getCrmSite: vi.fn<[string], typeof mockSite | null>(),
-    getCrmTickets: vi.fn<[string, string?], Array<{ id: string; subject: string; priority: string; created_at: string }>>(),
+    getCrmSubscription: vi.fn<(tenantId: string) => MockSubscription | null>(),
+    getCrmSite: vi.fn<(tenantId: string) => typeof mockSite | null>(),
+    getCrmTickets: vi.fn<(tenantId: string, status?: string) => Array<{ id: string; subject: string; priority: string; created_at: string }>>(),
   }
 }
 
@@ -167,9 +183,7 @@ describe("getVisibleQuickActions — feature flag gating", () => {
 
 // ─── Subscription status display logic ──────────────────────────────────────
 
-type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "unpaid"
-
-function getPlanDisplay(subscription: typeof mockSubscription | null): { plan: string; badge: string; color: string } {
+function getPlanDisplay(subscription: MockSubscription | null): { plan: string; badge: string; color: string } {
   if (!subscription) {
     return { plan: "No plan", badge: "Unknown", color: "bg-gray-100 text-gray-700" }
   }
@@ -281,9 +295,9 @@ interface DashboardData {
 function buildDashboardData(
   hourUtc: number,
   enabledFeatures: Record<string, boolean>,
-  subscription: typeof mockSubscription | null,
+  subscription: MockSubscription | null,
   siteStatus: SiteStatus | null,
-  openTickets: Array<{ priority: string }>
+  openTickets: Array<{ id?: string; subject?: string; priority: string; created_at?: string }>
 ): DashboardData {
   return {
     greeting: getGreeting(hourUtc),
