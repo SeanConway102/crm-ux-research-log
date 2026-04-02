@@ -130,3 +130,45 @@
 - Track status accuracy: what % of tickets have their status correctly reflect their actual workflow state? Low accuracy means the status UX is broken — agents are confused about what status to pick.
 - Consider a "status health" dashboard metric: % of tickets in each status over time. If Pending keeps growing while Open shrinks, agents are marking tickets pending without actually waiting on customers.
 - Add keyboard shortcut for status change (U opens the status/assignee update panel). Make status change a first-class action, not a buried menu item.
+
+---
+
+## Session 59 — 2026-04-02 03:34 UTC
+**Topic:** Search, Filter & Queue Sorting UX for Ticketing Systems
+
+### Key Insights
+
+1. **Queue search must be instant — 200ms threshold is the hard ceiling for "feels fast."** Every keystroke in the search box should produce results within 200ms or agents perceive lag. Use debounce by 150-200ms, search on indexed fields (ticket ID, subject, customer email/name), and use optimistic UI. Never block the UI thread during search. Zendesk's ticket search fires after 2 characters and returns results in <300ms.
+
+2. **Filters must be visible and composable — not buried in a dropdown.** Agents routinely stack 3-4 filters simultaneously (New + Mine + Enterprise + High Priority). The correct pattern: a persistent filter bar above the queue showing all active filters as removable chips ("Status: New ×", "Assignee: Me ×"). Filters compose additively and persist until explicitly cleared. Jira's filter chips are the reference implementation.
+
+3. **Sort must be persistent and obvious — agents should never wonder "am I looking at the right queue?"** Default sort should be SLA-due (soonest deadline first). Agents must be able to override: oldest first, newest first, priority, customer name, last updated. Sort preference should persist per-agent server-side. Always show current sort state above the queue.
+
+4. **Saved filter views are the highest-leverage productivity feature for power agents.** "Show me all Pending tickets that are mine and are enterprise tier" saved as "My Pending Enterprise" eliminates 5-10 filter operations per day. Support creating, naming, reordering, sharing, and deleting saved views. Surface them in the sidebar with a ★ icon. Agents who discover saved views never go back.
+
+5. **Full-text search should span ticket body, internal notes, and customer history — with result previews.** Agents often remember "there was a ticket about X" but not the ticket ID. Full-text search across descriptions, notes, and reply threads surfaces relevant tickets instantly. Results show ticket ID, subject, highlighted snippet, customer name, last updated. Accessible via Cmd/Ctrl+K global shortcut. Linear, Notion, and Jira all use this pattern.
+
+6. **Filter by assignee "Me" is not enough — agents need "Unassigned," "Me + My Team," and "Anyone."** These four states cover 95% of triage workflows. Default to "My Tickets" or last selection. "Anyone" should only appear for admins — frontline agents shouldn't default to seeing every ticket. A flat dropdown of all agent names is insufficient; role-based quick filters are required.
+
+7. **Queue column configuration must be agent-configurable and persist.** Different agents prioritize different information: company name, channel icon, tags. A customizable column picker (right-click header) where agents drag to show/hide/reorder columns is essential. Configuration must persist server-side. Sensible defaults: Subject, Status badge, Assignee, Customer, Last Updated, SLA Due. Never bloat row width — scanability dies.
+
+8. **Real-time queue updates must be visible without page refresh — but not disruptive.** New tickets fade in at the top with a brief yellow highlight (2s). A counter badge shows "3 new tickets" if agent is scrolled down. No sounds for routine tickets — only escalate for SLA-critical. Queue refresh should be ambient and quiet.
+
+9. **Keyboard navigation through the queue is the highest-velocity workflow for power users.** J/K to move between tickets, Enter to open, U to update status, A to assign, R to reply, Escape to return to queue. Vim-inspired interaction — agents who learn it never click again. Surface shortcuts in a "?" panel. Zendesk's shortcuts and Linear's command palette are reference implementations.
+
+10. **Pagination with a load-more button — never auto-infinite scroll.** Infinite scroll disorients: agents lose their place, can't predict remaining count, and accidentally act on the wrong ticket when the list shifts. Correct pattern: 25-50 tickets per page with a "Load 25 more" button. Agents retain full control over queue pace.
+
+### How It Applies to Our CRM
+
+- Debounce search by 150-200ms. Ensure indexed search <300ms. Never block the UI thread.
+- Build a persistent filter chip bar above the queue. Removable chips, composable, persists until cleared.
+- Default sort to SLA-due, persist per-agent server-side, always show current sort above queue.
+- Build saved filter views: named, shareable, one-click sidebar access with ★ icon.
+- Implement full-text search across ticket body, notes, history. Highlighted snippets. Cmd/Ctrl+K shortcut.
+- Four assignee quick-filters: Unassigned, Me, Me + My Team, Anyone. Default to "My Tickets."
+- Customizable column picker that persists server-side. Defaults: Subject, Status, Assignee, Customer, Last Updated, SLA Due.
+- Real-time queue updates: fade-in animation for new tickets, "N new" badge when scrolled away. Ambient only.
+- Keyboard navigation: J/K/Enter/U/A/R/Escape. Shortcut reference in "?" panel.
+- Paginate with "Load more" — no infinite scroll. 25-50 per page.
+- Persistent "Clear all filters" action always visible when filters are active.
+- Track filter/search usage analytics to prioritize which defaults and shortcuts to optimize.
