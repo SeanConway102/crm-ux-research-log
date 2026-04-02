@@ -260,3 +260,46 @@
 - Consider a "SLA Health" dashboard card: today's compliance %, at-risk count, breached count, trend vs. last 7 days.
 - Allow clients to see their SLA dashboard: real-time compliance %, breach log, average response time. White-label it to their brand.
 - Auto-send SLA status notifications to customers at milestones: "Your ticket has been assigned and will receive a response within 4 hours."
+
+---
+
+## Session 62 — 2026-04-02 06:36 UTC
+**Topic:** Agent Dashboard & Performance Metrics UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Agent dashboard must answer one question at a glance: "What do I do next?" — everything else is secondary.** Agents start their day by scanning a dashboard to decide their next action. The layout must prioritize: my queue size, SLA at-risk count, oldest ticket age, and my resolved today. Supporting context (team stats, SLA trends, weekly charts) belongs in a separate "Reports" tab — not the daily driver dashboard. Forcing agents to process a wall of KPIs every morning before they can work is friction. Linear and Height both use a minimal "My work" dashboard that's essentially just the queue + a few key numbers.
+
+2. **Real-time team availability state must be visible at a glance — who is online, who is at capacity, who is away.** Managers need to know agent capacity before assigning tickets: Sarah is online, James is in a meeting, Priya is at capacity (8/10 tickets). An availability panel showing agent avatars with status indicators (green/amber/gray) and workload bars enables smart routing decisions without opening each agent's profile. Zendesk's team dashboard shows each agent's current ticket count as a progress bar next to their avatar — simple and scannable.
+
+3. **The SLA compliance metric should be the single largest number on the manager dashboard — not buried in a chart.** Managers are judged on SLA compliance. Seeing "94.2% compliance" in large type with a trend arrow (↑ +0.3% vs last week) and a color indicator (green/amber/red) answers the most important question instantly. Supporting detail (per-agent breakdown, per-client breakdown, breach list) lives below the fold. The single number at the top drives the daily standup — agents and managers both know the target and how they're tracking.
+
+4. **Charts on dashboards must be interactive — static images of data are useless for decision-making.** A weekly ticket volume bar chart becomes useful only when you can click a bar to drill into that day's tickets. Hover tooltips showing exact values, click-to-filter interactions, and date range selectors turn a dashboard from a display into a decision tool. Avoid decorative charts that show data but don't let you act on it. Gatsby and Metabase dashboards do this well — every chart is interactive.
+
+5. **The "workload distribution" view is essential for managers balancing agent capacity.** A horizontal bar chart showing each agent's ticket count (and optionally SLA count, avg handle time) lets a manager spot imbalances instantly: Sarah has 12 tickets, James has 3. Balancing workload by dragging tickets between agents should be possible directly on the chart. This is a daily tool for team leads, not a monthly reporting artifact. Jira's sprint workload view is the reference implementation.
+
+6. **Notifications feed must be prioritized and batched — a real-time stream of individual events is noise.** When tickets are moving fast, an unfiltered notification feed becomes a firehose: "Ticket #442 assigned to Sarah," "Ticket #443 assigned to James," "SLA at risk for #419." The correct pattern: batch low-urgency events ("5 tickets assigned in the last 10 minutes") and surface high-urgency individually ("🔴 SLA breached on Ticket #419"). Allow agents to configure which events they care about. Slack's notification batching is the correct mental model.
+
+7. **Activity feed (what happened on a ticket) must be chronological, role-distinguished, and scannable — not a raw audit dump.** The ticket activity feed shows status changes, assignments, replies, internal notes, and SLA events in reverse-chronological order. It should visually distinguish: agent actions (labeled with agent name + avatar), customer actions (labeled "Customer replied"), and system events (labeled "SLA paused"). System events like "Auto-assigned to Sarah" should show in smaller/bolder type than human actions. This is how agents reconstruct ticket history without reading every message — it needs to be scannable at a glance.
+
+8. **Dashboard for clients (external) must be a curated subset — never the full internal view.** When a client brand manager logs in to see their tickets, they should see: ticket count, SLA compliance %, open tickets list, maybe CSAT score. They should NOT see: other clients' data, agent workload distribution, internal routing rules, or cross-client comparisons. Client dashboards should be white-labeled, read-only, and scoped strictly to the tenant's own data. This is both a security requirement and a UX requirement — clients don't want to see your agency's internal complexity.
+
+9. **Time-based breakdown (hourly/daily/weekly) must be toggleable on every chart — never fixed to one time window.** A manager checking the morning standup wants today's data. A weekly review wants 7-day trends. Monthly reports want 30-day patterns. Default to "Today" or "Last 7 days" but always let users toggle: Today / This Week / This Month / Custom Range. Fixed time windows force users to export and re-chart in spreadsheets to answer simple questions. Every chart in the dashboard should have this control.
+
+10. **"Quick actions" on the dashboard must be high-frequency tasks that don't require opening a ticket.** The dashboard should support: "Reopen last resolved ticket," "Send a bulk reply to all Pending tickets," "View SLA-breached tickets." These are manager actions that happen from the dashboard level. When every action requires drilling into a specific ticket, managers waste significant time on navigation. HubSpot's CRM dashboard has a "Quick Actions" panel that surfaces the 5 most common manager workflows — agents use them constantly.
+
+### How It Applies to Our CRM
+
+- Design dashboard for agents: show my queue count, SLA at-risk count, oldest ticket age, resolved today — all at a glance. Move charts and trends to a "Reports" tab.
+- Add team availability panel: agent avatars with online/busy/away status and ticket count progress bars. Click to assign from the panel.
+- Put SLA compliance % as the single largest metric on the manager dashboard — large type, trend arrow, color coded. Breach count below it.
+- Make all dashboard charts interactive: hover tooltips, click to drill down into filtered ticket list. No decorative static charts.
+- Build a workload distribution chart: horizontal bars per agent showing ticket count, clickable to rebalance directly.
+- Batch notifications: low-urgency into summaries ("3 tickets assigned"), high-urgency surfaced individually. Let agents configure thresholds.
+- Design the activity feed to be scannable: reverse chronological, agent/customer/system event distinction, small type for system events.
+- Build a separate client-facing dashboard: white-labeled, read-only, scoped to their tenant only. No cross-tenant data, no internal complexity surfaced.
+- Add time range toggles (Today/Week/Month/Custom) on every dashboard chart and metric. Default to "Today" or "Last 7 days."
+- Add a "Quick Actions" panel on the manager dashboard: bulk reopen, bulk reply, view breached, export reports — common workflows at a glance.
+- Ensure dashboard is mobile-responsive — managers checking metrics on a phone should get a usable view, not a broken desktop layout.
+- Track which dashboard widgets agents/managers actually click. If "SLA at risk" is never clicked, it's not solving a real problem — rethink the placement.
+- Consider a "shift handoff" view: when one agent's shift ends, show the next agent their queue state + key stats. Smooth transitions prevent tickets from falling through gaps.
