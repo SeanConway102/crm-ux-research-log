@@ -172,3 +172,47 @@
 - Paginate with "Load more" — no infinite scroll. 25-50 per page.
 - Persistent "Clear all filters" action always visible when filters are active.
 - Track filter/search usage analytics to prioritize which defaults and shortcuts to optimize.
+
+---
+
+## Session 60 — 2026-04-02 04:48 UTC
+**Topic:** Thread / Conversation View UX for Ticket Replies and Internal Notes
+
+### Key Insights
+
+1. **The split-view layout (queue left, thread right) is the proven standard — don't reinvent it.** Agents need simultaneous visibility of the queue and the active conversation. A three-panel layout (queue + thread + details sidebar) works for complex tickets, but the split two-panel is the baseline. The critical sizing rule: the queue panel must be wide enough to show subject, status badge, assignee, and SLA — never collapse to icons only on desktop. Intercom, Zendesk, and Front all use this pattern. The failure mode is full-page thread view with a tiny "back to queue" button — agents constantly lose queue context and waste navigation time.
+
+2. **Internal notes and public replies must be visually unmistakable at a glance — not discoverable on close inspection.** Internal notes should have a distinct background color (soft yellow/amber), a "🡪 Internal" badge, and be visually separated from customer-visible messages. Public replies use white/near-white backgrounds. Never rely on text color alone — colorblind agents exist. The most common error in CRMs: agents accidentally post an internal note publicly because the distinction wasn't prominent enough. Intercom uses an orange "Internal" tag, yellow background, and an eye-slash icon — unmistakable. Zendesk distinguishes with a blue "Private" badge and gray background.
+
+3. **Reply composer placement matters more than you think — it belongs below the thread, not at the top.** Agents read thread history from oldest to newest, then compose. Placing the reply box above the thread (newest-first) disrupts this natural flow and causes reply-before-reading errors. The composer should always be anchored at the bottom of the thread with thread history scrolling above it. Additionally, the composer must be visible without scrolling when the ticket opens — never require agents to scroll past all history to find the reply box.
+
+4. **Thread messages must show sender role (agent vs. customer), avatar, and timestamp — and group sequential same-sender messages.** When Agent Sarah sends three replies in a row, they should visually collapse into a single message block with "Sarah · 3 messages" — not three separate bubbles. This prevents the thread from being dominated by agent-side message fragmentation. Customer messages never collapse — each customer message is its own event. Timestamps should show relative time for recent messages ("2m ago", "Yesterday at 3:42 PM") and absolute date+time for older threads. Intercom's message grouping is the reference implementation.
+
+5. **The thread view must support rich formatting — plain text is insufficient for technical support.** Agents regularly need to send: code snippets (monospace block), numbered steps, bold/italic emphasis, bullet lists, and screenshot annotations. The reply composer needs a minimal formatting toolbar: bold, italic, code block, ordered list, unordered list, link, and image upload. Markdown shortcuts (typing `**bold**` auto-converts) are expected. Plain-text-only reply fields force agents to use email clients externally, which breaks threading and creates data leakage. Gmail and Notion's inline formatting tools are the reference for minimal-but-sufficient toolbars.
+
+6. **Attachments in thread must be inline-rendered, not downloadable links only.** When an agent pastes a screenshot or a customer uploads a log file, it should render inline in the thread — images as thumbnails (click to expand), files as named chips with file type icon and size. Never show attachments as raw URLs or force a download to view. Image attachments over 1MB should auto-compress on upload but preserve the original for download. File previews should support common formats: PNG, JPG, PDF, TXT, ZIP. This is especially important for bug reports where screenshots are the primary information carrier.
+
+7. **Canned responses and templates must be accessible without leaving the composer — not in a separate panel.** The correct pattern: typing "/" or clicking a 📋 icon in the composer opens a searchable template picker overlaid on the composer. Templates show name, preview snippet, and usage count ("Used 47 times"). After selecting, template content populates the composer and agent can edit before sending. Never require agents to open a separate panel, search, copy, and paste — that kills template adoption. Zendesk's slash-command template insertion and Intercom's template picker are the reference implementations.
+
+8. **Real-time message delivery must be indicated with subtle state — not jarring animations or sounds.** When a new customer message arrives while the agent has the ticket open, it should: fade into the thread with a brief highlight (1-2s), show a subtle "1 new message" indicator if the agent is scrolled up, and optionally bump the ticket's queue position. No sound for routine messages. Sound is acceptable only for SLA-breach alerts. Agents leave their inbox open all day — ambient interruptions accumulate. Intercom's quiet "new message" banner and Slack's subtle threading indicators are the reference.
+
+9. **"Sending" and "Sent" states must be explicit — agents must never wonder if their reply went through.** When an agent clicks Send, show a brief "Sending..." state (disable the button), then "Sent ✓" confirmation. If send fails (network error, timeout), show a clear "Failed to send — Retry" button with error context. Never silently swallow send failures. The error state must be recoverable: clicking Retry should resend the exact same message without re-typing. This is basic, but many CRMs fail at it — agents regularly send duplicate replies because they thought the first didn't go through.
+
+10. **Multi-channel thread aggregation must present a unified timeline — channel source is a detail, not a separate thread.** A single customer conversation might span email, chat, and Twitter DMs, but agents should see one unified thread sorted by time. Each message should show its channel source icon (small envelope for email, speech bubble for chat, bird for Twitter) without making the channel the organizing principle. Agents shouldn't have to check three separate threads to understand a customer's full history. Front and Intercom handle multi-channel aggregation well — all channels converge into one timeline.
+
+### How It Applies to Our CRM
+
+- Implement split-view layout: queue panel (left, ~30-35% width) + thread panel (right, ~65-70%). Ensure queue shows Subject, Status, Assignee, SLA at minimum.
+- Make internal notes visually distinct: amber/yellow background, "Internal" badge, eye-slash icon, clearly different from white public reply background. Test with colorblind simulation.
+- Always anchor the reply composer at the bottom of the thread. Composer must be visible on ticket open without scrolling. Thread scrolls above it.
+- Group sequential same-sender agent messages into one block. Show "Sarah · 3 messages" expander. Customer messages never collapse.
+- Build a rich-text formatting toolbar in the composer: bold, italic, code block, ordered/unordered list, link, image upload. Support markdown shortcuts.
+- Render attachments inline: images as thumbnails (click to expand), files as chips with icon + name + size. No raw URLs.
+- Implement "/" command in composer to open searchable canned response picker. Show usage count. Populate composer on selection.
+- New messages fade-in with brief highlight. "1 new" indicator if scrolled away. No sound for routine messages.
+- Show explicit Send states: "Sending..." → "Sent ✓" or "Failed — Retry." Retry must resend identical content without re-typing.
+- Aggregate all channels into one timeline. Show per-message channel source icon. Agents see one conversation, not fragmented channel threads.
+- Thread composer should support Cmd/Ctrl+Enter to send.
+- Auto-expand first image attachment in thread preview. Long threads should show "Jump to latest" button when scrolled up.
+- Track reply send failure rate — high failure rates indicate network or UI issues that need fixing.
+- Consider a "customer last seen" indicator in thread header — helps agents know if they're in a live conversation or leaving a note for later.
