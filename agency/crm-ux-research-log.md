@@ -216,3 +216,47 @@
 - Auto-expand first image attachment in thread preview. Long threads should show "Jump to latest" button when scrolled up.
 - Track reply send failure rate — high failure rates indicate network or UI issues that need fixing.
 - Consider a "customer last seen" indicator in thread header — helps agents know if they're in a live conversation or leaving a note for later.
+
+---
+
+## Session 61 — 2026-04-02 05:35 UTC
+**Topic:** SLA & Deadline UX for Ticketing CRMs
+
+### Key Insights
+
+1. **SLA compliance is the single most visible metric to clients — treat it as a first-class UX problem, not a backend calculation.** Clients judge your CRM by one number: "Did you respond within the SLA window?" Every second a ticket sits unacknowledged chips away at compliance. The UX must make SLA state unambiguous and actionable at every glance: a prominent "Due in 23m" badge in the queue row, a color-coded urgency system (green → yellow → red → breached), and an escalating alert pattern as the deadline approaches. Agents should never need to open a ticket to know its SLA state.
+
+2. **SLA timers must be visible and auto-updating in the thread header — not buried in ticket details.** The thread header should prominently display: SLA type (First Response / Next Response / Resolution), current status (on track / at risk / breached), and time remaining in large readable type. When a ticket is at risk, the timer should visually escalate: change from neutral to amber to red, add a subtle pulse animation, and surface a one-click "Escalate" action. Zendesk's SLA countdown timer in the ticket header is the reference — it's large, always visible, and color-coded.
+
+3. **"Pause the SLA" is a policy decision that must be explicit in the UI — never automatic or hidden.** When a ticket is moved to On-Hold, does the SLA clock pause? When an agent is idle for 2 hours, does it pause? These are policy questions with UX consequences. The UI must clearly indicate SLA state at all times: running, paused, or breached. If paused, show why ("SLA paused — ticket is On-Hold") and show the saved time ("You saved 4h 22m of SLA time"). If resumed, show a brief toast: "SLA resumed — 4h 22m remaining." Never let agents wonder whether the clock is running.
+
+4. **SLA breach must trigger escalation actions, not just visual warnings.** A visual warning ("Breached!") is necessary but insufficient. When breached, the system should: auto-assign to a manager or overflow pool, add a "SLA Breached" tag, move the ticket to a "Breached" filter view, and surface a notification in the agent's dashboard. Managers should get a digest of breached tickets every 15 minutes. The escalation chain must be configurable per client — some clients want a PagerDuty-style alert, others just want a daily report. This is both a UX and an accountability tool.
+
+5. **Multiple SLA policies per client are standard — enterprise clients expect business-hours-aware SLA.** A client might require: first response within 4 hours during business hours (9–5 M–F), but resolution within 24 hours calendar time. The CRM must support: business-hours-only SLA clocks, calendar-time SLA clocks, and hybrid policies per ticket type (P1 = 1hr business hours, P3 = 8hr calendar). Holiday calendars per tenant are a must-have for agency clients. Calculating SLA "on the clock" manually is error-prone and agents will get it wrong — the system must handle it automatically and visibly.
+
+6. **SLA preview before assignment: agents should see how long an SLA will take when considering assignees.** When an agent is about to assign a ticket, show them: "Current SLA: First Response due in 47m. Assigning to Sarah (avg response 2h) will likely breach. Assigning to James (avg response 22m) keeps you on track." This is proactive SLA guidance — it prevents breaches before they happen rather than alerting after the fact. Notion and Linear don't have this, but Highgear and ServiceHub implement assignee-aware SLA projections.
+
+7. **Time-to-first-response vs. time-to-resolution are fundamentally different SLAs with different UIs.** First response SLA is about acknowledgment — it should show prominently in the queue row and thread header with a countdown. Resolution SLA is a longer-horizon goal — it belongs in ticket details, not the thread header. Conflating them creates noise: a ticket might be "on track" for first response but "at risk" for resolution. Show both separately. Agents care about first response compliance; managers care about resolution compliance.
+
+8. **Snooze must interact correctly with SLA — Snooze ≠ Pause.** An agent snoozes a ticket for 2 hours. The SLA clock should: pause during the snooze period (if policy allows), resume exactly where it left off, and the saved time should be logged. If snooze is used to dodge SLA, that's a management problem, not a UX problem — the system should log and surface it, not prevent it. The distinction: snooze is agent-intentional (they chose it); SLA pause on On-Hold is workflow-driven. Both save time, but the audit trail must reflect which happened.
+
+9. **SLA badge must persist across all views: queue, thread, dashboard, and email notifications.** An agent glancing at the queue should see SLA state. Opening the thread should show SLA in the header. The dashboard widget showing workload should color-code tickets by SLA. Email notifications to customers should include the SLA state ("We have a dedicated team working on your ticket and will respond within 2 hours"). Consistent SLA presence across all surfaces creates a compliance culture — agents always know where they stand.
+
+10. **SLA reporting must be honest, immutable, and agent-attributed — never gameable.** Every SLA breach record should show: ticket ID, SLA type, policy name, breach duration, who was assigned at breach time, and when first response actually occurred. This data must be immutable — agents must not be able to retroactively edit timestamps to clear breaches. Agent performance on SLA compliance should be measured at the team level, not individual level (to prevent gaming), and should account for SLA pauses. Clients expect to see a monthly SLA report — build it to be client-shareable directly from the CRM.
+
+### How It Applies to Our CRM
+
+- Add a prominent SLA countdown badge to every queue row: color-coded (green/amber/red), shows hours or minutes remaining. Never hide SLA behind a click.
+- Surface SLA type, status, and countdown in the thread header — large, auto-updating, impossible to miss.
+- Implement SLA pause clearly: when a ticket is On-Hold, show "SLA paused — saved Xh Xm." When resumed, show toast confirmation.
+- On SLA breach: auto-tag, auto-assign to overflow, notify manager. Build a "Breached" queue view. Make breach escalation configurable per client.
+- Support per-tenant SLA policies: business-hours-only clocks, calendar clocks, hybrid, holiday calendars. P1 vs P3 SLA tiers per ticket type.
+- Add SLA preview on assignee selection: show projected breach likelihood based on assignee's avg response time.
+- Distinguish first-response SLA (queue row + thread header) from resolution SLA (ticket details). Show both separately — they're different metrics.
+- Ensure snooze and On-Hold both pause SLA per policy, but log them differently for audit purposes. Snooze = agent intentional, On-Hold = workflow state.
+- SLA badge appears in queue, thread header, dashboard widget, and customer email notifications — consistent across every surface.
+- Build immutable SLA audit log: ticket ID, SLA type, policy, breach duration, assignee at breach, actual first response time. No edits allowed.
+- SLA performance reporting at team level (not individual) to prevent gaming. Include SLA pauses and exclusions in the calculation.
+- Consider a "SLA Health" dashboard card: today's compliance %, at-risk count, breached count, trend vs. last 7 days.
+- Allow clients to see their SLA dashboard: real-time compliance %, breach log, average response time. White-label it to their brand.
+- Auto-send SLA status notifications to customers at milestones: "Your ticket has been assigned and will receive a response within 4 hours."
