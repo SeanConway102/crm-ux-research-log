@@ -44,6 +44,49 @@
 
 ---
 
+## Session 63 — 2026-04-02 08:30 UTC
+**Topic:** Notification & Alert UX for Ticketing CRMs
+
+### Key Insights
+
+1. **Notification fatigue is the #1 driver of notification opt-out — and it starts day one.** Facebook's research showed that reducing notification frequency initially decreased traffic but recovered fully over time with higher satisfaction. In a CRM, agents are exposed to notification volume all shift long. The fix isn't to send fewer critical alerts — it's to distinguish critical from routine at the delivery level. Routine notifications (ticket assigned, ticket updated, reply received) should be ambient: a quiet in-app feed, a badge count, a queue update. Only SLA-breach, priority-escalation, and assignment of high-priority tickets warrant push/distract. Start notifications slow by default; let agents opt into more as they learn their workflow.
+
+2. **Three severity tiers map directly to CRM event types — and each needs a different delivery channel.** High attention (alert + sound + push): SLA breach, P1 ticket assigned, queue overflow threshold hit. Medium attention (in-app badge + toast, no sound): new ticket assigned, customer replied, status auto-changed. Low attention (quiet badge only, no toast): draft saved, ticket updated internally, mention in internal note. Zendesk maps this across channels — alerts go to desktop push + email, assignments go to in-app badge, internal events stay in the feed. Never use a high-attention channel for a low-attention event.
+
+3. **The notification feed must be scannable and actionable — not a chronological firehose.** A flat chronological list of every ticket event is noise. Group by ticket: "Ticket #442 — 3 updates" with an expand to see "Assigned to Sarah · Customer replied · SLA at risk." This lets agents triage the feed by ticket, not by event. Read/unread state must be explicit and dismissible. Slack's threading and grouping is the reference model. An agent should be able to scan 20 notification items in 10 seconds and know what needs action.
+
+4. **Desktop push notifications must be interruptible and non-blocking — never modal.** A modal dialog ("Ticket #442 requires your attention!") forces an action before the agent can continue working. Push notifications should appear as a non-blocking corner toast (top-right on desktop) that auto-dismisses after 5 seconds unless hovered or clicked. If a notification requires acknowledgment (SLA breach), it should surface in the queue with a visual indicator — not block the agent mid-reply. The failure mode: agents working in a ticket get interrupted by a modal they must dismiss to continue, destroying flow state.
+
+5. **Per-agent notification preferences are essential — but must be role-aware defaults.** A frontline agent needs: new assignment alerts, SLA at-risk alerts, and customer reply alerts. A manager needs: SLA breach digest, team workload alerts, queue overflow alerts, but not every individual ticket assignment. Role-based defaults ensure agents get useful notifications from day one without configuration. Individual overrides should be allowed but scoped — agents shouldn't be able to disable SLA breach notifications entirely; managers should be able to gatekeep those. Intercom's notification preferences panel with role-based defaults is the reference.
+
+6. **Email notifications to agents must be a last resort, not a primary channel.** Agents who receive 40 email notifications per day start ignoring their inbox — including the urgent ones. Email should be reserved for: after-hours SLA breach alerts, digest summaries (daily or shift-end), and tickets assigned when the agent is offline. During-shift notifications should be in-app or desktop push only. The notification preference panel should clearly label email as "low-urgency fallback" not "primary channel." ServiceNow's "do not disturb" scheduling with automatic escalation rules is a good model.
+
+7. **Notification badges must reflect true actionability — a "5 unread" badge that never clears trains agents to ignore it.** If every notification is grouped and marked unread by default, the badge becomes meaningless. Mark notifications as read when: agent opens the ticket, agent explicitly dismisses the notification, or the underlying event is resolved. A badge count that accurately reflects "things you haven't acted on" is trusted; one that always shows a high number is ignored. Track dismiss rate and clear rate as quality signals — high dismiss without action means the notification wasn't useful.
+
+8. **"Mention" notifications in internal notes are underused and high-value — but only when targeted correctly.** When an agent writes an internal note and @mentions a colleague, that colleague should get an immediate notification. This creates a lightweight async collaboration channel without requiring a meeting or chat tool. Mentions must be explicitly triggered (not auto-detected keywords) to avoid noise. The mention notification should link directly to the ticket with the note highlighted. This pattern is standard in Slack and Notion but underimplemented in CRMs — agents resort to external Slack threads that break CRM context.
+
+9. **Notification batching by time window reduces interruptions without losing signal.** Instead of "Customer replied on Ticket #442" + "Customer replied on Ticket #443" as two separate notifications 30 seconds apart, batch them: "3 customer replies waiting" with a one-click "View all" that opens the queue filtered to those tickets. Batching windows should be configurable: 5 minutes (real-time feel), 15 minutes (flow-protecting), or immediate for SLA-critical only. Slack's notification batching and digest modes are the reference. Agents should never receive more than one notification per minute during active work.
+
+10. **Cross-channel notification state must be synced — seen on mobile = cleared on desktop.** An agent reads a notification on their phone during lunch. When they return to their desktop, that notification should be marked read. If the desktop still shows it as unread, it trains distrust of the notification system. Sync notification state across all channels (desktop app, web app, mobile app) within 30 seconds via the backend. This is a technical requirement, not a UX nice-to-have — agents use multiple devices and expect state to follow them.
+
+### How It Applies to Our CRM
+
+- Implement three severity tiers mapped to CRM events: SLA breach/P1 assigned → desktop push + sound; new assignment/customer reply → in-app toast + badge; internal updates → quiet badge only. Never escalate channels.
+- Build a grouped notification feed: group by ticket ("Ticket #442 — 3 updates"), show unread count per ticket, expand to see individual events. Make it scannable in 10 seconds.
+- Use non-blocking toast notifications (top-right, auto-dismiss 5s). SLA breaches surface in the queue as a visual indicator — not a modal that blocks the agent mid-workflow.
+- Set role-based notification defaults: frontline agents get assignment + SLA alerts; managers get digest + overflow alerts. Allow individual overrides within role constraints.
+- Treat email as a low-urgency fallback channel only. During-shift notifications are in-app or push. Email is for after-hours and digests.
+- Make notification badges accurate: clear when ticket is opened, when notification is explicitly dismissed, or when the event is resolved. Track dismiss/clear rates.
+- Implement @mention notifications in internal notes: agent types "@Sarah" → Sarah gets immediate notification linking directly to the ticket with the note highlighted.
+- Build configurable notification batching: 5-min or 15-min windows. Never send more than one notification per minute during active work.
+- Sync notification state across desktop app, web app, and mobile app within 30 seconds. Seen on mobile = cleared on desktop.
+- Add a "Do Not Disturb" mode: agent schedules focus time, notifications queue and deliver at end. After-hours automatically route to email.
+- Track notification metrics: delivery rate, read rate, dismiss rate, and SLA notification → action time. Low read/dismiss rates indicate notification fatigue — investigate.
+- Allow agents to "snooze notifications" for 30 minutes — useful during customer calls without going fully offline.
+- Surface notification preferences in the agent settings panel with a preview of how each channel will behave. Make it easy to change without an admin ticket.
+
+---
+
 ## Session 57 — 2026-04-02 01:30 UTC
 **Topic:** Forms & Field UX for Ticket Creation and Customer Data Entry
 
